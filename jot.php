@@ -127,12 +127,15 @@ class Jot extends CI_Model
 				return $this->$singularObject;
 			}
 		}
-		elseif ($this->is_row && isset($this->row->$var)) {
+		elseif ($this->is_row && property_exists($this->row, $var)) 
+		{
 			return $this->row()->$var;
 		}
-		elseif ($this->is_row && isset($this->row->row) && isset($this->row->row->$var)) {
+		elseif ($this->is_row && property_exists($this->row, 'row') && property_exists($this->row->row, $var)) 
+		{
 			return $this->row->row->$var;
 		}
+				
 		return true;
 	}
 	
@@ -472,7 +475,6 @@ WRITE FUNCTIONS
 
 			// Create Row
 			$this->db->insert($this->table_name, $create);
-		
 
 			// Get Row ID
 			$id = $this->db->insert_id();
@@ -480,7 +482,7 @@ WRITE FUNCTIONS
 			// Callbacks
 			$callbacks = $this->after_create + $this->after_save;
 			foreach($callbacks as $callback) $this->$callback($id);
-				
+							
 			return $this->first($id);
 		}	
 		
@@ -533,7 +535,7 @@ WRITE FUNCTIONS
 			}		
 		
 			unset($update[$this->primary_key]);
-		
+			
 			$this->db->update($this->table_name, $update, array($this->primary_key => $id));
 
 			// Callbacks
@@ -549,7 +551,9 @@ WRITE FUNCTIONS
 		$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
 		$conditions = is_array($conditions) ? $conditions : array();		
 		
-		$this->db->delete($this->table_name, $conditions);
+		$this->_find($conditions);
+		
+		$this->db->delete($this->table_name);
 
 		return true;
 	}
@@ -578,6 +582,9 @@ FINDERS
 	
 	public function first($conditions = array())
 	{
+		$conditions = is_numeric($conditions) || ! is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
+		$conditions = is_array($conditions) ? $conditions : array();
+				
 		$this->db->order_by($this->primary_key.' ASC');
 		$this->db->limit(1);
 		return $this->find($conditions);
@@ -585,6 +592,9 @@ FINDERS
 	
 	public function last($conditions = array())
 	{
+		$conditions = is_numeric($conditions) || ! is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
+		$conditions = is_array($conditions) ? $conditions : array();
+				
 		$this->db->order_by($this->primary_key.' DESC');
 		$this->db->limit(1);
 		return $this->find($conditions);
@@ -628,6 +638,7 @@ FINDERS
 			}
 		}
 
+		// Modify Cache
 		$r = $this->db->get();
 		$r->result_object();
 		for ($i=0, $len=count($r->result_object); $i<$len; $i++)
