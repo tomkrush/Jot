@@ -30,8 +30,33 @@ class Jot extends CI_Model
 	protected $base_join = null;
 	protected $row = null;
 	protected $is_row = false;
+
+	/*-------------------------------------------------
+	MAGIC METHODS
+	-------------------------------------------------*/
+	public function __construct() 
+	{
+		parent::__construct();
+		
+		$this->init();
+		
+		$this->_tablename();
+		
+		$this->load->helper('inflector');
+	}
 	
-	function __get($var) 
+	public function __isset($var)
+	{
+		if ($this->is_row && isset($this->row->$var)) {
+			return true;
+		}
+		elseif ($this->is_row && isset($this->row->row) && isset($this->row->row->$var)) {
+			return true;
+		}
+		return false;
+	}
+	
+	public function __get($var) 
 	{
 		$CI =& get_instance();
 		
@@ -111,64 +136,37 @@ class Jot extends CI_Model
 		return true;
 	}
 	
-	function __isset($var)
-	{
-		if ($this->is_row && isset($this->row->$var)) {
-			return true;
-		}
-		elseif ($this->is_row && isset($this->row->row) && isset($this->row->row->$var)) {
-			return true;
-		}
-		return false;
-	}
-	
-	function __construct() 
-	{
-		parent::__construct();
-		
-		$this->init();
-		
-		$this->_tablename();
-		
-		$this->load->helper('inflector');
-	}
-	
-	function init()
-	{
-
-	}
-	
 /*-------------------------------------------------
 RELATIONSHIPS
 -------------------------------------------------*/
-	function has_many($object, $settings = array())
+	protected function has_many($object, $settings = array())
 	{
 		$this->relationships['has_many'][$object] = $settings;
 		
 		$this->relationship_vars[] = plural($object);
 	}
 	
-	function has_one($object, $settings = array())
+	protected function has_one($object, $settings = array())
 	{
 		$this->relationships['has_one'][$object] = $settings;
 		
 		$this->relationship_vars[] = singular($object);
 	}
 	
-	function belongs_to($object, $settings = array())
+	protected function belongs_to($object, $settings = array())
 	{
 		$this->relationships['belongs_to'][$object] = $settings;
 		
 		$this->relationship_vars[] = singular($object);
 	}
 	
-	function set_base_filter($conditions)
+	protected function set_base_filter($conditions)
 	{
 		if (is_array($conditions) === false) return;
 		$this->base_filter = $conditions;
 	}
 	
-	function set_base_join($table, $on)
+	protected function set_base_join($table, $on)
 	{
 		$this->base_join = array($table, $on);
 	}
@@ -176,12 +174,13 @@ RELATIONSHIPS
 /*-------------------------------------------------
 ROW SET & GET
 -------------------------------------------------*/
-	function set_row($row)
+	protected function set_row($row)
 	{
 		$this->is_row = true;
 		$this->row = $row;
 	}
-	function row()
+	
+	protected function row()
 	{
 		if ($this->is_row) return $this->row;
 		return;
@@ -190,32 +189,32 @@ ROW SET & GET
 /*-------------------------------------------------
 CALLBACKS
 -------------------------------------------------*/
-	function before_save($callback)
+	protected function before_save($callback)
 	{
 		if ( method_exists($this, $callback) ) $this->before_save[] = $callback;
 	}
 	
-	function after_save($callback)
+	protected function after_save($callback)
 	{
 		if ( method_exists($this, $callback) ) $this->after_save[] = $callback;
 	}
 	
-	function before_create($callback)
+	protected function before_create($callback)
 	{
 		if ( method_exists($this, $callback) ) $this->before_create[] = $callback;
 	}
 	
-	function after_create($callback)
+	protected function after_create($callback)
 	{
 		if ( method_exists($this, $callback) ) $this->after_save[] = $callback;
 	}
 	
-	function before_validation($callback)
+	protected function before_validation($callback)
 	{
 		if ( method_exists($this, $callback) ) $this->before_validation[] = $callback;
 	}
 	
-	function after_validation($callback)
+	protected function after_validation($callback)
 	{
 		if ( method_exists($this, $callback) ) $this->after_validation[] = $callback;		
 	}
@@ -223,12 +222,12 @@ CALLBACKS
 /*-------------------------------------------------
 VALIDATION
 -------------------------------------------------*/	
-	function validates($field, $validators)
+	protected function validates($field, $validators)
 	{
 		$this->field_validations[$field] = $validators;
 	}
 
-	function validate($values)
+	public function validate($values)
 	{
 		$this->validates = TRUE;
 		$this->errors = array();
@@ -271,7 +270,7 @@ VALIDATION
 		return $this->validates;
 	}
 
-	function validate_presence($field, $value, $options)
+	protected function validate_presence($field, $value, $options)
 	{
 		if ( ! isset($value) || (isset($value) && $value == ''))
 		{
@@ -282,7 +281,7 @@ VALIDATION
 		return TRUE;
 	}
 	
-	function validate_uniqueness($field, $value, $options, $values)
+	protected function validate_uniqueness($field, $value, $options, $values)
 	{
 		if ( isset($value) )
 		{
@@ -314,7 +313,7 @@ VALIDATION
 		return TRUE;
 	}
 	
-	function validate_length($field, $value, $options)
+	protected function validate_length($field, $value, $options)
 	{
 		if ( isset($value) )
 		{
@@ -341,7 +340,7 @@ VALIDATION
 		return TRUE;
 	}
 	
-	public function validate_confirm($field, $value, $options, $values)
+	protected function validate_confirm($field, $value, $options, $values)
 	{
 		$confirm_field = "confirm_{$field}";
 		
@@ -364,7 +363,10 @@ VALIDATION
 		
 		return TRUE;		
 	}
-	
+
+/*-------------------------------------------------
+ERRORS
+-------------------------------------------------*/	
 	public function errors()
 	{
 		$errors = array();
@@ -380,7 +382,12 @@ VALIDATION
 /*-------------------------------------------------
 INITALIZERS
 -------------------------------------------------*/
-	function fields($fields)
+	public function init()
+	{
+
+	}
+	
+	protected function fields($fields)
 	{
 		$this->fields = func_get_args();
 		
@@ -390,22 +397,22 @@ INITALIZERS
 		}
 	}
 	
-	function transient($fields)
+	protected function transient($fields)
 	{
 		$this->transient = func_get_args();
 	}
 	
-	function tablename($table_name)
+	protected function tablename($table_name)
 	{
 		$this->table_name = $table_name;
 	}
 	
-	function has_timestamps($bool)
+	protected function has_timestamps($bool)
 	{
 		$this->timestamps = $bool;
 	}
 	
-	function _tablename()
+	protected function _tablename()
 	{
 		if ( empty($this->table_name) )
 		{
@@ -418,8 +425,7 @@ INITALIZERS
 /*-------------------------------------------------
 WRITE FUNCTIONS
 -------------------------------------------------*/	
-	
-	function create($values)
+	public function create($values)
 	{
 		$create = array();
 		
@@ -481,7 +487,7 @@ WRITE FUNCTIONS
 		return NULL;
 	}
 
-	function update($id, $values)
+	public function update($id, $values)
 	{
 		$update = array();
 		
@@ -538,7 +544,7 @@ WRITE FUNCTIONS
 		return $this->first($id);		
 	}
 
-	function destroy($conditions = NULL)
+	public function destroy($conditions = NULL)
 	{
 		$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
 		$conditions = is_array($conditions) ? $conditions : array();		
@@ -551,7 +557,7 @@ WRITE FUNCTIONS
 /*-------------------------------------------------
 FINDERS
 -------------------------------------------------*/	
-	function exists($conditions = array())
+	public function exists($conditions = array())
 	{
 		$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
 		$conditions = is_array($conditions) ? $conditions : array();
@@ -561,7 +567,7 @@ FINDERS
 		return $this->db->count_all_results() ? TRUE : FALSE;		
 	}	
 	
-	function count($conditions = array())
+	public function count($conditions = array())
 	{
 		$conditions = is_array($conditions) ? $conditions : array();
 
@@ -570,26 +576,26 @@ FINDERS
 		return $this->db->count_all_results();		
 	}
 	
-	function first($conditions = array())
+	public function first($conditions = array())
 	{
 		$this->db->order_by($this->primary_key.' ASC');
 		$this->db->limit(1);
 		return $this->find($conditions);
 	}
 	
-	function last($conditions = array())
+	public function last($conditions = array())
 	{
 		$this->db->order_by($this->primary_key.' DESC');
 		$this->db->limit(1);
 		return $this->find($conditions);
 	}
 	
-	function all($conditions = array())
+	public function all($conditions = array())
 	{
 		return $this->find($conditions ? $conditions : array(), 1, 0);		
 	}
 	
-	function find($conditions = array(), $page = 1, $limit = 10)
+	public function find($conditions = array(), $page = 1, $limit = 10)
 	{
 		if ( is_array($conditions) && ! $this->_is_assoc($conditions) )
 		{
@@ -634,7 +640,7 @@ FINDERS
 		return $r;		
 	}
 	
-	private function field_exists($field)
+	protected function field_exists($field)
 	{
 		list($field) = explode(' ', $field); 
 		
@@ -650,7 +656,7 @@ FINDERS
 		return in_array($field, $fields);
 	}
 	
-	function _find($conditions = array())
+	protected function _find($conditions = array())
 	{	
 		if ( is_array($conditions) )
 		{
@@ -673,9 +679,9 @@ FINDERS
 		$this->db->from($this->table_name);
 	}
 
-	/*-------------------------------------------------
-	DEPENDENCIES
-	-------------------------------------------------*/	
+/*-------------------------------------------------
+DEPENDENCIES
+-------------------------------------------------*/	
 	private function _is_assoc($array) 
 	{
 	    return (is_array($array) && (count($array)==0 || 0 !== count(array_diff_key($array, array_keys(array_keys($array))) )));
