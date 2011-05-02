@@ -80,11 +80,11 @@ class Jot extends CI_Model
 	}
 	
 	public function __isset($var)
-	{
-		if ($this->is_row && isset($this->row->$var)) {
+	{		
+		if ($this->is_row && property_exists($this->row, $var)) {
 			return true;
 		}
-		elseif ($this->is_row && isset($this->row->row) && isset($this->row->row->$var)) {
+		elseif ($this->is_row && property_exists($this->row, 'row') && property_exists($this->row->row, $var)) {
 			return true;
 		}
 		return false;
