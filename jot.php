@@ -103,7 +103,7 @@ class Jot extends CI_Model
 				$modelName = ucwords($pluralObject).'_Model';
 
 				if (array_key_exists($var, $this->relationships['has_one']))
-				{	
+				{
 					$this->load->model($modelName);
 					
 					$conditions = $arguments[0];
@@ -177,10 +177,7 @@ class Jot extends CI_Model
 					//load model
 					$this->load->model($modelName);
 					
-					//create instance of model and base_filter
-
-						
-										
+					//create instance of model and base_filter										
 					$singularModel = $this->$singularObject = clone $this->$modelName;
 					$object = $singularModel->first(array(singular($this->table_name).'_id' => $this->row->id));
 					

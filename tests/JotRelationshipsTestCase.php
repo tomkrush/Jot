@@ -83,4 +83,32 @@ class JotRelationshipsTestCase extends UnitTestCase
 		
 		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
 	}
+	
+	public function test_chained_relationships()
+	{
+		$CI =& get_instance();
+	
+		$page = $CI->pages_model->create(array(
+			'name' => 'Page',
+			'slug' => 'Slug'
+		));
+		
+		$this->assertTrue($page, 'Page should exist');
+		
+		$blog = $page->create_blog(array(
+			'name' => 'Blog',
+			'slug' => 'blog'
+		));
+		
+		$this->assertTrue($blog, 'Blog should exist');
+		
+		$article = $blog->articles->create(array(
+			'title' => 'test',
+			'contents' => 'testing the article'
+		));	
+						
+		$this->assertTrue($article, 'Article should exist');
+		
+		$this->assertEquals('Page', $article->blog->page->name, 'Page name is correct');	
+	}
 }
