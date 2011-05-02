@@ -526,6 +526,7 @@ WRITE FUNCTIONS
 	public function update($id, $values)
 	{
 		$update = array();
+		$primary_key_changed = FALSE;
 		
 		foreach($this->fields as $field)
 		{
@@ -543,7 +544,17 @@ WRITE FUNCTIONS
 			}
 		}
 		
-		$update[$this->primary_key] = $id;
+		if (array_key_exists($this->primary_key, $values)) 
+		{
+			$update[$this->primary_key] = $values[$this->primary_key];
+			$primary_key_changed = TRUE;
+			$new_id = $values[$this->primary_key];
+		}
+		else
+		{
+			$update[$this->primary_key] = $id;
+			$new_id = $id;
+		}
 
 		if ( $this->validate($update) )
 		{
@@ -568,16 +579,19 @@ WRITE FUNCTIONS
 				}
 			}		
 		
-			unset($update[$this->primary_key]);
+			if ( ! $primary_key_changed )
+			{
+				unset($update[$this->primary_key]);
+			}
 			
 			$this->db->update($this->table_name, $update, array($this->primary_key => $id));
-
+			
 			// Callbacks
 			$callbacks = $this->after_save;
 			foreach($callbacks as $callback) $this->$callback($id);	
 		}
 
-		return $this->first($id);		
+		return $this->first($new_id);		
 	}
 
 	public function destroy($conditions = NULL)
