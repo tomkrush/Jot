@@ -45,6 +45,40 @@ class Jot extends CI_Model
 		$this->load->helper('inflector');
 	}
 	
+	public function __toString()
+	{		
+		$string = '';
+		
+		$string .= ucfirst($this->table_name);
+		
+		if ( $this->is_row )
+		{
+			$fields = (array)$this->row;
+			$fields_strings = array();
+			
+			foreach($fields as $key => $value)
+			{
+				if ($key == 'created_at' || $key == 'updated_at')
+				{
+					$value = date('"F j, Y, g:i a"', $value);
+				}
+				else if ( is_string($value) )
+				{
+					$value = '"'.$value.'"';
+				}
+				
+				if ( $value )
+				{
+					$fields_strings[] = $key.': '.$value;
+				}
+			}
+			
+			$string .= ' '.implode(', ', $fields_strings);
+		}
+		
+		return $string;
+	}
+	
 	public function __isset($var)
 	{
 		if ($this->is_row && isset($this->row->$var)) {
