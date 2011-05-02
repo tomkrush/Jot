@@ -9,28 +9,41 @@ class JotRelationshipsTestCase extends UnitTestCase
 		$CI->load->dbutil();
 		
 		$CI->load->model(array('blogs_model', 'articles_model'));
+	}
+	
+	public function setup()
+	{
+		$CI =& get_instance();
 
 		$CI->db->truncate('blogs');
 		$CI->db->truncate('articles');
-
-		$this->build();
+		
+		// for($i = 0; $i < 3; $i++)
+		// {
+		// 	$CI->blogs_model->create(array(
+		// 		'name' => 'Blog #'.$i,
+		// 		'slug' => 'blog_'.$i
+		// 	));
+		// }		
 	}
 	
-	public function build()
+	public function test_has_many_relationship()
 	{
 		$CI =& get_instance();
 		
-		for($i = 0; $i < 3; $i++)
-		{
-			$CI->blogs_model->create(array(
-				'name' => 'Blog #'.$i,
-				'slug' => 'blog_'.$i
-			));
-		}
-	}
-	
-	public function test_count()
-	{
+		$blog = $CI->blogs_model->create(array(
+			'name' => 'Blog #2',
+			'slug' => 'blog' 
+		))->row();
 		
+		$article = $blog->articles->create(array(
+			'title' => 'Article Title',
+			'contents' => 'Testing'
+		))->row();
+		
+		// $article = $blog->articles->create(array(
+		// 	'title' => 'Article Title 2',
+		// 	'contents' => 'Testing'
+		// ))->row();
 	}
 }
