@@ -464,7 +464,7 @@ WRITE FUNCTIONS
 -------------------------------------------------*/	
 	public function create($values)
 	{
-		$create = array();
+		$create = $this->base_filter;
 		
 		foreach($this->fields as $field)
 		{
