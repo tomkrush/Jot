@@ -8,10 +8,11 @@ class JotFindTestCase extends UnitTestCase
 		$CI->load->database();
 		$CI->load->dbutil();
 		
-		$CI->load->model(array('blogs_model', 'articles_model'));
+		$CI->load->model(array('blogs_model', 'articles_model', 'pages_model'));
 
 		$CI->db->truncate('blogs');
 		$CI->db->truncate('articles');
+		$CI->db->truncate('pages');
 
 		$this->build();
 	}
@@ -27,6 +28,11 @@ class JotFindTestCase extends UnitTestCase
 				'slug' => 'blog_'.$i
 			));
 		}
+		
+		$CI->pages_model->create(array(
+			'name' => 'Homepage',
+			'slug' => 'index'
+		));
 	}
 	
 	public function test_count()
@@ -72,6 +78,9 @@ class JotFindTestCase extends UnitTestCase
 		
 		$blog = $CI->blogs_model->first(array('name' => 'Blog #1'));
 		$this->assertTrue($blog, 'Blog is returned with conditions');
+		
+		$page = $CI->pages_model->first();
+		$this->assertEquals('http://example.com/index', $page->prepared_url(), 'method should work correctly');
 	}
 	
 	public function test_last()
