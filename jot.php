@@ -2,7 +2,7 @@
 
 class Jot extends CI_Model 
 {
-	protected $table_name = '';
+	public $table_name = '';
 	protected $timestamps = TRUE;
 	protected $fields = array();
 	protected $transient = array();
@@ -90,6 +90,45 @@ class Jot extends CI_Model
 		return false;
 	}
 	
+	public function __call($name, $arguments)
+	{
+		if ( substr($name, 0, 7) == 'create_' )
+		{
+			$var = strtolower(substr($name, 7));
+			
+			if ($this->is_row && in_array($var, $this->relationship_vars))
+			{
+				$pluralObject   = plural(strtolower($var));
+				$singularObject = singular(strtolower($var));
+				$modelName = ucwords($pluralObject).'_Model';
+
+				if (array_key_exists($var, $this->relationships['has_one']))
+				{	
+					$this->load->model($modelName);
+					
+					$conditions = $arguments[0];
+					
+					$conditions[singular($this->table_name).'_id']= $this->row->id;
+
+					return $this->$modelName->create($conditions);
+				}	
+				elseif (array_key_exists($var, $this->relationships['belongs_to']))
+				{					
+					$conditions = $arguments[0];
+					
+					$belongsTo = $this->$modelName->create($conditions);
+					
+					$row = (array)$this->row;
+					
+					$update = array(singular($belongsTo->table_name).'_id' => $belongsTo->id);
+					$this->db->update($this->table_name, $update, array($this->primary_key => $row[$this->primary_key]));
+					
+					return $belongsTo;
+				}
+			}			
+		}
+	}
+	
 	public function __get($var) 
 	{
 		$CI =& get_instance();
@@ -139,8 +178,13 @@ class Jot extends CI_Model
 					$this->load->model($modelName);
 					
 					//create instance of model and base_filter
-					$this->$singularObject = clone $this->$modelName;
-					$this->$singularObject->set_row($this->$singularObject->first(array(singular($this->table_name).'_id' => $this->row->id))->row());
+
+						
+										
+					$singularModel = $this->$singularObject = clone $this->$modelName;
+					$object = $singularModel->first(array(singular($this->table_name).'_id' => $this->row->id));
+					
+					$singularModel->set_row($singularModel->first(array(singular($this->table_name).'_id' => $this->row->id)));
 				}
 				return $this->$singularObject;
 			}

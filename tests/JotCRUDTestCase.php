@@ -51,8 +51,19 @@ class JotCRUDTestCase extends UnitTestCase
 
 		$this->assertEquals(array(), $blog->errors(), 'There should be zero errors');
 	
+		$this->assertEquals(1, $blog->id, "ID should be the same");
 		$this->assertEquals('test', $blog->name, "Name should be updated");
 		$this->assertEquals('blog-1', $blog->slug, "Slug should be the same");	
+		
+		$blog = $CI->blogs_model->update($blog->id, array(
+			'id' => 3,
+			'name' => 'testa',
+			'slug' => 'testa'
+		));
+
+		$this->assertEquals(3, $blog->id, "ID should be updated");
+		$this->assertEquals('testa', $blog->name, "Name should be updated");
+		$this->assertEquals('testa', $blog->slug, "Slug should be the same");	
 	}
 	
 	public function test_destroy_single()
