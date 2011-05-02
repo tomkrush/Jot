@@ -503,6 +503,23 @@ INITALIZERS
 /*-------------------------------------------------
 WRITE FUNCTIONS
 -------------------------------------------------*/	
+	public function temporary($values)
+	{
+		$row = array();
+		
+		foreach($this->fields as $field)
+		{
+			$value = array_key_exists($field, $values) ? $values[$field] : NULL;
+			
+			$row[$field] = $value;
+		}
+		
+		$temporaryObject = clone $this;
+		$temporaryObject->set_row((object)$row);
+		
+		return $temporaryObject;
+	}
+
 	public function create($values)
 	{
 		$create = $this->base_filter;
