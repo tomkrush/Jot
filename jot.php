@@ -642,9 +642,7 @@ WRITE FUNCTIONS
 		
 		$this->_find($conditions);
 		
-		$this->db->delete($this->table_name);
-
-		return true;
+		return !!$this->db->delete($this->table_name);
 	}
 	
 /*-------------------------------------------------
