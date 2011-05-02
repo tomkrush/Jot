@@ -621,7 +621,8 @@ FINDERS
 				
 		$this->db->order_by($this->primary_key.' ASC');
 		$this->db->limit(1);
-		return $this->find($conditions);
+		$result = $this->find($conditions);
+		return count($result) ? $result[0] : NULL;
 	}
 	
 	public function last($conditions = array())
@@ -631,7 +632,8 @@ FINDERS
 				
 		$this->db->order_by($this->primary_key.' DESC');
 		$this->db->limit(1);
-		return $this->find($conditions);
+		$result = $this->find($conditions);
+		return count($result) ? $result[0] : NULL;
 	}
 	
 	public function all($conditions = array())
@@ -675,14 +677,15 @@ FINDERS
 		// Modify Cache
 		$r = $this->db->get();
 		$r->result_object();
+		$result = array();
 		for ($i=0, $len=count($r->result_object); $i<$len; $i++)
 		{
 			$obj = clone $this;
 			$obj->set_row($r->result_object[$i]);
-			$r->result_object[$i] = $obj;
+			$result[] = $obj;
 		}
 
-		return $r;		
+		return $result;		
 	}
 	
 	protected function field_exists($field)

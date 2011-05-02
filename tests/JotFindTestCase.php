@@ -70,7 +70,7 @@ class JotFindTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->first(1);
 		$this->assertTrue($blog, 'Blog is returned with id');
 		
-		$blog = $CI->blogs_model->first(array('name' => 'Blog #1'))->row();
+		$blog = $CI->blogs_model->first(array('name' => 'Blog #1'));
 		$this->assertTrue($blog, 'Blog is returned with conditions');
 	}
 	
@@ -84,7 +84,7 @@ class JotFindTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->last(1);
 		$this->assertTrue($blog, 'Blog is returned with id');
 		
-		$blog = $CI->blogs_model->last(array('name' => 'Blog #1'))->row();
+		$blog = $CI->blogs_model->last(array('name' => 'Blog #1'));
 		$this->assertTrue($blog, 'Blog is returned with conditions');		
 	}
 	
@@ -92,24 +92,24 @@ class JotFindTestCase extends UnitTestCase
 	{
 		$CI =& get_instance();
 
-		$blog = $CI->blogs_model->all();
-		$this->assertEquals(20, $blog->num_rows, 'Blog should return specified number rows');
+		$blogs = $CI->blogs_model->all();
+		$this->assertEquals(20, count($blogs), 'Blog should return specified number rows');
 		
-		$blog = $CI->blogs_model->all(array('id <' => 4));
-		$this->assertEquals(3, $blog->num_rows, 'Blog should return specified number rows');
+		$blogs = $CI->blogs_model->all(array('id <' => 4));
+		$this->assertEquals(3, count($blogs), 'Blog should return specified number rows');
 	}
 	
 	public function test_find()
 	{
 		$CI =& get_instance();
 
-		$blog = $CI->blogs_model->find(NULL, 1, 20);
-		$this->assertEquals(20, $blog->num_rows, 'Blog should return specified number rows');
+		$blogs = $CI->blogs_model->find(NULL, 1, 20);
+		$this->assertEquals(20, count($blogs), 'Blog should return specified number rows');
 
-		$blog = $CI->blogs_model->find(NULL, 1, 10);
-		$this->assertEquals(10, $blog->num_rows, 'Limit affects return');
+		$blogs = $CI->blogs_model->find(NULL, 1, 10);
+		$this->assertEquals(10, count($blogs), 'Limit affects return');
 
-		$blog = $CI->blogs_model->find(array('id <' => 7), 1, 5);
-		$this->assertEquals(5, $blog->num_rows, 'Condition and limit will affect returned result');
+		$blogs = $CI->blogs_model->find(array('id <' => 7), 1, 5);
+		$this->assertEquals(5, count($blogs), 'Condition and limit will affect returned result');
 	}
 }

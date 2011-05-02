@@ -25,7 +25,7 @@ class JotCRUDTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
-		))->row();
+		));
 
 		$this->assertEquals(array(), $blog->errors(), 'There should be zero errors');
 
@@ -42,12 +42,12 @@ class JotCRUDTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
-		))->row();	
+		));	
 
 		$blog = $CI->blogs_model->update($blog->id, array(
 			'name' => 'test',
 			'slug' => 'blog-1'
-		))->row();
+		));
 
 		$this->assertEquals(array(), $blog->errors(), 'There should be zero errors');
 	
@@ -62,7 +62,7 @@ class JotCRUDTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
-		))->row();	
+		));	
 
 		$blog = $CI->blogs_model->destroy($blog->id);
 
@@ -76,12 +76,12 @@ class JotCRUDTestCase extends UnitTestCase
 		$blog1 = $CI->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
-		))->row();
+		));
 		
 		$blog2 = $CI->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'Blog #2',
-		))->row();	
+		));	
 				
 		$result = $CI->blogs_model->destroy(array('id' => array($blog1->id, $blog2->id)));
 

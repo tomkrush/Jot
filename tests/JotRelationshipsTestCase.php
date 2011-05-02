@@ -16,15 +16,7 @@ class JotRelationshipsTestCase extends UnitTestCase
 		$CI =& get_instance();
 
 		$CI->db->truncate('blogs');
-		$CI->db->truncate('articles');
-		
-		// for($i = 0; $i < 3; $i++)
-		// {
-		// 	$CI->blogs_model->create(array(
-		// 		'name' => 'Blog #'.$i,
-		// 		'slug' => 'blog_'.$i
-		// 	));
-		// }		
+		$CI->db->truncate('articles');		
 	}
 	
 	public function test_has_many_relationship()
@@ -34,16 +26,24 @@ class JotRelationshipsTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
-		))->row();
+		));
 		
 		$article = $blog->articles->create(array(
 			'title' => 'Article Title',
 			'contents' => 'Testing'
-		))->row();
+		));
 		
-		// $article = $blog->articles->create(array(
-		// 	'title' => 'Article Title 2',
-		// 	'contents' => 'Testing'
-		// ))->row();
+		$this->assertEquals('blog', $article->blog->slug, 'Slugs should be the same');
+		$this->assertEquals('Blog #2', $article->blog->name, 'Slugs should be the same');
+		
+		$article = $CI->articles_model->first();
+		$this->assertEquals('blog', $article->blog->slug, 'Slug should be the correct');
+		
+		$article2 = $blog->articles->create(array(
+			'title' => 'Article Title 2',
+			'contents' => 'Testing'
+		));
+		
+		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
 	}
 }

@@ -26,13 +26,8 @@ class JotTestCase extends UnitTestCase
 		$blog = $CI->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
-		))->row();
+		));
 		
 		$this->assertTrue($blog, 'string is returned');
-
-		// $article = $blog->articles->create(array(
-		// 	'title' => 'Article Title 2',
-		// 	'contents' => 'Testing'
-		// ))->row();
 	}
 }
