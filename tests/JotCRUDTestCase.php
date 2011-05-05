@@ -22,6 +22,12 @@ class JotCRUDTestCase extends UnitTestCase
 	{
 		$CI =& get_instance();
 
+		$blog = $CI->blogs_model->temporary();
+		$this->assertEquals(NULL, $blog->name, "Name should stay the same and return from database");
+		$this->assertEquals(NULL, $blog->slug, "Slug should transform and return correctly from database");
+		$this->assertEquals(NULL, $blog->description, "Description should return NULL");
+		$this->assertEquals(NULL, $blog->rss_url, "RSS URL should return NULL");
+
 		$blog = $CI->blogs_model->temporary(array(
 			'name' => 'Blog #1',
 			'slug' => 'blog-1'

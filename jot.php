@@ -503,9 +503,11 @@ INITALIZERS
 /*-------------------------------------------------
 WRITE FUNCTIONS
 -------------------------------------------------*/	
-	public function temporary($values)
+	public function temporary($values = array())
 	{
 		$row = array();
+		
+		$values = is_array($values) ? $values : array();
 		
 		foreach($this->fields as $field)
 		{
@@ -725,6 +727,7 @@ FINDERS
 		{
 			$conditions = array_merge($this->base_filter, $conditions);
 		}
+		
 		if ($this->base_join !== null)
 		{
 			$this->db->join($this->base_join[0], $this->base_join[1]);
