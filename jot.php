@@ -190,10 +190,10 @@ class Jot extends CI_Model
 						$this->load->model($modelName);
 						
 						//create instance of model and base_filter										
-						$singularModel = $this->$singularObject = clone $this->$modelName;
+						$this->$singularObject = $this->$singularObject = clone $this->$modelName;
 						$object = $singularModel->first(array(singular($this->table_name).'_id' => $this->row->id));
 						
-						$singularModel->set_row($singularModel->first(array(singular($this->table_name).'_id' => $this->row->id)));
+						//$singularModel->set_row($singularModel->first(array(singular($this->table_name).'_id' => $this->row->id)));
 					}
 				}
 				return $this->$singularObject;
