@@ -172,16 +172,29 @@ class Jot extends CI_Model
 			{
 				if (!isset($this->$singularObject))
 				{
-					$modelName = ucwords($pluralObject).'_Model';
-					
-					//load model
-					$this->load->model($modelName);
-					
-					//create instance of model and base_filter										
-					$singularModel = $this->$singularObject = clone $this->$modelName;
-					$object = $singularModel->first(array(singular($this->table_name).'_id' => $this->row->id));
-					
-					$singularModel->set_row($singularModel->first(array(singular($this->table_name).'_id' => $this->row->id)));
+					if (isset($this->relationships['has_one'][$var]['as']))
+					{
+						$modelName = ucwords($pluralObject).'_Model';
+						
+						//load model
+						$this->load->model($modelName);	
+								
+						$singularModel = clone $this->$modelName;
+						$this->$singularObject = $singularModel->first(array($this->relationships['has_one'][$var]['as'].'_id' => $this->row->id, $this->relationships['has_one'][$var]['as'].'_type' => singular($this->table_name)));
+					}
+					else
+					{
+						$modelName = ucwords($pluralObject).'_Model';
+						
+						//load model
+						$this->load->model($modelName);
+						
+						//create instance of model and base_filter										
+						$this->$singularObject = $this->$singularObject = clone $this->$modelName;
+						$object = $singularModel->first(array(singular($this->table_name).'_id' => $this->row->id));
+						
+						//$singularModel->set_row($singularModel->first(array(singular($this->table_name).'_id' => $this->row->id)));
+					}
 				}
 				return $this->$singularObject;
 			}
@@ -189,15 +202,34 @@ class Jot extends CI_Model
 			{
 				if (!isset($this->$singularObject))
 				{
-					$modelName = ucwords($pluralObject).'_Model';
-					
-					//load model
-					$this->load->model($modelName);
-					
-					//create instance of model and base_filter
-					$this->$singularObject = clone $this->$modelName;
-					$field = $singularObject.'_id';
-					$this->$singularObject->set_row($this->$singularObject->first(array('id' => $this->row->$field))->row());
+					if (isset($this->relationships['belongs_to'][$var]['polymorphic']) && $this->relationships['belongs_to'][$var]['polymorphic'] === true)
+					{
+						$field = $singularObject.'_type';
+						$type = $this->row->$field;
+						$pluralObject = plural(strtolower($type));
+						
+						$modelName = ucwords($pluralObject).'_Model';
+						
+						//load model
+						$this->load->model($modelName);
+						
+						//create instance of model and base_filter
+						$this->$singularObject = clone $this->$modelName;
+						$field = $singularObject.'_id';
+						$this->$singularObject->set_row($this->$singularObject->first($this->row->$field));
+					}
+					else
+					{
+						$modelName = ucwords($pluralObject).'_Model';
+						
+						//load model
+						$this->load->model($modelName);
+						
+						//create instance of model and base_filter
+						$this->$singularObject = clone $this->$modelName;
+						$field = $singularObject.'_id';
+						$this->$singularObject->set_row($this->$singularObject->first(array('id' => $this->row->$field))->row());
+					}
 				}
 				return $this->$singularObject;
 			}
@@ -688,7 +720,7 @@ FINDERS
 	
 	public function first($conditions = array())
 	{
-		$conditions = is_numeric($conditions) || ! is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
+		$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;
 		$conditions = is_array($conditions) ? $conditions : array();
 				
 		$this->db->order_by($this->primary_key.' ASC');
@@ -699,7 +731,7 @@ FINDERS
 	
 	public function last($conditions = array())
 	{
-		$conditions = is_numeric($conditions) || ! is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
+		$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
 		$conditions = is_array($conditions) ? $conditions : array();
 				
 		$this->db->order_by($this->primary_key.' DESC');
