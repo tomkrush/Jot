@@ -536,7 +536,7 @@ INITALIZERS
 /*-------------------------------------------------
 WRITE FUNCTIONS
 -------------------------------------------------*/	
-	public function temporary($values = array())
+	public function build($values = array())
 	{
 		$row = array();
 		
