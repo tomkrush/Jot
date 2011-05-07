@@ -533,6 +533,16 @@ INITALIZERS
 		return $this->table_name;
 	}
 	
+	public function singularTableName()
+	{
+		return strtolower(singular($this->table_name));
+	}
+	
+	public function pluralTableName()
+	{
+		return strtolower(plural($this->table_name));		
+	}
+	
 /*-------------------------------------------------
 WRITE FUNCTIONS
 -------------------------------------------------*/	

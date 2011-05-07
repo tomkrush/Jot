@@ -4,31 +4,26 @@ class JotCRUDTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		
-		$CI =& get_instance();
-		$CI->load->database();
-		$CI->load->dbutil();
+		$this->load->database();
+		$this->load->dbutil();
 		
-		$CI->load->model(array('blogs_model'));
+		$this->load->model(array('blogs_model'));
 	}
 	
 	public function setup()
 	{
-		$CI =& get_instance();
-		
-		$CI->db->truncate('blogs');
+		$this->db->truncate('blogs');
 	}
 	
 	public function test_build()
 	{
-		$CI =& get_instance();
-
-		$blog = $CI->blogs_model->build();
+		$blog = $this->blogs_model->build();
 		$this->assertEquals(NULL, $blog->name, "Name should stay the same and return from database");
 		$this->assertEquals(NULL, $blog->slug, "Slug should transform and return correctly from database");
 		$this->assertEquals(NULL, $blog->description, "Description should return NULL");
 		$this->assertEquals(NULL, $blog->rss_url, "RSS URL should return NULL");
 
-		$blog = $CI->blogs_model->build(array(
+		$blog = $this->blogs_model->build(array(
 			'name' => 'Blog #1',
 			'slug' => 'blog-1'
 		));
@@ -41,9 +36,7 @@ class JotCRUDTestCase extends UnitTestCase
 	
 	public function test_create()
 	{
-		$CI =& get_instance();
-		
-		$blog = $CI->blogs_model->create(array(
+		$blog = $this->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
 		));
@@ -58,14 +51,12 @@ class JotCRUDTestCase extends UnitTestCase
 	
 	public function test_update()
 	{
-		$CI =& get_instance();
-		
-		$blog = $CI->blogs_model->create(array(
+		$blog = $this->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
 		));	
 
-		$blog = $CI->blogs_model->update($blog->id, array(
+		$blog = $this->blogs_model->update($blog->id, array(
 			'name' => 'test',
 			'slug' => 'blog-1'
 		));
@@ -76,7 +67,7 @@ class JotCRUDTestCase extends UnitTestCase
 		$this->assertEquals('test', $blog->name, "Name should be updated");
 		$this->assertEquals('blog-1', $blog->slug, "Slug should be the same");	
 		
-		$blog = $CI->blogs_model->update($blog->id, array(
+		$blog = $this->blogs_model->update($blog->id, array(
 			'id' => 3,
 			'name' => 'testa',
 			'slug' => 'testa'
@@ -89,33 +80,29 @@ class JotCRUDTestCase extends UnitTestCase
 	
 	public function test_destroy_single()
 	{
-		$CI =& get_instance();
-		
-		$blog = $CI->blogs_model->create(array(
+		$blog = $this->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
 		));	
 
-		$blog = $CI->blogs_model->destroy($blog->id);
+		$blog = $this->blogs_model->destroy($blog->id);
 
 		$this->assertTrue($blog, 'Blog should have been deleted');
 	}
 	
 	public function test_destroy_multiple()
 	{
-		$CI =& get_instance();
-		
-		$blog1 = $CI->blogs_model->create(array(
+		$blog1 = $this->blogs_model->create(array(
 			'name' => 'Blog #1',
 			'slug' => 'Blog #1',
 		));
 		
-		$blog2 = $CI->blogs_model->create(array(
+		$blog2 = $this->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'Blog #2',
 		));	
 				
-		$result = $CI->blogs_model->destroy(array('id' => array($blog1->id, $blog2->id)));
+		$result = $this->blogs_model->destroy(array('id' => array($blog1->id, $blog2->id)));
 
 		$this->assertTrue($result, 'Blogs should have been deleted');
 	}

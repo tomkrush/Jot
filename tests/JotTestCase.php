@@ -4,30 +4,36 @@ class JotTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		
-		$CI =& get_instance();
-		$CI->load->database();
-		$CI->load->dbutil();
+		$this->load->database();
+		$this->load->dbutil();
 		
-		$CI->load->model(array('blogs_model', 'articles_model'));
+		$this->load->model(array('blogs_model', 'articles_model'));
 	}
 	
 	public function setup()
 	{
-		$CI =& get_instance();
-
-		$CI->db->truncate('blogs');
-		$CI->db->truncate('articles');	
+		$this->db->truncate('blogs');
+		$this->db->truncate('articles');	
 	}
 	
 	public function test_to_string()
-	{
-		$CI =& get_instance();
-		
-		$blog = $CI->blogs_model->create(array(
+	{		
+		$blog = $this->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
 		
 		$this->assertTrue($blog, 'string is returned');
+	}
+	
+	public function test_inflection()
+	{		
+		$blog = $this->blogs_model->build(array(
+			'name' => 'Blog #2',
+			'slug' => 'blog' 
+		));
+		
+		$this->assertEquals('blog', $blog->singularTableName(), 'Should be singluar');
+		$this->assertEquals('blogs', $blog->pluralTableName(), 'Should be singluar');
 	}
 }

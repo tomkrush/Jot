@@ -3,28 +3,23 @@
 class JotRelationshipsTestCase extends UnitTestCase
 {
 	public function __construct()
-	{		
-		$CI =& get_instance();
-		$CI->load->database();
-		$CI->load->dbutil();
+	{
+		$this->load->database();
+		$this->load->dbutil();
 		
-		$CI->load->model(array('blogs_model', 'articles_model', 'pages_model'));
+		$this->load->model(array('blogs_model', 'articles_model', 'pages_model'));
 	}
 	
 	public function setup()
 	{
-		$CI =& get_instance();
-
-		$CI->db->truncate('blogs');
-		$CI->db->truncate('articles');	
-		$CI->db->truncate('pages');	
+		$this->db->truncate('blogs');
+		$this->db->truncate('articles');	
+		$this->db->truncate('pages');	
 	}
 	
 	public function test_has_one_relationship()
 	{
-		$CI =& get_instance();
-		
-		$blog = $CI->blogs_model->create(array(
+		$blog = $this->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
@@ -40,9 +35,7 @@ class JotRelationshipsTestCase extends UnitTestCase
 
 	public function test_belongs_to_relationship()
 	{
-		$CI =& get_instance();
-		
-		$page = $CI->pages_model->create(array(
+		$page = $this->pages_model->create(array(
 			'name' => 'Page',
 			'slug' => 'page' 
 		));
@@ -57,10 +50,8 @@ class JotRelationshipsTestCase extends UnitTestCase
 	}
 	
 	public function test_has_many_relationship()
-	{
-		$CI =& get_instance();
-		
-		$blog = $CI->blogs_model->create(array(
+	{	
+		$blog = $this->blogs_model->create(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
@@ -73,7 +64,7 @@ class JotRelationshipsTestCase extends UnitTestCase
 		$this->assertEquals('blog', $article->blog->slug, 'Slugs should be the same');
 		$this->assertEquals('Blog #2', $article->blog->name, 'Names should be the same');
 		
-		$article = $CI->articles_model->first();
+		$article = $this->articles_model->first();
 		$this->assertEquals('blog', $article->blog->slug, 'Slug should be the correct');
 		
 		$article2 = $blog->articles->create(array(
@@ -86,9 +77,7 @@ class JotRelationshipsTestCase extends UnitTestCase
 	
 	public function test_chained_relationships()
 	{
-		$CI =& get_instance();
-	
-		$page = $CI->pages_model->create(array(
+		$page = $this->pages_model->create(array(
 			'name' => 'Page',
 			'slug' => 'Slug'
 		));
