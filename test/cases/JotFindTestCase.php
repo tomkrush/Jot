@@ -7,7 +7,7 @@ class JotFindTestCase extends UnitTestCase
 		$this->load->database();
 		$this->load->dbutil();
 		
-		$this->load->model(array('blogs_model', 'articles_model', 'pages_model'));
+		$this->load->model(array('blog_model', 'articles_model', 'pages_model'));
 
 		$this->db->truncate('blogs');
 		$this->db->truncate('articles');
@@ -20,7 +20,7 @@ class JotFindTestCase extends UnitTestCase
 	{
 		for($i = 0; $i < 20; $i++)
 		{
-			$this->blogs_model->create(array(
+			$this->blog_model->create(array(
 				'name' => 'Blog #'.$i,
 				'slug' => 'blog_'.$i
 			));
@@ -34,14 +34,14 @@ class JotFindTestCase extends UnitTestCase
 	
 	public function test_count()
 	{
-		$count = $this->blogs_model->count();
+		$count = $this->blog_model->count();
 		
 		$this->assertEquals(20, $count, 'Specified number of rows should return');
 	}
 	
 	public function test_exists()
 	{
-		$exists = $this->blogs_model->exists(array(
+		$exists = $this->blog_model->exists(array(
 			'name' => 'Blog #1'
 		));
 		
@@ -50,7 +50,7 @@ class JotFindTestCase extends UnitTestCase
 	
 	public function test_not_exists()
 	{
-		$exists = $this->blogs_model->exists(array(
+		$exists = $this->blog_model->exists(array(
 			'name' => 'Blog'
 		));
 		
@@ -59,49 +59,46 @@ class JotFindTestCase extends UnitTestCase
 	
 	public function test_first()
 	{
-		$blog = $this->blogs_model->first();
+		$blog = $this->blog_model->first();
 		$this->assertTrue($blog, 'Blog is returned');
 
-		$blog = $this->blogs_model->first(1);
+		$blog = $this->blog_model->first(1);
 		$this->assertTrue($blog, 'Blog is returned with id');
 		
-		$blog = $this->blogs_model->first(array('name' => 'Blog #1'));
+		$blog = $this->blog_model->first(array('name' => 'Blog #1'));
 		$this->assertTrue($blog, 'Blog is returned with conditions');
-		
-		$page = $this->pages_model->first();
-		$this->assertEquals('http://example.com/index', $page->prepared_url(), 'method should work correctly');
 	}
 	
 	public function test_last()
 	{
-		$blog = $this->blogs_model->first();
+		$blog = $this->blog_model->first();
 		$this->assertTrue($blog, 'Blog is returned');
 
-		$blog = $this->blogs_model->last(1);
+		$blog = $this->blog_model->last(1);
 		$this->assertTrue($blog, 'Blog is returned with id');
 		
-		$blog = $this->blogs_model->last(array('name' => 'Blog #1'));
+		$blog = $this->blog_model->last(array('name' => 'Blog #1'));
 		$this->assertTrue($blog, 'Blog is returned with conditions');		
 	}
 	
 	public function test_all()
 	{
-		$blogs = $this->blogs_model->all();
+		$blogs = $this->blog_model->all();
 		$this->assertEquals(20, count($blogs), 'Blog should return specified number rows');
 		
-		$blogs = $this->blogs_model->all(array('id <' => 4));
+		$blogs = $this->blog_model->all(array('id <' => 4));
 		$this->assertEquals(3, count($blogs), 'Blog should return specified number rows');
 	}
 	
 	public function test_find()
 	{
-		$blogs = $this->blogs_model->find(NULL, 1, 20);
+		$blogs = $this->blog_model->find(NULL, 1, 20);
 		$this->assertEquals(20, count($blogs), 'Blog should return specified number rows');
 
-		$blogs = $this->blogs_model->find(NULL, 1, 10);
+		$blogs = $this->blog_model->find(NULL, 1, 10);
 		$this->assertEquals(10, count($blogs), 'Limit affects return');
 
-		$blogs = $this->blogs_model->find(array('id <' => 7), 1, 5);
+		$blogs = $this->blog_model->find(array('id <' => 7), 1, 5);
 		$this->assertEquals(5, count($blogs), 'Condition and limit will affect returned result');
 	}
 }

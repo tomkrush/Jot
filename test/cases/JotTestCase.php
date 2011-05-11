@@ -7,7 +7,7 @@ class JotTestCase extends UnitTestCase
 		$this->load->database();
 		$this->load->dbutil();
 		
-		$this->load->model(array('blogs_model', 'articles_model'));
+		$this->load->model(array('blog_model', 'articles_model'));
 	}
 	
 	public function setup()
@@ -18,7 +18,7 @@ class JotTestCase extends UnitTestCase
 	
 	public function test_to_string()
 	{		
-		$blog = $this->blogs_model->create(array(
+		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
@@ -28,7 +28,7 @@ class JotTestCase extends UnitTestCase
 	
 	public function test_inflection()
 	{		
-		$blog = $this->blogs_model->build(array(
+		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));

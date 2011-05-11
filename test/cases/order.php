@@ -2,7 +2,9 @@
 
 $order = array(
 	'JotTestCase',
+	'JotAttributesTestCase',
 	'JotCRUDTestCase',
 	'JotFindTestCase',
-	'JotRelationshipsTestCase',
+	// 'JotRelationshipsTestCase',
+	// 'JotFormTestCase',
 );
