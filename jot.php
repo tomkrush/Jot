@@ -26,10 +26,11 @@ protected $changed_attributes = array();
 protected $new_record = TRUE;
 protected $destroyed = FALSE;
 
+protected $hooks = array();
 /*-------------------------------------------------
 MAGIC METHODS
 -------------------------------------------------*/
-	public function __construct($attributes = array(), $options = array()) 
+public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
 	
@@ -52,8 +53,7 @@ public function __toString()
 	
 	$string .= $this->singularTableName();
 	
-	$fields_strings = array();
-	
+  	
 	foreach($this->attributes as $key => $value)
 	{
 		if ($key == 'created_at' || $key == 'updated_at')
@@ -96,7 +96,73 @@ public function __get($key)
 	
 	return NULL;
 }
-	
+
+/*-------------------------------------------------
+BUILD FUNCTION
+-------------------------------------------------*/
+protected function before_save($hook)
+{
+	$this->add_hook('before_save', $hook);
+}
+
+protected function after_save($hook)
+{
+	$this->add_hook('after_save', $hook);
+}
+
+protected function before_create($hook)
+{
+	$this->add_hook('before_create', $hook);
+}
+
+protected function after_create($hook)
+{
+	$this->add_hook('after_create', $hook);
+}
+
+protected function before_update($hook)
+{
+	$this->add_hook('before_update', $hook);
+}
+
+protected function after_update($hook)
+{
+	$this->add_hook('after_update', $hook);
+}
+
+protected function before_validation($hook)
+{
+	$this->add_hook('before_validation', $hook);
+}
+
+protected function after_validation($hook)
+{
+	$this->add_hook('after_validation', $hook);
+}
+
+# Add hook to jot model
+protected function add_hook($name, $hook)
+{
+	# If hook method exists, add hook to memory
+	if ( method_exists($this, $hook) )
+	{
+		$this->hooks[$name][] = $hook;
+	}
+}
+
+# Call hook on jot model
+protected function call_hook($name)
+{
+	# Return hooks if exist otherwise return empty array.
+	$hooks = $this->_element($name, $this->hooks, array());
+
+	# Execute each hook
+	foreach($hooks as $hook)
+	{
+		$this->$hook();
+	}	
+}
+
 /*-------------------------------------------------
 BUILD FUNCTION
 -------------------------------------------------*/
@@ -164,38 +230,47 @@ public function update_attributes($attributes)
 SAVE
 -------------------------------------------------*/	
 	
-	# Saves the object
+# Saves the object
 #
 # A database row is created if this object is a new_record, otherwise
 # it will update the existing record in the database.
 public function save()
 {		
-	$result = $this->new_record ? $this->_create() : $this->_update();
-	return $result ? $result : FALSE;
+	# Hook
+	$this->call_hook('before_save');
+
+	if ( $this->new_record )
+	{
+		$this->call_hook('before_create');
+		$this->_create();
+		$this->call_hook('after_create');
+	}
+	else
+	{
+		$this->call_hook('before_update');
+		$this->_update();
+		$this->call_hook('after_update');
+	}
+	
+	$this->call_hook('after_save');
+	
+	return $this;
 }
 
 # Internal Method for updating a row in the database
-private function _update()
-{
+protected function _update()
+{	
 	$id = $this->read_attribute($this->primary_key);
-
 	$this->db->update($this->table_name, $this->attributes, array($this->primary_key=>$id));
-
-	return $this;
 }
 
 # Internal Method for creating a row in the database
-private function _create()
-{
+protected function _create()
+{		
 	$this->db->insert($this->table_name, $this->attributes);
-	
 	$this->new_record = FALSE;
-	
 	$id = $this->db->insert_id();
-	
 	$this->write_attribute($this->primary_key, $id);
-	
-	return $this;
 }
 
 /*-------------------------------------------------
@@ -217,7 +292,6 @@ public function errors()
 /*-------------------------------------------------
 INITALIZERS
 -------------------------------------------------*/
-
 public function init()
 {
 
@@ -234,7 +308,7 @@ protected function tablename($table_name)
 }
 
 protected function has_timestamps($bool)
-{
+{				
 	$this->timestamps = $bool;
 }
 
@@ -278,7 +352,8 @@ public function create($attributes)
 }
 
 # Updates a single object usings attributes. 
-# You can update multiple objects by passing multiple ids (array) in argument.
+# You can update multiple objects by passing 
+# multiple ids (array) in argument.
 #
 # 	# Single object
 # 	$this->person_model->update(1, array('name'=>'John'));
@@ -322,12 +397,17 @@ public function update($id, $attributes = NULL)
 	}
 }
 
-
+# Destroy an object
+# This function has split functionality. If an integer or 
+# array is supplied it will destroy that object(s).
+# Otherwise the function will call destroy_object method.
 public function destroy($id = NULL)
 {
 	return isset($id) ? $this->destroy_id($id) : $this->destroy_object();
 }
 
+# Destroy on object based on an id or array.
+# The method calls the destroy method.
 protected function destroy_id($id)
 {
 	$ids = is_array($id) ? $id : array($id);
@@ -343,6 +423,7 @@ protected function destroy_id($id)
 	return $objects;
 }
 
+# This method delete an actual object from memory.
 protected function destroy_object()
 {
 	if ( $this->persisted() )
@@ -414,6 +495,7 @@ public function last($conditions = array())
 	$this->db->order_by($this->primary_key.' DESC');
 	$this->db->limit(1);
 	$result = $this->find($conditions);
+	
 	return count($result) ? $result[0] : NULL;
 }
 
@@ -456,6 +538,8 @@ public function find($conditions = array(), $page = 1, $limit = 10)
 	return $result;		
 }
 
+# Private find method. The purpose of this is too apply db functions
+# to the core CodeIgniter object.
 protected function _find($conditions = array())
 {	
 	if ( is_array($conditions) )
@@ -480,9 +564,48 @@ protected function _find($conditions = array())
 DEPENDENCIES
 -------------------------------------------------*/	
 
-private function _is_assoc($array) 
+protected function _is_assoc($array)
 {
     return (is_array($array) && (count($array)==0 || 0 !== count(array_diff_key($array, array_keys(array_keys($array))) )));
 }
 
-} // End Class
+protected function _element($keys, $array, $default = FALSE)
+{
+	$array = (array)$array;
+
+	if (empty($array))
+		return $default;
+
+	# Prepare for loop
+	$keys = explode('.', $keys);
+
+	do
+	{
+		# Get the next key
+		$key = array_shift($keys);
+
+		if (isset($array[$key]))
+		{
+			if (is_array($array[$key]) AND ! empty($keys))
+			{
+				# Dig down to prepare the next loop
+				$array = $array[$key];
+			}
+			else
+			{
+				# Requested key was found
+				return $array[$key];
+			}
+		}
+		else
+		{
+			# Requested key is not set
+			break;
+		}
+	}
+	while ( ! empty($keys));
+
+	return $default;
+}
+
+} # End Class

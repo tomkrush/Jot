@@ -7,7 +7,7 @@ class JotFindTestCase extends UnitTestCase
 		$this->load->database();
 		$this->load->dbutil();
 		
-		$this->load->model(array('blog_model', 'articles_model', 'pages_model'));
+		$this->load->model(array('blog_model', 'article_model', 'page_model'));
 
 		$this->db->truncate('blogs');
 		$this->db->truncate('articles');
@@ -26,7 +26,7 @@ class JotFindTestCase extends UnitTestCase
 			));
 		}
 		
-		$this->pages_model->create(array(
+		$this->page_model->create(array(
 			'name' => 'Homepage',
 			'slug' => 'index'
 		));

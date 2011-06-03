@@ -7,7 +7,7 @@ class JotTestCase extends UnitTestCase
 		$this->load->database();
 		$this->load->dbutil();
 		
-		$this->load->model(array('blog_model', 'articles_model'));
+		$this->load->model(array('blog_model'));
 	}
 	
 	public function setup()
