@@ -442,19 +442,22 @@ FINDERS
 
 protected function _conditions($conditions)
 {
-	if ( $conditions == NULL ) return array();
-	 
-	$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
-	$conditions = is_array($conditions) ? $conditions : array();
-
-	if ($this->base_filter !== null)
+	# Return empty array if conditions do not exist
+	if ( $conditions == NULL ) 
 	{
-		$conditions = array_merge($this->base_filter, $conditions);
+		return array();
+	}
+	 
+	# If conditions is a single integer or list of ids return ids.
+	if ( is_numeric($conditions) || ! $this->_is_assoc($conditions) )
+	{
+		$conditions = array($this->primary_key => $conditions);
 	}
 	
-	if ($this->base_join !== null)
+	# Make sure conditions is an array
+	if ( ! is_array($conditions) )
 	{
-		$this->db->join($this->base_join[0], $this->base_join[1]);
+		$conditions = array();
 	}
 	
 	return $conditions;	
