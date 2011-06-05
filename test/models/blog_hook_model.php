@@ -1,6 +1,6 @@
 <?php
 
-class Blog_Hook_Model extends Jot_Hook_Mock_Model 
+class Blog_Hook_Model extends My_Model 
 {
 	protected $hooks_called = array();
 	
@@ -20,5 +20,12 @@ class Blog_Hook_Model extends Jot_Hook_Mock_Model
 	public function hooks_called($hook)
 	{
 		return !!element($hook, $this->hooks_called, FALSE);
+	}
+	
+	protected function _update() {}
+	
+	protected function _create()
+	{
+		$this->new_record = FALSE;
 	}
 }

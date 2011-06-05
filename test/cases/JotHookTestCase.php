@@ -3,11 +3,7 @@
 class JotHookTestCase extends UnitTestCase
 {
 	public function __construct()
-	{		
-		// $this->load->database();
-		// $this->load->dbutil();
-		
-		$this->load->model('jot_hook_mock_model');
+	{				
 		$this->load->model('blog_hook_model');
 	}
 	
