@@ -2,9 +2,13 @@
 
 require 'jot_form.php';
 
+class JotIdentityMap 
+{
+	
+}
+
 class Jot extends CI_Model 
 {
-
 /*-------------------------------------------------
 PROPERTIES
 -------------------------------------------------*/
@@ -26,7 +30,11 @@ protected $changed_attributes = array();
 protected $new_record = TRUE;
 protected $destroyed = FALSE;
 
+protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
+protected $relationship_vars = array();
+
 protected $hooks = array();
+
 /*-------------------------------------------------
 MAGIC METHODS
 -------------------------------------------------*/
@@ -78,17 +86,42 @@ public function __toString()
 
 public function __set($key, $value)
 {
-	$this->write_attribute($key, $value);
+	# Association
+	if ( $this->has_association($key) )
+	{
+		
+	}
+	
+	# Attribute
+	else
+	{
+		$this->write_attribute($key, $value);
+	}
 }
 
 public function __get($key)
 {
+	# Code Igniter
 	$CI =& get_instance();
-
 	if (property_exists($CI, $key)) return $CI->$key;		
 
-	$value = NULL;
-	
+	if ( $this->has_association($key) )
+	{
+		if ( $this->has_many_association($key) )
+		{
+			return TRUE;
+		}
+		else if ($this->has_one_association($key) )
+		{
+			return TRUE;
+		}
+		else if ($this->has_belongs_to_association($key) )
+		{
+			return TRUE;
+		}
+	}
+
+	# Is Attribute
 	if ( $this->has_attribute($key) )
 	{
 		return $this->read_attribute($key);
@@ -331,6 +364,64 @@ public function pluralTableName()
 {
 	return strtolower(plural($this->table_name));		
 }
+
+/*-------------------------------------------------
+ASSOCATIONS
+-------------------------------------------------*/
+protected function has_many($association, $settings = array())
+{
+	$this->relationships['has_many'][$association] = $settings;
+
+	$this->relationship_vars[] = plural($association);
+}
+
+protected function has_one($association, $settings = array())
+{
+	$this->relationships['has_one'][$association] = $settings;
+
+	$this->relationship_vars[] = singular($association);
+}
+
+protected function belongs_to($association, $settings = array())
+{
+	$this->relationships['belongs_to'][$association] = $settings;
+
+	$this->relationship_vars[] = singular($association);
+}
+
+protected function set_base_filter($conditions)
+{
+	if (is_array($conditions) === false) return;
+	$this->base_filter = $conditions;
+}
+
+protected function set_base_join($table, $on)
+{
+	$this->base_join = array($table, $on);
+}
+
+protected function has_association($association)
+{	
+	return 	array_key_exists($association, $this->relationships['has_many']) ||
+			array_key_exists($association, $this->relationships['has_one']) ||
+			array_key_exists($association, $this->relationships['belongs_to']);
+}
+
+protected function has_one_association($association)
+{
+	echo print_r($this->relationships['has_one']['page']);
+	return $this->_element("has_one.{$association}", $this->relationships, FALSE);
+}
+
+protected function has_belongs_to_association($association)
+{
+	return $this->_element("belongs_to.{$association}", $this->relationships, FALSE);
+}
+
+protected function has_many_association($association)
+{
+	return $this->_element("has_many.{$association}", $this->relationships, FALSE);
+} 
 	
 /*-------------------------------------------------
 PERSISTANCE
@@ -442,7 +533,11 @@ FINDERS
 
 protected function _conditions($conditions)
 {
-	if ( $conditions == NULL ) return array();
+	
+	if ( $conditions == NULL ) 
+	{
+		return array();
+	}
 	 
 	$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
 	$conditions = is_array($conditions) ? $conditions : array();
