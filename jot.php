@@ -9,6 +9,7 @@ class JotIdentityMap
 
 class Jot extends CI_Model 
 {
+
 /*-------------------------------------------------
 MAGIC METHODS
 -------------------------------------------------*/
@@ -34,16 +35,18 @@ public function __construct($attributes = array(), $options = array())
 }
 
 # Returns string describing object
+#
+# format: blog name: "Blog", slug: "blog"
+#
 public function __toString()
 {		
 	$string = '';
 	
 	$string .= $this->singular_table_name();
 	
-  	
-	foreach($this->attributes as $key => $value)
+	foreach($this->attributes as $attribute => $value)
 	{
-		if ($key == 'created_at' || $key == 'updated_at')
+		if ($attribute == 'created_at' || $attribute == 'updated_at')
 		{
 			$value = date('"F j, Y, g:i a"', $value);
 		}
@@ -54,12 +57,12 @@ public function __toString()
 		
 		if ( $value )
 		{
-			$fields_strings[] = $key.': '.$value;
+			$fields_strings[] = $attribute.': '.$value;
 		}
 	}
 		
 	$string .= ' '.implode(', ', $fields_strings);
-	
+
 	return $string;
 }
 
@@ -69,19 +72,23 @@ public function __set($key, $value)
 	# Association
 	if ( $this->has_association($key) )
 	{
-		# If Has One Association Exists Link Objects
+		# If has one association exists link objects
 		if ($this->has_one_association($key) )
 		{
 			$foreign_type = $this->singular_table_name().'_id';
 			$foreign_key = $this->read_attribute($this->primary_key());
 
+			# Add Association
 			$value->write_attribute($foreign_type, $foreign_key);
 		}
+		
+		# If has belongs to association link objects
 		elseif ($this->has_belongs_to_association($key) )
 		{
 			$foreign_type = $value->singular_table_name().'_id';
 			$foreign_key = $value->read_attribute($value->primary_key());
 
+			# Add Association
 			$this->write_attribute($foreign_type, $foreign_key);	
 		}		
 	}
@@ -95,29 +102,38 @@ public function __set($key, $value)
 
 public function __call($name, $arguments)
 {
+	# Is call a create_ method?
 	if ( substr($name, 0, 7) == 'create_' )
 	{
+		# What is create_(x)?
 		$key = strtolower(substr($name, 7));
 
+		#Is key an association?
 		if ( $this->has_association($key) )
 		{
 			$conditions = $arguments[0];
 			$modelName = ucwords($key).'_Model';
 			$object = $this->load->model($modelName);
 
+			# Create Has One Assocation
 			if ($this->has_one_association($key) )
-			{			
+			{	
 				$foreign_type = $this->singular_table_name().'_id';
 				$foreign_id = $this->read_attribute($foreign_type);
 
+				# Add Association
 				$conditions[$foreign_type] = $foreign_id;
 
 				return $this->$modelName->create($conditions);
 			}
+			
+			# Create Belongs To Association
 			elseif ($this->has_belongs_to_association($key) )
 			{
+				# Create associated object.
 				$object = $this->$modelName->create($conditions);
 				
+				# Create association with this model.
 				$foreign_type = $object->singular_table_name().'_id';
 				$foreign_id = $object->read_attribute($object->primary_key());
 
