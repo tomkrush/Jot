@@ -273,126 +273,6 @@ protected function call_hook($name)
 		$this->$hook();
 	}	
 }
-	
-/*-------------------------------------------------
-ATTRIBUTE METHODS
--------------------------------------------------*/
-
-protected $attributes = array();
-protected $changed_attributes = array();
-	
-# Allows you to assign multiple attributes.
-public function assign_attributes($attributes)
-{
-	$attributes = (array)$attributes;
-	
-	foreach($attributes as $key => $value)
-	{
-		$this->write_attribute($key, $value);
-	}		
-}
-
-# Returns attribute value if exists otherwise null
-public function read_attribute($key)
-{
-	if ( array_key_exists($key, $this->attributes) )
-	{
-		return $this->attributes[$key];
-	}
-	
-	return NULL;
-}
-
-# Writes attribute value to object
-public function write_attribute($key, $value)
-{
-	$this->attributes[$key] = $value;
-}
-
-# Read all attributes
-public function attributes()
-{
-	return $this->attributes;
-}
-
-# Returns TRUE if attribute exists
-public function has_attribute($attribute)
-{
-	return array_key_exists($attribute, $this->attributes);
-}
-
-# Writes the attributes to object and saves to the memory
-public function update_attribute($key, $value)
-{
-	$this->write_attribute($key, $value);
-	$this->save();
-}
-
-# Assigns attributes and saves changes.
-# Note: (This will update all changed attributes on parent object;
-#		not just the attributes sent through the arguments)
-public function update_attributes($attributes)
-{
-	$this->assign_attributes($attributes);
-	$this->save();
-}
-
-/*-------------------------------------------------
-SAVE
--------------------------------------------------*/	
-	
-# Saves the object
-#
-# A database row is created if this object is a new_record, otherwise
-# it will update the existing record in the database.
-public function save($validate  = TRUE)
-{		
-	$this->reset_errors();
-
-	# If validation is required and fails, do not save object
-	if ( $validate && ! $this->is_valid() ) 
-	{
-		return $this;
-	}
-	
-	$this->call_hook('before_save');
-
-	# Save new record and call appropriate hooks
-	if ( $this->new_record )
-	{
-		$this->call_hook('before_create');
-		$this->_create();
-		$this->call_hook('after_create');
-	}
-	
-	# Update record and call appropriate hooks
-	else
-	{
-		$this->call_hook('before_update');
-		$this->_update();
-		$this->call_hook('after_update');
-	}
-	
-	$this->call_hook('after_save');
-	
-	return $this;
-}
-
-# Internal Method for updating a row in the database
-protected function _update()
-{	
-	$id = $this->read_attribute($this->primary_key);
-	$this->db->update($this->table_name, $this->attributes, array($this->primary_key=>$id));
-}
-
-# Internal Method for creating a row in the database
-protected function _create()
-{		
-	$this->db->insert($this->table_name, $this->attributes);
-	$this->new_record = FALSE;
-	$id = $this->db->insert_id();
-	$this->write_attribute($this->primary_key, $id);
-}
 
 /*-------------------------------------------------
 ERRORS
@@ -496,31 +376,9 @@ ASSOCATIONS
 protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
 protected $relationship_vars = array();
 
-protected function has_many($association, $options = array())
-{
-	$this->relationships['has_many'][$association] = $options;
-
-	$this->relationship_vars[] = plural($association);
-}
-
-protected function has_one($association, $options = array())
-{
-	$this->relationships['has_one'][$association] = $options;
-
-	$this->relationship_vars[] = singular($association);
-}
-
-protected function belongs_to($association, $options = array())
-{
-	$this->relationships['belongs_to'][$association] = $options;
-
-	$this->relationship_vars[] = singular($association);
-}
-
 protected function set_base_filter($conditions)
 {
-	if (is_array($conditions) === false) return;
-	$this->base_filter = $conditions;
+	is_array($conditions) && $this->base_filter = $conditions;
 }
 
 protected function set_base_join($table, $on)
@@ -530,9 +388,12 @@ protected function set_base_join($table, $on)
 
 protected function has_association($association)
 {	
-	return 	array_key_exists($association, $this->relationships['has_many']) ||
-			array_key_exists($association, $this->relationships['has_one']) ||
-			array_key_exists($association, $this->relationships['belongs_to']);
+	$has_many = $this->has_many_association($association);
+	$has_one = $this->has_one_association($association);
+	$belongs_to = $this->has_belongs_to_association($association);
+	
+	# If any association exists return TRUE.
+	return $has_many || $has_one || $belongs_to;
 }
 
 protected function get_has_one_association($association)
@@ -546,6 +407,12 @@ protected function has_one_association($association)
 	return isset($association) && $association !== FALSE;
 }
 
+protected function has_one($association, $options = array())
+{
+	$this->relationships['has_one'][$association] = $options;
+	$this->relationship_vars[] = singular($association);
+}
+
 protected function get_belongs_to_association($association)
 {
 	return $this->_element("belongs_to.{$association}", $this->relationships, FALSE);
@@ -554,8 +421,13 @@ protected function get_belongs_to_association($association)
 protected function has_belongs_to_association($association)
 {
 	$association = $this->get_belongs_to_association($association);
-
 	return isset($association) && $association !== FALSE;
+}
+
+protected function belongs_to($association, $options = array())
+{
+	$this->relationships['belongs_to'][$association] = $options;
+	$this->relationship_vars[] = singular($association);
 }
 
 protected function get_has_many_association($association)
@@ -567,7 +439,13 @@ protected function has_many_association($association)
 {	
 	$association = $this->get_has_many_association($association);
 	return isset($association) && $association !== FALSE;
-} 
+}
+
+protected function has_many($association, $options = array())
+{
+	$this->relationships['has_many'][$association] = $options;
+	$this->relationship_vars[] = plural($association);
+}
 	
 /*-------------------------------------------------
 VALIDATION
@@ -664,6 +542,69 @@ protected function validator_callback($validator)
 	}
 	
 	return $callback;
+}
+
+/*-------------------------------------------------
+ATTRIBUTE METHODS
+-------------------------------------------------*/
+
+protected $attributes = array();
+protected $changed_attributes = array();
+	
+# Allows you to assign multiple attributes.
+public function assign_attributes($attributes)
+{
+	$attributes = (array)$attributes;
+	
+	foreach($attributes as $key => $value)
+	{
+		$this->write_attribute($key, $value);
+	}		
+}
+
+# Returns attribute value if exists otherwise null
+public function read_attribute($key)
+{
+	if ( array_key_exists($key, $this->attributes) )
+	{
+		return $this->attributes[$key];
+	}
+	
+	return NULL;
+}
+
+# Writes attribute value to object
+public function write_attribute($key, $value)
+{
+	$this->attributes[$key] = $value;
+}
+
+# Read all attributes
+public function attributes()
+{
+	return $this->attributes;
+}
+
+# Returns TRUE if attribute exists
+public function has_attribute($attribute)
+{
+	return array_key_exists($attribute, $this->attributes);
+}
+
+# Writes the attributes to object and saves to the memory
+public function update_attribute($key, $value)
+{
+	$this->write_attribute($key, $value);
+	$this->save();
+}
+
+# Assigns attributes and saves changes.
+# Note: (This will update all changed attributes on parent object;
+#		not just the attributes sent through the arguments)
+public function update_attributes($attributes)
+{
+	$this->assign_attributes($attributes);
+	$this->save();
 }
 
 /*-------------------------------------------------
@@ -771,6 +712,63 @@ protected function destroy_object()
 	}
 	
 	$this->destroyed = TRUE;
+}
+
+/*-------------------------------------------------
+SAVE
+-------------------------------------------------*/	
+	
+# Saves the object
+#
+# A database row is created if this object is a new_record, otherwise
+# it will update the existing record in the database.
+public function save($validate  = TRUE)
+{		
+	$this->reset_errors();
+
+	# If validation is required and fails, do not save object
+	if ( $validate && ! $this->is_valid() ) 
+	{
+		return $this;
+	}
+	
+	$this->call_hook('before_save');
+
+	# Save new record and call appropriate hooks
+	if ( $this->new_record )
+	{
+		$this->call_hook('before_create');
+		$this->_create();
+		$this->call_hook('after_create');
+	}
+	
+	# Update record and call appropriate hooks
+	else
+	{
+		$this->call_hook('before_update');
+		$this->_update();
+		$this->call_hook('after_update');
+	}
+	
+	$this->call_hook('after_save');
+	
+	return $this;
+}
+
+# Internal Method for updating a row in the database
+protected function _update()
+{	
+	$id = $this->read_attribute($this->primary_key);
+	$this->db->update($this->table_name, $this->attributes, array($this->primary_key=>$id));
+}
+
+# Internal Method for creating a row in the database
+protected function _create()
+{		
+	$this->db->insert($this->table_name, $this->attributes);
+	$this->new_record = FALSE;
+	$id = $this->db->insert_id();
+	$this->write_attribute($this->primary_key, $id);
 }
 	
 /*-------------------------------------------------
