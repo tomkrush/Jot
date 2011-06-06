@@ -1,11 +1,12 @@
 <?php
 
 $order = array(
-	'JotHookTestCase',
+	'JotValidationTestCase',
 	'JotTestCase',
 	'JotAttributesTestCase',
 	'JotCRUDTestCase',
 	'JotFindTestCase',
+	'JotHookTestCase',
 	// 'JotRelationshipsTestCase',
 	// 'JotFormTestCase',
 );

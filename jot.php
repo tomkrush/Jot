@@ -12,10 +12,6 @@ public $table_name = '';
 protected $timestamps = TRUE;
 protected $primary_key = 'id';
 
-protected $validates = FALSE;
-protected $field_validations = array();
-protected $errors = array();
-
 protected $created_at_column_name = 'created_at';
 protected $updated_at_column_name = 'updated_at';
 
@@ -35,7 +31,10 @@ public function __construct($attributes = array(), $options = array())
 	parent::__construct();
 	
 	$this->init();
+	$this->load->add_package_path(APPPATH.'third_party/jot');
+
 	$this->load->helper('inflector');
+	$this->load->helper('jot');
 
 	$this->_tablename();
 			
@@ -213,6 +212,12 @@ public function write_attribute($key, $value)
 	$this->attributes[$key] = $value;
 }
 
+# Read all attributes
+public function attributes()
+{
+	return $this->attributes;
+}
+
 # Returns TRUE if attribute exists
 public function has_attribute($attribute)
 {
@@ -234,6 +239,11 @@ public function update_attributes($attributes)
 	$this->assign_attributes($attributes);
 	$this->save();
 }
+
+public function primary_key()
+{
+	return $this->primary_key;
+}
 	
 /*-------------------------------------------------
 SAVE
@@ -243,8 +253,16 @@ SAVE
 #
 # A database row is created if this object is a new_record, otherwise
 # it will update the existing record in the database.
-public function save()
+public function save($validate  = TRUE)
 {		
+	$this->reset_errors();
+
+	# If validation is required and fails, do not save object
+	if ( $validate && ! $this->is_valid() ) 
+	{
+		return $this;
+	}
+	
 	$this->call_hook('before_save');
 
 	# Save new record and call appropriate hooks
@@ -288,7 +306,9 @@ protected function _create()
 ERRORS
 -------------------------------------------------*/	
 
-# Return errors from validation
+protected $errors = array();
+
+# Return errors
 public function errors()
 {
 	$errors = array();
@@ -300,10 +320,23 @@ public function errors()
 	
 	return $errors;
 }
+
+# Add Error
+public function add_error($error)
+{
+	$this->errors[] = $error;
+}
+
+# Reset Errors
+public function reset_errors()
+{
+	$this->errors = array();
+}
 	
 /*-------------------------------------------------
 INITALIZERS
 -------------------------------------------------*/
+
 public function init() {}
 
 # Set table name
@@ -340,6 +373,94 @@ public function pluralTableName()
 {
 	return strtolower(plural($this->table_name));		
 }
+	
+/*-------------------------------------------------
+VALIDATION
+-------------------------------------------------*/	
+
+protected $validators = array();
+
+# Did validation perform
+public function is_valid()
+{
+	$this->call_hook('before_validation');
+	
+	$validates = $this->perform_validations();
+	
+	$this->call_hook('after_validation');
+	
+	return $validates;
+}
+
+# Attach validators to model
+protected function validates($attribute, $validators)
+{
+	$this->validators[$attribute] = $validators;
+}
+
+# Perform validators (Should include caching)
+protected function perform_validations()
+{
+	$validates = TRUE;
+	$this->reset_errors();
+
+	if ( count($this->validators) )
+	{
+		foreach($this->validators as $attribute => $validators)
+		{	
+			$validators = is_array($validators) ? $validators : array($validators);
+			
+			foreach($validators as $name => $options) 
+			{
+				$validator = is_numeric($name) ? $options : $name;
+				$options = !is_numeric($name) ? $options : array();
+
+				if ( ! $this->call_validator($validator, $this, $attribute, $options) )
+				{
+					$validates = FALSE;
+				}
+			}
+		}
+	}
+	
+	return $validates;
+}
+
+# Find validator and execute it.
+protected function call_validator($validator, $object, $attribute, $options)
+{
+	# Get Callback Signature.
+	$callback = $this->validator_callback($validator);
+
+	# If callback exists, than run callback.
+	return $callback && call_user_func($callback, $object, $attribute, $options);
+}
+
+# Find callback signature for validator.
+protected function validator_callback($validator)
+{
+	$callback = FALSE;
+
+	# Create string signature.
+	$function_name = 'jot_validate_'.strtolower($validator);
+	$method_name = 'validate_'.strtolower($validator);
+	
+	# If method exists on model use it.
+	if ( method_exists($this, $method_name ) )
+	{
+		$callback = array($this, $method_name);
+	}
+	# If function exists use it.
+	else if ( function_exists($function_name) )
+	{
+		$callback = $function_name;
+	}
+	
+	return $callback;
+}
+
+
+	
 	
 /*-------------------------------------------------
 PERSISTANCE
