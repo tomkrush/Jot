@@ -392,16 +392,6 @@ ASSOCATIONS
 protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
 protected $relationship_vars = array();
 
-protected function set_base_filter($conditions)
-{
-	is_array($conditions) && $this->base_filter = $conditions;
-}
-
-protected function set_base_join($table, $on)
-{
-	$this->base_join = array($table, $on);
-}
-
 protected function has_association($association)
 {	
 	$has_many = $this->has_many_association($association);
@@ -790,8 +780,6 @@ protected function _create()
 /*-------------------------------------------------
 FINDERS
 -------------------------------------------------*/	
-protected $base_filter = null;
-protected $base_join = null;
 
 # Validates conditions variable.
 protected function _conditions($conditions)
@@ -812,16 +800,6 @@ protected function _conditions($conditions)
 	if ( ! is_array($conditions) )
 	{
 		$conditions = array();
-	}
-	
-	if ($this->base_filter !== null)
-	{
-		$conditions = array_merge($this->base_filter, $conditions);
-	}
-	
-	if ($this->base_join !== null)
-	{
-		$this->db->join($this->base_join[0], $this->base_join[1]);
 	}
 	
 	return $conditions;	
