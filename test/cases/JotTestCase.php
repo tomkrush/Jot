@@ -33,7 +33,7 @@ class JotTestCase extends UnitTestCase
 			'slug' => 'blog' 
 		));
 		
-		$this->assertEquals('blog', $blog->singularTableName(), 'Should be singluar');
-		$this->assertEquals('blogs', $blog->pluralTableName(), 'Should be singluar');
+		$this->assertEquals('blog', $blog->singular_table_name(), 'Should be singluar');
+		$this->assertEquals('blogs', $blog->plural_table_name(), 'Should be singluar');
 	}
 }

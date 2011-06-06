@@ -54,7 +54,7 @@ class Jot_Form
 	
 	private function field_name($field)
 	{
-		$table_name = $this->record->singularTableName();
+		$table_name = $this->record->singular_table_name();
 
 		return strtolower(sprintf('%s[%s]', $table_name, $field));
 	}
@@ -66,7 +66,7 @@ class Jot_Form
 	
 	private function field_id($field)
 	{
-		$table_name = $this->record->singularTableName();
+		$table_name = $this->record->singular_table_name();
 
 		return strtolower(sprintf('%s_%s_field', $table_name, $field));
 	}

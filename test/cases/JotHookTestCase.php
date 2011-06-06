@@ -3,11 +3,7 @@
 class JotHookTestCase extends UnitTestCase
 {
 	public function __construct()
-	{		
-		// $this->load->database();
-		// $this->load->dbutil();
-		
-		$this->load->model('jot_hook_mock_model');
+	{				
 		$this->load->model('blog_hook_model');
 	}
 	
@@ -34,12 +30,42 @@ class JotHookTestCase extends UnitTestCase
 		$result = $blog->hooks_called('after_save');		
 		$this->assertTrue($result, 'After save was called');
 
-		$result = $blog->hooks_called('before_update');		
-		$this->assertFalse($result, 'Before update was called because blog');
+		$result = $blog->hooks_called('before_validation');		
+		$this->assertTrue($result, 'Before validation was called');
 
-		$result = $blog->hooks_called('before_update');		
-		$this->assertFalse($result, 'After update was called because blog');
-		
+		$result = $blog->hooks_called('after_validation');		
+		$this->assertTrue($result, 'After validation was called');
+	}
+	
+	public function test_update_callbacks()
+	{
+		$blog = new Blog_Hook_Model();
 		$blog->save();
+		
+		$blog->reset_hooks();
+		
+		$blog->save(FALSE);
+		
+		$result = $blog->hooks_called('before_update');		
+		$this->assertTrue($result, 'Before update was called because blog existed');
+
+		$result = $blog->hooks_called('after_update');		
+		$this->assertTrue($result, 'After update was called because blog existed');		
+	}
+	
+	public function test_validation_callbacks()
+	{
+		$blog = new Blog_Hook_Model();
+		$blog->save(FALSE);
+		
+		$blog->reset_hooks();
+		
+		$blog->save(FALSE);
+
+		$result = $blog->hooks_called('before_validation');	
+		$this->assertFalse($result, 'Before validation was not called');
+
+		$result = $blog->hooks_called('after_validation');		
+		$this->assertFalse($result, 'After validation was not called');
 	}
 }

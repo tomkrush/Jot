@@ -28,44 +28,67 @@ class JotRelationshipsTestCase extends UnitTestCase
 			'name' => 'Page Name',
 			'description' => 'Lorem ipsum dolor sit amet...'
 		));
-		
+						
 		$blog->page = $page;
 		
+		$page->save();
+
 		$this->assertTrue(@$blog->page, 'Association exists');
 		$this->assertEquals('Lorem ipsum dolor sit amet...', @$blog->page->description, 'Contents should be correct');
 	}
-	
-	// public function test_has_one_relationship()
-	// {
-	// 	$blog = $this->blog_model->create(array(
-	// 		'name' => 'Blog #2',
-	// 		'slug' => 'blog' 
-	// 	));
-	// 	
-	// 	$page = $blog->create_page(array(
-	// 		'name' => 'Page',
-	// 		'slug' => 'blog-page'
-	// 	));	
-	// 			
-	// 	$this->assertEquals('blog', $page->blog->slug, 'Slugs should be the same');
-	// 	$this->assertEquals('Blog #2', $page->blog->name, 'Names should be the same');		
-	// }
 
-	// public function test_belongs_to_relationship()
-	// 	{
-	// 		$page = $this->pages_model->create(array(
-	// 			'name' => 'Page',
-	// 			'slug' => 'page' 
-	// 		));
-	// 				
-	// 		$blog = $page->create_blog(array(
-	// 			'name' => 'blog',
-	// 			'slug' => 'blog'
-	// 		));	
-	// 						
-	// 		$this->assertEquals('page', $blog->page->slug, 'Slugs should be the same');
-	// 		$this->assertEquals('Page', $blog->page->name, 'Names should be the same');		
-	// 	}
+	public function test_belongs_to_relationship()
+	{
+		$page = $this->page_model->create(array(
+			'name' => 'Page',
+			'slug' => 'page' 
+		));
+				
+		$blog = new Blog_Model(array(
+			'name' => 'blog',
+			'slug' => 'blog'
+		));	
+		$blog->save();
+
+		$blog2 = new Blog_Model(array(
+			'name' => 'blog2',
+			'slug' => 'blog2'
+		));	
+		$blog2->save();
+
+		$page->blog = $blog2;
+
+		$this->assertEquals('blog2', $page->blog->name, 'Names should be the same');
+		$this->assertEquals('blog2', $page->blog->slug, 'Slugs should be the same');	
+		
+	}
+	
+	public function test_chained_relationships()
+	{
+		$page = $this->page_model->create(array(
+			'name' => 'Page',
+			'slug' => 'Slug'
+		));
+
+		$this->assertTrue($page, 'Page should exist');
+		
+		$blog = $page->create_blog(array(
+			'name' => 'Blog',
+			'slug' => 'blog'
+		));
+		
+		$this->assertTrue($blog, 'Blog should exist');
+
+		// $article = $blog->articles->create(array(
+		// 	'title' => 'test',
+		// 	'contents' => 'testing the article'
+		// ));	
+		// 				
+		// $this->assertTrue($article, 'Article should exist');
+		// 
+		// $this->assertEquals('Page', $article->blog->page->name, 'Page name is correct');	
+	}
+
 	// 	
 	// 	public function test_has_many_relationship()
 	// 	{	
@@ -93,29 +116,4 @@ class JotRelationshipsTestCase extends UnitTestCase
 	// 		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
 	// 	}
 	// 	
-	// 	public function test_chained_relationships()
-	// 	{
-	// 		$page = $this->pages_model->create(array(
-	// 			'name' => 'Page',
-	// 			'slug' => 'Slug'
-	// 		));
-	// 		
-	// 		$this->assertTrue($page, 'Page should exist');
-	// 		
-	// 		$blog = $page->create_blog(array(
-	// 			'name' => 'Blog',
-	// 			'slug' => 'blog'
-	// 		));
-	// 		
-	// 		$this->assertTrue($blog, 'Blog should exist');
-	// 		
-	// 		$article = $blog->articles->create(array(
-	// 			'title' => 'test',
-	// 			'contents' => 'testing the article'
-	// 		));	
-	// 						
-	// 		$this->assertTrue($article, 'Article should exist');
-	// 		
-	// 		$this->assertEquals('Page', $article->blog->page->name, 'Page name is correct');	
-	// 	}
 }

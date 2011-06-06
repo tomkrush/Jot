@@ -10,40 +10,18 @@ class JotIdentityMap
 class Jot extends CI_Model 
 {
 /*-------------------------------------------------
-PROPERTIES
--------------------------------------------------*/
-public $table_name = '';
-protected $timestamps = TRUE;
-protected $transient = array();
-protected $primary_key = 'id';
-
-protected $validates = FALSE;
-protected $field_validations = array();
-protected $errors = array();
-
-protected $created_at_column_name = 'created_at';
-protected $updated_at_column_name = 'updated_at';
-
-protected $attributes = array();
-protected $changed_attributes = array();
-	
-protected $new_record = TRUE;
-protected $destroyed = FALSE;
-
-protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
-protected $relationship_vars = array();
-
-protected $hooks = array();
-
-/*-------------------------------------------------
 MAGIC METHODS
 -------------------------------------------------*/
+
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
 	
 	$this->init();
+	$this->load->add_package_path(APPPATH.'third_party/jot');
+
 	$this->load->helper('inflector');
+	$this->load->helper('jot');
 
 	$this->_tablename();
 			
@@ -55,11 +33,12 @@ public function __construct($attributes = array(), $options = array())
 	}
 }
 
+# Returns string describing object
 public function __toString()
 {		
 	$string = '';
 	
-	$string .= $this->singularTableName();
+	$string .= $this->singular_table_name();
 	
   	
 	foreach($this->attributes as $key => $value)
@@ -84,12 +63,27 @@ public function __toString()
 	return $string;
 }
 
+# Sets row attributes
 public function __set($key, $value)
 {
 	# Association
 	if ( $this->has_association($key) )
 	{
-		
+		# If Has One Association Exists Link Objects
+		if ($this->has_one_association($key) )
+		{
+			$foreign_type = $this->singular_table_name().'_id';
+			$foreign_key = $this->read_attribute($this->primary_key());
+
+			$value->write_attribute($foreign_type, $foreign_key);
+		}
+		elseif ($this->has_belongs_to_association($key) )
+		{
+			$foreign_type = $value->singular_table_name().'_id';
+			$foreign_key = $value->read_attribute($value->primary_key());
+
+			$this->write_attribute($foreign_type, $foreign_key);	
+		}		
 	}
 	
 	# Attribute
@@ -99,9 +93,46 @@ public function __set($key, $value)
 	}
 }
 
+public function __call($name, $arguments)
+{
+	if ( substr($name, 0, 7) == 'create_' )
+	{
+		$key = strtolower(substr($name, 7));
+
+		if ( $this->has_association($key) )
+		{
+			$conditions = $arguments[0];
+			$modelName = ucwords($key).'_Model';
+			$object = $this->load->model($modelName);
+
+			if ($this->has_one_association($key) )
+			{			
+				$foreign_type = $this->singular_table_name().'_id';
+				$foreign_id = $this->read_attribute($foreign_type);
+
+				$conditions[$foreign_type] = $foreign_id;
+
+				return $this->$modelName->create($conditions);
+			}
+			elseif ($this->has_belongs_to_association($key) )
+			{
+				$object = $this->$modelName->create($conditions);
+				
+				$foreign_type = $object->singular_table_name().'_id';
+				$foreign_id = $object->read_attribute($object->primary_key());
+
+				$this->update_attribute($foreign_type, $foreign_id);
+								
+				return $object;
+			}
+		}			
+	}
+}
+
+# Returns row attributes and properties from CodeIgniter.
 public function __get($key)
 {
-	# Code Igniter
+	# Return property from CodeIgniter if exists
 	$CI =& get_instance();
 	if (property_exists($CI, $key)) return $CI->$key;		
 
@@ -111,63 +142,110 @@ public function __get($key)
 		{
 			return TRUE;
 		}
+		
+		# Object has one association with key
 		else if ($this->has_one_association($key) )
 		{
-			return TRUE;
+			# Create Object
+			$modelName = ucwords($key).'_Model';
+			
+			$this->load->model($modelName);
+			
+			# Create Conditions
+			$conditions = array(
+				$this->singular_table_name().'_id' => $this->read_attribute($this->primary_key())
+			);
+
+			# Load Object
+			$object = $this->$modelName->first($conditions);
+
+			return $object;
 		}
 		else if ($this->has_belongs_to_association($key) )
 		{
-			return TRUE;
-		}
-	}
+			# Create Object
+			$modelName = ucwords($key).'_Model';
 
-	# Is Attribute
+			 $this->load->model($modelName);
+
+			$foreign_type = $this->$modelName->singular_table_name().'_id';
+			$id = $this->read_attribute($foreign_type);
+			
+			$conditions = array($this->primary_key() => $id);
+			
+			# Load Object
+			$object = $this->$modelName->first($conditions);
+			
+			return $object;			
+		}
+	}	
+	
+	# Only retrieve attribute if it exists
 	if ( $this->has_attribute($key) )
 	{
 		return $this->read_attribute($key);
 	}
-	
-	return NULL;
 }
 
 /*-------------------------------------------------
 BUILD FUNCTION
 -------------------------------------------------*/
+		
+# Builds empty object using attributes.
+public function build($attributes = array())
+{
+	return new $this($attributes);
+}
+
+/*-------------------------------------------------
+HOOKS FUNCTION
+-------------------------------------------------*/
+
+protected $hooks = array();
+
+# Called before row is persisted.
 protected function before_save($hook)
 {
 	$this->add_hook('before_save', $hook);
 }
 
+# Called after row is persisted.
 protected function after_save($hook)
 {
 	$this->add_hook('after_save', $hook);
 }
 
+# Called before row is created.
 protected function before_create($hook)
 {
 	$this->add_hook('before_create', $hook);
 }
 
+# Called after row is created.
 protected function after_create($hook)
 {
 	$this->add_hook('after_create', $hook);
 }
 
+# Called before row is updated.
 protected function before_update($hook)
 {
 	$this->add_hook('before_update', $hook);
 }
 
+# Called after row is updated.
 protected function after_update($hook)
 {
 	$this->add_hook('after_update', $hook);
 }
 
+# Called before row is validated.
 protected function before_validation($hook)
 {
 	$this->add_hook('before_validation', $hook);
 }
 
+# Called after row is validated.
 protected function after_validation($hook)
 {
 	$this->add_hook('after_validation', $hook);
@@ -195,25 +273,19 @@ protected function call_hook($name)
 		$this->$hook();
 	}	
 }
-
-/*-------------------------------------------------
-BUILD FUNCTION
--------------------------------------------------*/
-		
-# Builds empty object using attributes.
-public function build($attributes = array())
-{
-	return new $this($attributes);
-}
 	
 /*-------------------------------------------------
 ATTRIBUTE METHODS
 -------------------------------------------------*/
+
+protected $attributes = array();
+protected $changed_attributes = array();
 	
-	# Allows you to assign multiple attributes.
+# Allows you to assign multiple attributes.
 public function assign_attributes($attributes)
 {
 	$attributes = (array)$attributes;
+	
 	foreach($attributes as $key => $value)
 	{
 		$this->write_attribute($key, $value);
@@ -237,6 +309,12 @@ public function write_attribute($key, $value)
 	$this->attributes[$key] = $value;
 }
 
+# Read all attributes
+public function attributes()
+{
+	return $this->attributes;
+}
+
 # Returns TRUE if attribute exists
 public function has_attribute($attribute)
 {
@@ -258,7 +336,7 @@ public function update_attributes($attributes)
 	$this->assign_attributes($attributes);
 	$this->save();
 }
-	
+
 /*-------------------------------------------------
 SAVE
 -------------------------------------------------*/	
@@ -267,17 +345,27 @@ SAVE
 #
 # A database row is created if this object is a new_record, otherwise
 # it will update the existing record in the database.
-public function save()
+public function save($validate  = TRUE)
 {		
-	# Hook
+	$this->reset_errors();
+
+	# If validation is required and fails, do not save object
+	if ( $validate && ! $this->is_valid() ) 
+	{
+		return $this;
+	}
+	
 	$this->call_hook('before_save');
 
+	# Save new record and call appropriate hooks
 	if ( $this->new_record )
 	{
 		$this->call_hook('before_create');
 		$this->_create();
 		$this->call_hook('after_create');
 	}
+	
+	# Update record and call appropriate hooks
 	else
 	{
 		$this->call_hook('before_update');
@@ -310,6 +398,9 @@ protected function _create()
 ERRORS
 -------------------------------------------------*/	
 
+protected $errors = array();
+
+# Return errors
 public function errors()
 {
 	$errors = array();
@@ -321,30 +412,62 @@ public function errors()
 	
 	return $errors;
 }
+
+# Add Error
+public function add_error($error)
+{
+	$this->errors[] = $error;
+}
+
+# Reset Errors
+public function reset_errors()
+{
+	$this->errors = array();
+}
 	
 /*-------------------------------------------------
 INITALIZERS
 -------------------------------------------------*/
-public function init()
-{
 
+public function init() {}
+
+/*-------------------------------------------------
+PRE-DEFINED COLUMNS
+-------------------------------------------------*/
+
+/* PRIMARY KEY */
+protected $primary_key = 'id';
+
+public function primary_key()
+{
+	return $this->primary_key;
 }
 
-protected function transient($fields)
-{
-	$this->transient = func_get_args();
-}
+/* TIMESTAMPS */
 
-protected function tablename($table_name)
-{
-	$this->table_name = $table_name;
-}
+protected $timestamps = TRUE;
+protected $created_at_column_name = 'created_at';
+protected $updated_at_column_name = 'updated_at';
 
+# Model uses timestamps
 protected function has_timestamps($bool)
 {				
 	$this->timestamps = $bool;
 }
 
+/*-------------------------------------------------
+TABLE NAME
+-------------------------------------------------*/
+
+public $table_name = '';
+
+# Set table name
+protected function tablename($table_name)
+{
+	$this->table_name = $table_name;
+}
+
+# Guess table name using model name.
 protected function _tablename()
 {
 	if ( empty($this->table_name) )
@@ -355,12 +478,14 @@ protected function _tablename()
 	return $this->table_name;
 }
 
-public function singularTableName()
+# Returns singular form of model name.
+public function singular_table_name()
 {
 	return strtolower(singular($this->table_name));
 }
 
-public function pluralTableName()
+# Returns plural form of model name.
+public function plural_table_name()
 {
 	return strtolower(plural($this->table_name));		
 }
@@ -368,6 +493,9 @@ public function pluralTableName()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
+protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
+protected $relationship_vars = array();
+
 protected function has_many($association, $settings = array())
 {
 	$this->relationships['has_many'][$association] = $settings;
@@ -407,25 +535,133 @@ protected function has_association($association)
 			array_key_exists($association, $this->relationships['belongs_to']);
 }
 
-protected function has_one_association($association)
-{
-	echo print_r($this->relationships['has_one']['page']);
+protected function get_has_one_association($association)
+{	
 	return $this->_element("has_one.{$association}", $this->relationships, FALSE);
 }
 
-protected function has_belongs_to_association($association)
+protected function has_one_association($association)
+{
+	$association = $this->get_has_one_association($association);
+	return isset($association) && $association !== FALSE;
+}
+
+protected function get_belongs_to_association($association)
 {
 	return $this->_element("belongs_to.{$association}", $this->relationships, FALSE);
 }
 
-protected function has_many_association($association)
+protected function has_belongs_to_association($association)
+{
+	$association = $this->get_belongs_to_association($association);
+
+	return isset($association) && $association !== FALSE;
+}
+
+protected function get_has_many_association($association)
 {
 	return $this->_element("has_many.{$association}", $this->relationships, FALSE);
+}
+
+protected function has_many_association($association)
+{	
+	$association = $this->get_has_many_association($association);
+	return isset($association) && $association !== FALSE;
 } 
+	
+/*-------------------------------------------------
+VALIDATION
+-------------------------------------------------*/	
+
+protected $validators = array();
+
+# Did validation perform
+public function is_valid()
+{
+	$this->call_hook('before_validation');
+	
+	$validates = $this->perform_validations();
+	
+	$this->call_hook('after_validation');
+	
+	return $validates;
+}
+
+# Attach validators to model
+protected function validates($attribute, $validators)
+{
+	$this->validators[$attribute] = $validators;
+}
+
+# Perform validators (Should include caching)
+protected function perform_validations()
+{
+	$validates = TRUE;
+	$this->reset_errors();
+
+	if ( count($this->validators) )
+	{
+		foreach($this->validators as $attribute => $validators)
+		{	
+			$validators = is_array($validators) ? $validators : array($validators);
+			
+			foreach($validators as $name => $options) 
+			{
+				$validator = is_numeric($name) ? $options : $name;
+				$options = !is_numeric($name) ? $options : array();
+
+				if ( ! $this->call_validator($validator, $this, $attribute, $options) )
+				{
+					$validates = FALSE;
+				}
+			}
+		}
+	}
+	
+	return $validates;
+}
+
+# Find validator and execute it.
+protected function call_validator($validator, $object, $attribute, $options)
+{
+	# Get Callback Signature.
+	$callback = $this->validator_callback($validator);
+
+	# If callback exists, than run callback.
+	return $callback && call_user_func($callback, $object, $attribute, $options);
+}
+
+# Find callback signature for validator.
+protected function validator_callback($validator)
+{
+	$callback = FALSE;
+
+	# Create string signature.
+	$function_name = 'jot_validate_'.strtolower($validator);
+	$method_name = 'validate_'.strtolower($validator);
+	
+	# If method exists on model use it.
+	if ( method_exists($this, $method_name ) )
+	{
+		$callback = array($this, $method_name);
+	}
+	# If function exists use it.
+	else if ( function_exists($function_name) )
+	{
+		$callback = $function_name;
+	}
+	
+	return $callback;
+}
+
+
+	
 	
 /*-------------------------------------------------
 PERSISTANCE
 -------------------------------------------------*/
+protected $new_record = TRUE;
+protected $destroyed = FALSE;
 
 # Returns boolean if object is persisted. A persisted object
 # is stored in the database.
@@ -517,6 +753,7 @@ protected function destroy_id($id)
 # This method delete an actual object from memory.
 protected function destroy_object()
 {
+	# Only delete object if persisted.
 	if ( $this->persisted() )
 	{
 		$id = $this->read_attribute($this->primary_key);
@@ -530,18 +767,30 @@ protected function destroy_object()
 /*-------------------------------------------------
 FINDERS
 -------------------------------------------------*/	
+protected $base_filter = null;
+protected $base_join = null;
 
+# Validates conditions variable.
 protected function _conditions($conditions)
 {
-	
+	# Return empty array if conditions do not exist
 	if ( $conditions == NULL ) 
 	{
 		return array();
 	}
 	 
-	$conditions = is_numeric($conditions) || ! $this->_is_assoc($conditions) ? array($this->primary_key => $conditions) : $conditions;	
-	$conditions = is_array($conditions) ? $conditions : array();
-
+	# If conditions is a single integer or list of ids return ids.
+	if ( is_numeric($conditions) || ! $this->_is_assoc($conditions) )
+	{
+		$conditions = array($this->primary_key => $conditions);
+	}
+	
+	# Make sure conditions is an array
+	if ( ! is_array($conditions) )
+	{
+		$conditions = array();
+	}
+	
 	if ($this->base_filter !== null)
 	{
 		$conditions = array_merge($this->base_filter, $conditions);
@@ -555,15 +804,13 @@ protected function _conditions($conditions)
 	return $conditions;	
 }
 
+# Return true if conditions return results.
 public function exists($conditions = array())
 {
-	$conditions = $this->_conditions($conditions);
-
-	$this->_find($conditions);
-	
-	return $this->db->count_all_results() ? TRUE : FALSE;		
+	return !!$this->count($conditions);		
 }	
 
+# Return count of items using conditions.
 public function count($conditions = array())
 {
 	$conditions = $this->_conditions($conditions);
@@ -573,6 +820,7 @@ public function count($conditions = array())
 	return $this->db->count_all_results();		
 }
 
+# Returns first row using conditions
 public function first($conditions = array())
 {
 	$conditions = $this->_conditions($conditions);
@@ -583,6 +831,7 @@ public function first($conditions = array())
 	return count($result) ? $result[0] : NULL;
 }
 
+# Returns last row using conditions
 public function last($conditions = array())
 {
 	$conditions = $this->_conditions($conditions);
@@ -594,6 +843,7 @@ public function last($conditions = array())
 	return count($result) ? $result[0] : NULL;
 }
 
+# Returns all rows using conditions
 public function all($conditions = array())
 {
 	$conditions = $this->_conditions($conditions);
@@ -601,6 +851,7 @@ public function all($conditions = array())
 	return $this->find($conditions, 1, 0);		
 }
 
+# Returns a range of rows using conditions
 public function find($conditions = array(), $page = 1, $limit = 10)
 {
 	$conditions = $this->_conditions($conditions);
@@ -659,11 +910,18 @@ protected function _find($conditions = array())
 DEPENDENCIES
 -------------------------------------------------*/	
 
+# Returns true if array returned is an assocative array
 protected function _is_assoc($array)
 {
     return (is_array($array) && (count($array)==0 || 0 !== count(array_diff_key($array, array_keys(array_keys($array))) )));
 }
 
+# Returns value from key if in array. If value does not exist
+# return default value.
+#
+# Examples:
+# $this->_element('name', $object, 'Jot');
+# $this->_element('article.published', $article, TRUE);
 protected function _element($keys, $array, $default = FALSE)
 {
 	$array = (array)$array;
