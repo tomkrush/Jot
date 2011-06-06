@@ -6,26 +6,9 @@ class Jot extends CI_Model
 {
 
 /*-------------------------------------------------
-PROPERTIES
--------------------------------------------------*/
-public $table_name = '';
-protected $timestamps = TRUE;
-protected $primary_key = 'id';
-
-protected $created_at_column_name = 'created_at';
-protected $updated_at_column_name = 'updated_at';
-
-protected $attributes = array();
-protected $changed_attributes = array();
-	
-protected $new_record = TRUE;
-protected $destroyed = FALSE;
-
-protected $hooks = array();
-
-/*-------------------------------------------------
 MAGIC METHODS
 -------------------------------------------------*/
+
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
@@ -99,6 +82,18 @@ public function __get($key)
 /*-------------------------------------------------
 BUILD FUNCTION
 -------------------------------------------------*/
+		
+# Builds empty object using attributes.
+public function build($attributes = array())
+{
+	return new $this($attributes);
+}
+
+/*-------------------------------------------------
+HOOKS FUNCTION
+-------------------------------------------------*/
+
+protected $hooks = array();
 
 # Called before row is persisted.
 protected function before_save($hook)
@@ -170,25 +165,19 @@ protected function call_hook($name)
 		$this->$hook();
 	}	
 }
-
-/*-------------------------------------------------
-BUILD FUNCTION
--------------------------------------------------*/
-		
-# Builds empty object using attributes.
-public function build($attributes = array())
-{
-	return new $this($attributes);
-}
 	
 /*-------------------------------------------------
 ATTRIBUTE METHODS
 -------------------------------------------------*/
+
+protected $attributes = array();
+protected $changed_attributes = array();
 	
 # Allows you to assign multiple attributes.
 public function assign_attributes($attributes)
 {
 	$attributes = (array)$attributes;
+	
 	foreach($attributes as $key => $value)
 	{
 		$this->write_attribute($key, $value);
@@ -240,11 +229,6 @@ public function update_attributes($attributes)
 	$this->save();
 }
 
-public function primary_key()
-{
-	return $this->primary_key;
-}
-	
 /*-------------------------------------------------
 SAVE
 -------------------------------------------------*/	
@@ -339,16 +323,40 @@ INITALIZERS
 
 public function init() {}
 
-# Set table name
-protected function tablename($table_name)
+/*-------------------------------------------------
+PRE-DEFINED COLUMNS
+-------------------------------------------------*/
+
+/* PRIMARY KEY */
+protected $primary_key = 'id';
+
+public function primary_key()
 {
-	$this->table_name = $table_name;
+	return $this->primary_key;
 }
+
+/* TIMESTAMPS */
+
+protected $timestamps = TRUE;
+protected $created_at_column_name = 'created_at';
+protected $updated_at_column_name = 'updated_at';
 
 # Model uses timestamps
 protected function has_timestamps($bool)
 {				
 	$this->timestamps = $bool;
+}
+
+/*-------------------------------------------------
+TABLE NAME
+-------------------------------------------------*/
+
+public $table_name = '';
+
+# Set table name
+protected function tablename($table_name)
+{
+	$this->table_name = $table_name;
 }
 
 # Guess table name using model name.
@@ -465,6 +473,8 @@ protected function validator_callback($validator)
 /*-------------------------------------------------
 PERSISTANCE
 -------------------------------------------------*/
+protected $new_record = TRUE;
+protected $destroyed = FALSE;
 
 # Returns boolean if object is persisted. A persisted object
 # is stored in the database.
