@@ -496,23 +496,23 @@ ASSOCATIONS
 protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
 protected $relationship_vars = array();
 
-protected function has_many($association, $settings = array())
+protected function has_many($association, $options = array())
 {
-	$this->relationships['has_many'][$association] = $settings;
+	$this->relationships['has_many'][$association] = $options;
 
 	$this->relationship_vars[] = plural($association);
 }
 
-protected function has_one($association, $settings = array())
+protected function has_one($association, $options = array())
 {
-	$this->relationships['has_one'][$association] = $settings;
+	$this->relationships['has_one'][$association] = $options;
 
 	$this->relationship_vars[] = singular($association);
 }
 
-protected function belongs_to($association, $settings = array())
+protected function belongs_to($association, $options = array())
 {
-	$this->relationships['belongs_to'][$association] = $settings;
+	$this->relationships['belongs_to'][$association] = $options;
 
 	$this->relationship_vars[] = singular($association);
 }
