@@ -8,5 +8,5 @@ $order = array(
 	'JotHookTestCase',
 	'JotValidationTestCase',
 	'JotRelationshipsTestCase',
-	// 'JotFormTestCase',
+	'JotFormTestCase',
 );

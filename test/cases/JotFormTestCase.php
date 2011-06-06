@@ -4,12 +4,12 @@ class JotFormTestCase extends UnitTestCase
 {
 	public function __construct()
 	{
-		$this->load->model(array('blogs_model', 'articles_model', 'pages_model'));
+		$this->load->model(array('blog_model', 'article_model', 'page_model'));
 	}
 	
 	public function test_form_open()
 	{
-		$blog = $this->blogs_model->build(array(
+		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
@@ -22,7 +22,7 @@ class JotFormTestCase extends UnitTestCase
 	
 	public function test_checkbox()
 	{
-		$blog = $this->blogs_model->build(array(
+		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
@@ -41,10 +41,10 @@ class JotFormTestCase extends UnitTestCase
 		
 		$this->assertEquals(htmlentities($expects), htmlentities($html), 'Checkbox tag (attributes)');
 	}
-	
+		
 	public function test_file_field()
 	{
-		$blog = $this->blogs_model->build(array(
+		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
@@ -56,10 +56,10 @@ class JotFormTestCase extends UnitTestCase
 		
 		$this->assertEquals(htmlentities($expects), htmlentities($html), 'File field');		
 	}
-	
+
 	public function test_hidden_field()
 	{	
-		$blog = $this->blogs_model->build(array(
+		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
 		));
