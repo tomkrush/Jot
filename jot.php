@@ -590,28 +590,40 @@ public function is_valid()
 # Attach validators to model
 protected function validates($attribute, $validators)
 {
+	# Add validator to object
 	$this->validators[$attribute] = $validators;
 }
 
 # Perform validators (Should include caching)
 protected function perform_validations()
 {
+	# By default validation passes.
 	$validates = TRUE;
+	
+	# Reset errors to prevent inaccuracies.
 	$this->reset_errors();
 
+	# If validators are present, lets execute them.
 	if ( count($this->validators) )
 	{
 		foreach($this->validators as $attribute => $validators)
 		{	
+			# Validators per attribute
 			$validators = is_array($validators) ? $validators : array($validators);
 			
+			# Execute individual validators
 			foreach($validators as $name => $options) 
 			{
+				# Validator Name
 				$validator = is_numeric($name) ? $options : $name;
+				
+				# Validator Options
 				$options = !is_numeric($name) ? $options : array();
 
+				# Execute
 				if ( ! $this->call_validator($validator, $this, $attribute, $options) )
 				{
+					# Validation failed. But we'll keep looping.
 					$validates = FALSE;
 				}
 			}
@@ -654,9 +666,6 @@ protected function validator_callback($validator)
 	return $callback;
 }
 
-
-	
-	
 /*-------------------------------------------------
 PERSISTANCE
 -------------------------------------------------*/
