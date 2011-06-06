@@ -14,18 +14,25 @@ class Jot extends CI_Model
 MAGIC METHODS
 -------------------------------------------------*/
 
+#
+# Options:
+#    new_record: true|false
+#
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
 	
 	$this->init();
+	
 	$this->load->add_package_path(APPPATH.'third_party/jot');
 
 	$this->load->helper('inflector');
 	$this->load->helper('jot');
 
+	# Load in Table Name
 	$this->_tablename();
 			
+	# If attributes exist assign them.
 	if ( is_object($attributes) || is_array($attributes) )
 	{
 		$this->assign_attributes($attributes);
@@ -66,7 +73,7 @@ public function __toString()
 	return $string;
 }
 
-# Sets row attributes
+# Allows for attributes and associations to be assigned.
 public function __set($key, $value)
 {
 	# Association
@@ -100,6 +107,7 @@ public function __set($key, $value)
 	}
 }
 
+# Allows for meta functions to exist.
 public function __call($name, $arguments)
 {
 	# Is call a create_ method?
@@ -325,6 +333,7 @@ public function reset_errors()
 INITALIZERS
 -------------------------------------------------*/
 
+# Init is called by object for initialization.
 public function init() {}
 
 /*-------------------------------------------------
@@ -334,6 +343,7 @@ PRE-DEFINED COLUMNS
 /* PRIMARY KEY */
 protected $primary_key = 'id';
 
+# Return attribute name of primary key.
 public function primary_key()
 {
 	return $this->primary_key;
