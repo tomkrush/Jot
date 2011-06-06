@@ -5,6 +5,7 @@ class JotFormTestCase extends UnitTestCase
 	public function __construct()
 	{
 		$this->load->model(array('blog_model', 'article_model', 'page_model'));
+		$this->load->helper('jot_form');
 	}
 	
 	public function test_form_open()

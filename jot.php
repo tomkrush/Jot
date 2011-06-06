@@ -1,7 +1,5 @@
 <?php
 
-require 'jot_form.php';
-
 class JotIdentityMap 
 {
 	
