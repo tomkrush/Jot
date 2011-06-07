@@ -1,6 +1,6 @@
 <?php
 
-class JotCRUDTestCase extends UnitTestCase
+class JotPersistanceTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		
@@ -34,6 +34,22 @@ class JotCRUDTestCase extends UnitTestCase
 		$this->assertEquals('blog-1', $blog->slug, "Slug should transform and return correctly from database");
 		$this->assertEquals(NULL, $blog->description, "Description should return NULL");
 		$this->assertEquals(NULL, $blog->rss_url, "RSS URL should return NULL");		
+	}
+	
+	public function test_reload() {
+		$blog = $this->blog_model->create(array(
+			'name' => 'Test title'
+		));
+		
+		$name = $blog->name;
+		
+		$blog->name = NULL;
+		
+		$this->assertNotEquals($name, $blog->name, 'Attribute changed');
+		
+		$blog->reload();
+
+		$this->assertEquals('Test title', $blog->name, 'Attribute reloaded');
 	}
 	
 	public function test_save()

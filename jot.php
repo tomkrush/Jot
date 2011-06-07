@@ -670,6 +670,22 @@ public function persisted()
 	return ! ($this->new_record || $this->destroyed);
 }
 
+# Reload attributes from database.
+public function reload()
+{
+	if ( $this->persisted() )
+	{
+		$id = $this->read_attribute($this->primary_key());
+		$new_object = $this->first($id);
+		
+		$this->attributes = $new_object->attributes();
+		
+		unset($new_object);
+	}
+	
+	return $this;
+}
+
 # Creates single object using attributes.
 # Returns object
 public function create($attributes)
@@ -766,7 +782,7 @@ protected function destroy_object()
 /*-------------------------------------------------
 SAVE
 -------------------------------------------------*/	
-	
+
 # Saves the object
 #
 # A database row is created if this object is a new_record, otherwise
