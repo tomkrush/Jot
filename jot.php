@@ -5,8 +5,43 @@ class JotIdentityMap
 	
 }
 
-class Jot extends CI_Model 
+class Jot extends CI_Model implements Serializable
 {
+
+/*-------------------------------------------------
+SERIALIZABLE
+-------------------------------------------------*/
+
+# Serializes the information that is required to recreate
+# object.
+#
+# - Attributes
+# - Errors
+# - Persisted
+#
+public function serialize()
+{
+	$data = array();
+	
+	$data['errors'] = $this->errors;
+	$data['attributes'] = $this->attributes;
+	$data['new_record'] = $this->new_record;
+	$data['destroyed'] = $this->destroyed;
+	
+	return serialize($data);
+}
+
+public function unserialize($data)
+{	
+	$this->__construct();
+	
+	$data = unserialize($data);
+	
+	$this->errors = element('errors', $data);
+	$this->attributes = element('attributes', $data);
+	$this->new_record = element('new_record', $data);
+	$this->destroyed = element('destroyed', $data);
+}
 
 /*-------------------------------------------------
 MAGIC METHODS
@@ -19,7 +54,7 @@ MAGIC METHODS
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
-	
+
 	$this->init();
 	
 	$this->load->add_package_path(APPPATH.'third_party/jot');

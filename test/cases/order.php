@@ -1,6 +1,6 @@
 <?php
 
-$order = array(
+$order = array(	
 	'JotTestCase',
 	'JotAttributesTestCase',
 	'JotCRUDTestCase',
@@ -8,5 +8,6 @@ $order = array(
 	'JotHookTestCase',
 	'JotValidationTestCase',
 	'JotRelationshipsTestCase',
+	'JotSerializationTestCase',
 	'JotFormTestCase',
 );
