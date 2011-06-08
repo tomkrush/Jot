@@ -132,9 +132,18 @@ public function __construct($attributes = array(), $options = array())
 	# If attributes exist assign them.
 	if ( is_object($attributes) || is_array($attributes) )
 	{
+		$id = $this->_element($this->primary_key(), $attributes);
+		
+		if ( $id && $object = JotIdentityMap::get(get_class(self), $id) )
+		{
+			return $object;
+		}
+		
 		$this->assign_attributes($attributes);
 
 		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : TRUE;
+		
+		JotIdentityMap::add($this);
 	}
 }
 
