@@ -88,7 +88,6 @@ class JotIdentityMapTestCase extends UnitTestCase
 		$this->assertNotEquals($original, $new, 'Object is removed by id');		
 	}
 
-	
 	public function test_remove()
 	{	
 		$original = new JotIdentityMapMock(1);
@@ -97,5 +96,32 @@ class JotIdentityMapTestCase extends UnitTestCase
 		JotIdentityMap::remove($original);
 		$new = JotIdentityMap::get('JotIdentityMapMock', 1);
 		$this->assertNotEquals($original, $new, 'Object is removed');
+	}
+	
+	public function test_object_create_with_no_attributes()
+	{
+		$blog = new Blog_Model;
+				
+		$this->assertEquals(0, JotIdentityMap::count(), "Doesn't add objects without attributes.");		
+	}
+	
+	public function test_object_create_with_no_id()
+	{		
+		$blog = new Blog_Model(array(
+			'title' => 'test',
+		));
+			
+		$this->assertEquals(0, JotIdentityMap::count(), 'No object added because attributes are present but no id.');		
+	}
+	
+	public function test_object_create_with_id()
+	{		
+		$blog = new Blog_Model(array(
+			'title' => 'test',
+			'id'	=> 1
+		));
+			
+		$this->assertEquals(1, JotIdentityMap::count(), 'Added object to identity map.');		
+		
 	}
 }
