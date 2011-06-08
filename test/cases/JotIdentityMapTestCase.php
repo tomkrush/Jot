@@ -51,6 +51,22 @@ class JotIdentityMapTestCase extends UnitTestCase
 		$this->assertEquals($original, $new, 'Object is added');		
 	}
 	
+	public function test_exists()
+	{
+		$original = new JotIdentityMapMock(1);
+		
+		JotIdentityMap::add($original);
+
+		$this->assertTrue(JotIdentityMap::exists($original), 'Object exists in repository.');				
+	}
+	
+	public function test_does_not_exist()
+	{
+		$original = new JotIdentityMapMock(1);
+		
+		$this->assertFalse(JotIdentityMap::exists($original), 'Object does not exist in repository.');		
+	}
+	
 	public function test_count()
 	{
 		$original = new JotIdentityMapMock(1);

@@ -60,6 +60,16 @@ class JotIdentityMap
 		
 		return count($self->repository);		
 	}
+	
+	public static function exists($object)
+	{
+		$self = self::getInstance();
+		
+		$class = get_class($object);
+		$id = $object->read_attribute($object->primary_key());
+		
+		return isset($self->repository[$class][$id]);
+	}
 
 	public static function clear()
 	{
