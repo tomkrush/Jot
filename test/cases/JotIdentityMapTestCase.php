@@ -118,7 +118,7 @@ class JotIdentityMapTestCase extends UnitTestCase
 	{
 		$blog = new Blog_Model;
 				
-		$this->assertEquals(0, JotIdentityMap::count(), "Doesn't add objects without attributes.");		
+		$this->assertFalse(JotIdentityMap::exists($blog), "Doesn't add objects without attributes.");		
 	}
 	
 	public function test_object_create_with_no_id()
@@ -127,7 +127,7 @@ class JotIdentityMapTestCase extends UnitTestCase
 			'title' => 'test',
 		));
 			
-		$this->assertEquals(0, JotIdentityMap::count(), 'No object added because attributes are present but no id.');		
+		$this->assertFalse(JotIdentityMap::exists($blog), 'No object added because attributes are present but no id.');		
 	}
 	
 	public function test_object_create_with_id()
@@ -137,7 +137,6 @@ class JotIdentityMapTestCase extends UnitTestCase
 			'id'	=> 1
 		));
 			
-		$this->assertEquals(1, JotIdentityMap::count(), 'Added object to identity map.');		
-		
+		$this->assertTrue(JotIdentityMap::exists($blog), 'Added object to identity map.');		
 	}
 }
