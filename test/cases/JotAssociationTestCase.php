@@ -17,7 +17,7 @@ class JotAssociationTestCase extends UnitTestCase
 		$this->db->truncate('pages');	
 	}
 	
-	public function test_has_one_relationship()
+	public function test_has_one_association()
 	{
 		$blog = $this->blog_model->create(array(
 			'name' => 'Blog',
@@ -37,7 +37,7 @@ class JotAssociationTestCase extends UnitTestCase
 		$this->assertEquals('Lorem ipsum dolor sit amet...', @$blog->page->description, 'Contents should be correct');
 	}
 
-	public function test_belongs_to_relationship()
+	public function test_belongs_to_association()
 	{
 		$page = $this->page_model->create(array(
 			'name' => 'Page',
@@ -63,7 +63,7 @@ class JotAssociationTestCase extends UnitTestCase
 		
 	}
 	
-	public function test_chained_relationships()
+	public function test_chained_associations()
 	{
 		$page = $this->page_model->create(array(
 			'name' => 'Page',
@@ -81,7 +81,7 @@ class JotAssociationTestCase extends UnitTestCase
 	}
 
 	
-	public function test_has_many_relationship()
+	public function test_has_many_association()
 	{	
 		$blog = $this->blog_model->create(array(
 			'name' => 'Blog #2',
