@@ -1,10 +1,5 @@
 <?php
 
-class JotIdentityMap 
-{
-	
-}
-
 class Jot extends CI_Model implements Serializable
 {
 
