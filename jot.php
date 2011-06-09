@@ -817,7 +817,13 @@ public function save($validate  = TRUE)
 
 # Internal Method for updating a row in the database
 protected function _update()
-{	
+{
+	# Set created and updated at attributes if timestamps exist.
+	if ( $this->timestamps)
+	{
+		$this->write_attribute($this->updated_at_column_name, time());
+	}	
+		
 	$id = $this->read_attribute($this->primary_key);
 	$this->db->update($this->table_name, $this->attributes, array($this->primary_key=>$id));
 }
@@ -825,6 +831,13 @@ protected function _update()
 # Internal Method for creating a row in the database
 protected function _create()
 {		
+	# Set created and updated at attributes if timestamps exist.
+	if ( $this->timestamps)
+	{
+		$this->write_attribute($this->created_at_column_name, time());
+		$this->write_attribute($this->updated_at_column_name, time());
+	}
+	
 	$this->db->insert($this->table_name, $this->attributes);
 	$this->new_record = FALSE;
 	$id = $this->db->insert_id();
