@@ -1,6 +1,6 @@
 <?php
 
-class JotRelationshipsTestCase extends UnitTestCase
+class JotAssociationTestCase extends UnitTestCase
 {
 	public function __construct()
 	{
@@ -89,31 +89,47 @@ class JotRelationshipsTestCase extends UnitTestCase
 		// $this->assertEquals('Page', $article->blog->page->name, 'Page name is correct');	
 	}
 
-	// 	
-	// 	public function test_has_many_relationship()
-	// 	{	
-	// 		$blog = $this->blog_model->create(array(
-	// 			'name' => 'Blog #2',
-	// 			'slug' => 'blog' 
-	// 		));
-	// 		
-	// 		$article = $blog->articles->create(array(
-	// 			'title' => 'Article Title',
-	// 			'contents' => 'Testing'
-	// 		));
-	// 		
-	// 		$this->assertEquals('blog', $article->blog->slug, 'Slugs should be the same');
-	// 		$this->assertEquals('Blog #2', $article->blog->name, 'Names should be the same');
-	// 		
-	// 		$article = $this->articles_model->first();
-	// 		$this->assertEquals('blog', $article->blog->slug, 'Slug should be the correct');
-	// 		
-	// 		$article2 = $blog->articles->create(array(
-	// 			'title' => 'Article Title 2',
-	// 			'contents' => 'Testing'
-	// 		));
-	// 		
-	// 		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
-	// 	}
-	// 	
+	
+	public function test_has_many_relationship()
+	{	
+		$blog = $this->blog_model->create(array(
+			'name' => 'Blog #2',
+			'slug' => 'blog' 
+		));
+		
+		$article = $this->article_model->create(array(
+			'title' => 'Lorem Ipsum'
+		));
+
+		$article2 = $this->article_model->create(array(
+			'title' => 'Dolar'
+		));
+
+		$article3 = $this->article_model->create(array(
+			'title' => 'Ipsum'
+		));
+		
+		$blog->articles = array($article, $article2);
+
+		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
+		
+		// $article = $blog->articles->create(array(
+		// 	'title' => 'Article Title',
+		// 	'contents' => 'Testing'
+		// ));
+		
+		// $this->assertEquals('blog', $article->blog->slug, 'Slugs should be the same');
+		// $this->assertEquals('Blog #2', $article->blog->name, 'Names should be the same');
+		// 
+		// $article = $this->articles_model->first();
+		// $this->assertEquals('blog', $article->blog->slug, 'Slug should be the correct');
+		// 
+		// $article2 = $blog->articles->create(array(
+		// 	'title' => 'Article Title 2',
+		// 	'contents' => 'Testing'
+		// ));
+		// 
+		// $this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
+	}
+	
 }

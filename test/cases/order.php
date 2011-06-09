@@ -7,7 +7,7 @@ $order = array(
 	'JotFindTestCase',
 	'JotHookTestCase',
 	'JotValidationTestCase',
-	'JotRelationshipsTestCase',
+	'JotAssociationTestCase',
 	'JotSerializationTestCase',
 	'JotFormTestCase',
 );

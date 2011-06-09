@@ -125,7 +125,19 @@ public function __set($key, $value)
 
 			# Add Association
 			$this->write_attribute($foreign_type, $foreign_key);	
-		}		
+		}
+		
+		# If has many assocation links objects
+		elseif ( $this->has_many_association($key) )
+		{
+			$foreign_type = $this->singular_table_name().'_id';
+			$foreign_key = $this->read_attribute($this->primary_key());
+
+			foreach($value as $object)
+			{
+				$object->update_attribute($foreign_type, $foreign_key);
+			}
+		}	
 	}
 	
 	# Attribute
@@ -187,15 +199,30 @@ public function __get($key)
 	# Return property from CodeIgniter if exists
 	$CI =& get_instance();
 	if (property_exists($CI, $key)) return $CI->$key;		
-
+	
 	if ( $this->has_association($key) )
 	{
 		if ( $this->has_many_association($key) )
 		{
-			return TRUE;
+			# Create Object			
+			$modelName = ucwords(singular($key)).'_Model';
+
+			$this->load->model($modelName);
+			
+			$foreign_type = $this->singular_table_name().'_id';
+			$id = $this->read_attribute($this->primary_key());
+
+			# Base Filter
+			$object = new $modelName;
+			
+			$object->set_base_filter(array(
+				$foreign_type => $id
+			));
+															
+			return $object;
 		}
 		
-		# Object has one association with key
+		# Object has one association
 		else if ($this->has_one_association($key) )
 		{
 			# Create Object
@@ -213,12 +240,14 @@ public function __get($key)
 
 			return $object;
 		}
+		
+		# Object has belongs association
 		else if ($this->has_belongs_to_association($key) )
 		{
 			# Create Object
 			$modelName = ucwords($key).'_Model';
 
-			 $this->load->model($modelName);
+			$this->load->model($modelName);
 
 			$foreign_type = $this->$modelName->singular_table_name().'_id';
 			$id = $this->read_attribute($foreign_type);
@@ -427,8 +456,22 @@ public function plural_table_name()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
+protected $base_filter = null;
+protected $base_join = null;
+
 protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
 protected $relationship_vars = array();
+
+protected function set_base_filter($conditions)
+{
+	if (is_array($conditions) === false) return;
+	$this->base_filter = $conditions;
+}
+
+protected function set_base_join($table, $on)
+{
+	$this->base_join = array($table, $on);
+}
 
 protected function has_association($association)
 {	
@@ -851,6 +894,12 @@ FINDERS
 # Validates conditions variable.
 protected function _conditions($conditions)
 {
+	# Set Base Filter
+	if ($this->base_filter !== null)
+	{
+		$conditions = array_merge($this->base_filter, $conditions);
+	}	
+	
 	# Return empty array if conditions do not exist
 	if ( $conditions == NULL ) 
 	{
@@ -867,6 +916,12 @@ protected function _conditions($conditions)
 	if ( ! is_array($conditions) )
 	{
 		$conditions = array();
+	}
+
+	# Set Join
+	if ($this->base_join !== null)
+	{
+		$this->db->join($this->base_join[0], $this->base_join[1]);
 	}
 	
 	return $conditions;	
