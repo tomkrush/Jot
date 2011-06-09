@@ -1,6 +1,6 @@
 <?php
 
-class JotFindTestCase extends UnitTestCase
+class JotRecordFindTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		

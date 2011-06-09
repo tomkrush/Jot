@@ -1,6 +1,6 @@
 <?php
 
-class JotPersistanceTestCase extends UnitTestCase
+class JotRecordPersistanceTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		

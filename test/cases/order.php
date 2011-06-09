@@ -1,13 +1,13 @@
 <?php
 
 $order = array(	
-	'JotTestCase',
-	'JotAttributesTestCase',
-	'JotPersistanceTestCase',
-	'JotFindTestCase',
-	'JotHookTestCase',
-	'JotValidationTestCase',
-	'JotAssociationTestCase',
-	'JotSerializationTestCase',
+	'JotRecordTestCase',
+	'JotRecordAttributesTestCase',
+	'JotRecordPersistanceTestCase',
+	'JotRecordFindTestCase',
+	'JotRecordHookTestCase',
+	'JotRecordValidationTestCase',
+	'JotRecordAssociationTestCase',
+	'JotRecordSerializationTestCase',
 	'JotFormTestCase',
 );
