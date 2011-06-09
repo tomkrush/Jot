@@ -5,6 +5,7 @@ class JotAttributesTestCase extends UnitTestCase
 	public function __construct()
 	{		
 		$this->load->model('blog_model');
+		$this->load->model('type_model');
 	}
 	
 	public function test_read_and_write_attribute()
@@ -33,5 +34,44 @@ class JotAttributesTestCase extends UnitTestCase
 		
 		$this->assertTrue($blog->has_attribute('name'), 'Blog attribute should exist');
 		$this->assertFalse($blog->has_attribute('slug'), 'Blog attribute should exist');
+	}
+	
+	public function test_attribute_integer()
+	{
+		$object = new Type_Model;
+		$object->count = 5;
+		$object->save();
+		
+		$object->reload();
+		
+		$type = is_int($object->count);
+		
+		$this->assertTrue($type, 'Attribute is integer');
+	}
+	
+	public function test_attribute_string()
+	{
+		$object = new Type_Model;
+		$object->name = "Untitled Object";
+		$object->save();
+		
+		$object->reload();
+		
+		$type = is_string($object->name);
+		
+		$this->assertTrue($type, 'Attribute is string');		
+	}
+	
+	public function test_attribute_boolean()
+	{
+		$object = new Type_Model;
+		$object->is_flag = TRUE;
+		$object->save();
+		
+		$object->reload();
+		
+		$type = is_bool($object->is_flag);
+		
+		$this->assertTrue($type, 'Attribute is boolean');		
 	}
 }
