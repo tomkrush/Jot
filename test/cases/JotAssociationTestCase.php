@@ -78,15 +78,6 @@ class JotAssociationTestCase extends UnitTestCase
 		));
 		
 		$this->assertTrue($blog, 'Blog should exist');
-
-		// $article = $blog->articles->create(array(
-		// 	'title' => 'test',
-		// 	'contents' => 'testing the article'
-		// ));	
-		// 				
-		// $this->assertTrue($article, 'Article should exist');
-		// 
-		// $this->assertEquals('Page', $article->blog->page->name, 'Page name is correct');	
 	}
 
 	
@@ -112,24 +103,6 @@ class JotAssociationTestCase extends UnitTestCase
 		$blog->articles = array($article, $article2);
 
 		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
-		
-		// $article = $blog->articles->create(array(
-		// 	'title' => 'Article Title',
-		// 	'contents' => 'Testing'
-		// ));
-		
-		// $this->assertEquals('blog', $article->blog->slug, 'Slugs should be the same');
-		// $this->assertEquals('Blog #2', $article->blog->name, 'Names should be the same');
-		// 
-		// $article = $this->articles_model->first();
-		// $this->assertEquals('blog', $article->blog->slug, 'Slug should be the correct');
-		// 
-		// $article2 = $blog->articles->create(array(
-		// 	'title' => 'Article Title 2',
-		// 	'contents' => 'Testing'
-		// ));
-		// 
-		// $this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
 	}
 	
 }
