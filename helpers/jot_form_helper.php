@@ -1,43 +1,52 @@
 <?php
 
-function form_for(&$jot_form, $record, $action, $options = array())
+if ( ! function_exists('form_for'))
 {
-	$CI =& get_instance();
-	$CI->load->helper('form');
-	
-	$jot_form = new Jot_form($record);
-	
-	$options['method'] = array_key_exists('method', $options) ? $options['method'] : 'POST';
-	
-	if ( array_key_exists('multipart', $options) && $options['multipart'] == TRUE)
+	function form_for(&$jot_form, $record, $action, $options = array())
 	{
-		unset($options['multipart']);
+		$CI =& get_instance();
+		$CI->load->helper('form');
+	
+		$jot_form = new Jot_form($record);
+	
+		$options['method'] = array_key_exists('method', $options) ? $options['method'] : 'POST';
+	
+		if ( array_key_exists('multipart', $options) && $options['multipart'] == TRUE)
+		{
+			unset($options['multipart']);
 		
-		return form_open_multipart($action, $options);
+			return form_open_multipart($action, $options);
+		}
+		else
+		{
+			return form_open($action, $options);
+		}
 	}
-	else
+}
+
+if ( ! function_exists('form_end'))
+{
+	function form_end()
 	{
-		return form_open($action, $options);
+		$CI =& get_instance();
+		$CI->load->helper('form');
+	
+		return form_close();;
 	}
 }
 
-function form_end()
+if ( ! function_exists('submit_tag'))
 {
-	$CI =& get_instance();
-	$CI->load->helper('form');
+	function submit_tag($value = "Save changes", $options = array())
+	{
+		$CI =& get_instance();
+		$CI->load->helper('form');
 	
-	return form_close();;
-}
-
-function submit_tag($value = "Save changes", $options = array())
-{
-	$CI =& get_instance();
-	$CI->load->helper('form');
+		$options['name'] = array_key_exists('name', $options) ? $options['name'] : 'commit';
+		$options['value'] = $value;
 	
-	$options['name'] = array_key_exists('name', $options) ? $options['name'] : 'commit';
-	$options['value'] = $value;
-	
-	return form_submit($options);	
+		return form_submit($options);	
+	}
 }
 
 class Jot_Form

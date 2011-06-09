@@ -359,7 +359,7 @@ protected function add_hook($name, $hook)
 protected function call_hook($name)
 {
 	# Return hooks if exist otherwise return empty array.
-	$hooks = $this->_element($name, $this->hooks, array());
+	$hooks = element($name, $this->hooks, array());
 
 	# Execute each hook
 	foreach($hooks as $hook)
@@ -492,7 +492,7 @@ protected function has_association($association)
 
 protected function get_has_one_association($association)
 {	
-	return $this->_element("has_one.{$association}", $this->relationships, FALSE);
+	return element("has_one.{$association}", $this->relationships, FALSE);
 }
 
 protected function has_one_association($association)
@@ -509,7 +509,7 @@ protected function has_one($association, $options = array())
 
 protected function get_belongs_to_association($association)
 {
-	return $this->_element("belongs_to.{$association}", $this->relationships, FALSE);
+	return element("belongs_to.{$association}", $this->relationships, FALSE);
 }
 
 protected function has_belongs_to_association($association)
@@ -526,7 +526,7 @@ protected function belongs_to($association, $options = array())
 
 protected function get_has_many_association($association)
 {
-	return $this->_element("has_many.{$association}", $this->relationships, FALSE);
+	return element("has_many.{$association}", $this->relationships, FALSE);
 }
 
 protected function has_many_association($association)
@@ -963,7 +963,7 @@ protected function _conditions($conditions)
 	}
 	 
 	# If conditions is a single integer or list of ids return ids.
-	if ( is_numeric($conditions) || ! $this->_is_assoc($conditions) )
+	if ( is_numeric($conditions) || ! is_assoc($conditions) )
 	{
 		$conditions = array($this->primary_key => $conditions);
 	}
@@ -1077,61 +1077,6 @@ protected function _find($conditions = array())
 	}
 	
 	$this->db->from($this->table_name);
-}
-
-/*-------------------------------------------------
-DEPENDENCIES
--------------------------------------------------*/	
-
-# Returns true if array returned is an assocative array
-protected function _is_assoc($array)
-{
-    return (is_array($array) && (count($array)==0 || 0 !== count(array_diff_key($array, array_keys(array_keys($array))) )));
-}
-
-# Returns value from key if in array. If value does not exist
-# return default value.
-#
-# Examples:
-# $this->_element('name', $object, 'Jot');
-# $this->_element('article.published', $article, TRUE);
-protected function _element($keys, $array, $default = FALSE)
-{
-	$array = (array)$array;
-
-	if (empty($array))
-		return $default;
-
-	# Prepare for loop
-	$keys = explode('.', $keys);
-
-	do
-	{
-		# Get the next key
-		$key = array_shift($keys);
-
-		if (isset($array[$key]))
-		{
-			if (is_array($array[$key]) AND ! empty($keys))
-			{
-				# Dig down to prepare the next loop
-				$array = $array[$key];
-			}
-			else
-			{
-				# Requested key was found
-				return $array[$key];
-			}
-		}
-		else
-		{
-			# Requested key is not set
-			break;
-		}
-	}
-	while ( ! empty($keys));
-
-	return $default;
 }
 
 } # End Class
