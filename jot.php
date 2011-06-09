@@ -2,7 +2,8 @@
 
 class JotIdentityMap 
 {
-	protected $repository;
+	public $repository;
+	public $log;
 	private static $instance;
 	
 	private function __construct() {}
@@ -12,7 +13,7 @@ class JotIdentityMap
         if ( ! self::$instance) 
         { 
             self::$instance = new JotIdentityMap(); 
-        } 
+        }
         
         return self::$instance; 
     }
@@ -21,7 +22,11 @@ class JotIdentityMap
 	{
 		$self = self::getInstance();
 		
-		return isset($self->repository[$class][$id]) ? $self->repository[$class][$id] : FALSE;
+		$object = isset($self->repository[$class][$id]) ? $self->repository[$class][$id] : FALSE;
+
+		// if ($self->log) echo 'object found';
+
+		return $object;
 	}
 
 	public static function add($object)
@@ -59,6 +64,12 @@ class JotIdentityMap
 		$self = self::getInstance();
 		
 		return count($self->repository);		
+	}
+	
+	public static function log($log)
+	{
+		$self = self::getInstance();
+		$self->log = $log;
 	}
 	
 	public static function exists($object)
@@ -144,7 +155,7 @@ public function __construct($attributes = array(), $options = array())
 	{		
 		$id = $this->_element($this->primary_key(), $attributes);
 		
-		if ( $id && $object = JotIdentityMap::get(get_class(self), $id))
+		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
 			return $object;
 		}
@@ -922,6 +933,8 @@ protected function _create()
 	$this->new_record = FALSE;
 	$id = $this->db->insert_id();
 	$this->write_attribute($this->primary_key, $id);
+	
+	JotIdentityMap::add($this);
 }
 	
 /*-------------------------------------------------

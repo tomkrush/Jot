@@ -24,11 +24,16 @@ class JotIdentityMapTestCase extends UnitTestCase
 {	
 	public function __construct()
 	{
-		$this->load->model('Blog_Model');
+		$this->load->database();
+		$this->load->dbutil();
+		
+		$this->load->model('blog_model');
 	}
 	
 	public function teardown()
 	{
+		$this->db->truncate('blogs');
+	
 		JotIdentityMap::clear();
 	}
 	
@@ -137,6 +142,34 @@ class JotIdentityMapTestCase extends UnitTestCase
 			'id'	=> 1
 		));
 			
-		$this->assertTrue(JotIdentityMap::exists($blog), 'Added object to identity map.');		
+		$this->assertTrue(JotIdentityMap::exists($blog), 'Added object to identity map.');
+	}
+	
+	public function test_object_find()
+	{		
+		$created_objects = array();
+		
+		for($i = 0; $i < 2; $i++)
+		{
+			$created_objects[] = $this->blog_model->create(array(
+				'name' => 'Blog #'.$i
+			));
+		}
+		
+		$found_objects = $this->blog_model->all();
+
+		$exist = FALSE;
+
+		foreach($found_objects as $object)
+		{
+			var_dump(in_array($object, $created_objects));
+			// if (in_array($object, $created_objects))
+			// {
+			// 	$exist = TRUE;
+			// }
+		}
+
+		var_dump($exist);
+		// $this->assertEquals($created_objects, $found_objects, 'Find worked');
 	}
 }

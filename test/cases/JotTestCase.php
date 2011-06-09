@@ -17,7 +17,7 @@ class JotTestCase extends UnitTestCase
 	}
 	
 	public function test_to_string()
-	{		
+	{
 		$blog = $this->blog_model->build(array(
 			'name' => 'Blog #2',
 			'slug' => 'blog' 
