@@ -7,7 +7,7 @@ class JotHookTestCase extends UnitTestCase
 		$this->load->model('blog_hook_model');
 	}
 	
-	public function test_simple_callback()
+	public function test_simple_hooks()
 	{
 		$blog = new Blog_Hook_Model();
 		$blog->save();
@@ -37,7 +37,7 @@ class JotHookTestCase extends UnitTestCase
 		$this->assertTrue($result, 'After validation was called');
 	}
 	
-	public function test_update_callbacks()
+	public function test_update_hooks()
 	{
 		$blog = new Blog_Hook_Model();
 		$blog->save();
@@ -53,7 +53,20 @@ class JotHookTestCase extends UnitTestCase
 		$this->assertTrue($result, 'After update was called because blog existed');		
 	}
 	
-	public function test_validation_callbacks()
+	public function test_destroy_hooks()
+	{
+		$blog = new Blog_Hook_Model();
+		$blog->save();
+		$blog->destroy();
+		
+		$result = $blog->hooks_called('before_destroy');		
+		$this->assertTrue($result, 'Before destroy was called');
+
+		$result = $blog->hooks_called('after_destroy');		
+		$this->assertTrue($result, 'After destroy was called');		
+	}
+	
+	public function test_validation_hooks()
 	{
 		$blog = new Blog_Hook_Model();
 		$blog->save(FALSE);

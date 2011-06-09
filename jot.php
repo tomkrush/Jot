@@ -332,6 +332,19 @@ protected function after_validation($hook)
 	$this->add_hook('after_validation', $hook);
 }
 
+# Called before row is destroyed.
+protected function before_destroy($hook)
+{
+	$this->add_hook('before_destroy', $hook);
+}
+
+# Called after row is destroyed.
+protected function after_destroy($hook)
+{
+	$this->add_hook('after_destroy', $hook);
+}
+
+
 # Add hook to jot model
 protected function add_hook($name, $hook)
 {
@@ -705,16 +718,23 @@ public function persisted()
 # Reload attributes from database.
 public function reload()
 {
+	# Can only reload object if it's persisted.
 	if ( $this->persisted() )
 	{
+		# Get primary key so we can retrieve record from database.
 		$id = $this->read_attribute($this->primary_key());
+		
+		# Load object from database.
 		$new_object = $this->first($id);
 		
+		# Assign attributes from new object to this object.
 		$this->attributes = $new_object->attributes();
 		
+		# Free Memory of object.
 		unset($new_object);
 	}
 	
+	# Enforce chainability.
 	return $this;
 }
 
@@ -740,20 +760,26 @@ public function create($attributes)
 #
 public function update($id, $attributes = NULL)
 {
+	# There are multiple id's.
+	# Will update all objects using attributes in ids.
 	if ( is_array($id) )
 	{
+		# We will return a list of the objects updated.
 		$objects = array();
 		
+		# Iterate over each id.
 		foreach($id as $key => $value)
 		{
 			if ( is_numeric($value) )
 			{
-				# Update each object using same changes
+				# Update each object using same changes.
+				# Stores object so we can later return it.
 				$objects[] = $this->update($value, $attributes);
 			}
 			else
 			{
-				# Update each object using inidiviual changes
+				# Update each object using inidiviual changes.
+				# Stores object so we can later return it.
 				$objects[] = $this->update($key, $value);
 			}
 		}				
@@ -761,9 +787,14 @@ public function update($id, $attributes = NULL)
 		# Return list of objects
 		return $objects;
 	}
+	
+	# Object single object.
 	else
 	{
+		# Find object with id.
 		$object = $this->first($id);
+		
+		# Update attributes on record.
 		$object->update_attributes($attributes);
 		
 		# Return Object
@@ -784,16 +815,23 @@ public function destroy($id = NULL)
 # The method calls the destroy method.
 protected function destroy_id($id)
 {
+	# Ensure array is ids or id used.
 	$ids = is_array($id) ? $id : array($id);
 
+	# We will return a list of the objects destroyed.
 	$objects = array();
 
+	# Loop each id and destroy id.
 	foreach($ids as $id)
 	{
+		# Add object to array for later return.
 		$objects[] = $object = $this->first($id);
+		
+		# Destroy object.
 		$object->destroy();
 	}
 	
+	# Return objects that were destroyed.
 	return $objects;
 }
 
@@ -803,12 +841,27 @@ protected function destroy_object()
 	# Only delete object if persisted.
 	if ( $this->persisted() )
 	{
-		$id = $this->read_attribute($this->primary_key);
-		
-		$this->db->delete($this->table_name, array($this->primary_key => $id));
+		$this->call_hook('before_destroy');
+		$this->_delete();
+		$this->call_hook('after_destroy');		
 	}
 	
+	# This object is no longer persisted.
 	$this->destroyed = TRUE;
+}
+
+# Internal Method for deleting a record in the database.
+protected function _delete()
+{
+	# Record id to delete from table.
+	$id = $this->read_attribute($this->primary_key);
+	
+	# Only delete if id exists.
+	if ( $id )
+	{ 	
+		# Delete record from table.
+		$this->db->delete($this->table_name, array($this->primary_key() => $id));	
+	}
 }
 
 /*-------------------------------------------------
@@ -821,6 +874,7 @@ SAVE
 # it will update the existing record in the database.
 public function save($validate  = TRUE)
 {		
+	# We do not want previous errors conflicting with new errors.
 	$this->reset_errors();
 
 	# If validation is required and fails, do not save object
@@ -852,7 +906,7 @@ public function save($validate  = TRUE)
 	return $this;
 }
 
-# Internal Method for updating a row in the database
+# Internal Method for updating a record in the database
 protected function _update()
 {
 	# Set created and updated at attributes if timestamps exist.
@@ -861,11 +915,14 @@ protected function _update()
 		$this->write_attribute($this->updated_at_column_name, time());
 	}	
 		
+	# Get ID of record we should update.
 	$id = $this->read_attribute($this->primary_key);
+	
+	# Update record in database.
 	$this->db->update($this->table_name, $this->attributes, array($this->primary_key=>$id));
 }
 
-# Internal Method for creating a row in the database
+# Internal Method for creating a record in the database
 protected function _create()
 {		
 	# Set created and updated at attributes if timestamps exist.
@@ -875,10 +932,15 @@ protected function _create()
 		$this->write_attribute($this->updated_at_column_name, time());
 	}
 	
+	# Insert object into table
 	$this->db->insert($this->table_name, $this->attributes);
-	$this->new_record = FALSE;
+	
+	# Set primary key.
 	$id = $this->db->insert_id();
-	$this->write_attribute($this->primary_key, $id);
+	$this->write_attribute($this->primary_key(), $id);
+	
+	# This object is now persisted
+	$this->new_record = FALSE;
 }
 	
 /*-------------------------------------------------

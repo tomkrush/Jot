@@ -23,6 +23,8 @@ class Blog_Hook_Model extends My_Model
 	
 	protected function _update() {}
 	
+	protected function _delete() {}
+	
 	protected function _create()
 	{
 		$this->new_record = FALSE;
