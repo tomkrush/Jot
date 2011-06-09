@@ -55,7 +55,7 @@ public function __construct($attributes = array(), $options = array())
 	$this->load->add_package_path(APPPATH.'third_party/jot');
 
 	$this->load->helper('inflector');
-	$this->load->helper('jot');
+	$this->load->helper('jot_validation');
 
 	# Load in Table Name
 	$this->_tablename();
