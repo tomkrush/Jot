@@ -645,6 +645,15 @@ ATTRIBUTE METHODS
 
 protected $attributes = array();
 protected $changed_attributes = array();
+protected $transient_attributes = array();
+
+#Set transient attributes
+public function transient($attributes)
+{
+	$attributes = is_array($attributes) ? $attributes : array($attributes);
+	
+	$this->transient_attributes = $attributes;
+}
 	
 # Allows you to assign multiple attributes.
 public function assign_attributes($attributes)
@@ -675,9 +684,19 @@ public function write_attribute($key, $value)
 }
 
 # Read all attributes
-public function attributes()
+public function attributes($transient = TRUE)
 {
-	return $this->attributes;
+	$attributes = $this->attributes;
+	
+	if ( $transient === FALSE )
+	{
+		foreach($this->transient_attributes as $attribute)
+		{
+			unset($attributes[$attribute]);
+		}
+	}
+	
+	return $attributes;
 }
 
 # Returns TRUE if attribute exists
@@ -920,7 +939,7 @@ protected function _update()
 	$id = $this->read_attribute($this->primary_key);
 	
 	# Update record in database.
-	$this->db->update($this->table_name, $this->attributes, array($this->primary_key=>$id));
+	$this->db->update($this->table_name, $this->attributes(FALSE), array($this->primary_key=>$id));
 }
 
 # Internal Method for creating a record in the database
@@ -934,7 +953,7 @@ protected function _create()
 	}
 	
 	# Insert object into table
-	$this->db->insert($this->table_name, $this->attributes);
+	$this->db->insert($this->table_name, $this->attributes(FALSE));
 	
 	# Set primary key.
 	$id = $this->db->insert_id();

@@ -74,4 +74,14 @@ class JotRecordAttributesTestCase extends UnitTestCase
 		
 		$this->assertTrue($type, 'Attribute is boolean');		
 	}
+	
+	public function test_transient_attributes()
+	{
+		$object = new Type_Model;
+		$object->description = 'test';
+		$object->save();
+		$object->reload();
+		
+		$this->assertFalse($this->description, 'Description was temporary');
+	}
 }
