@@ -92,9 +92,9 @@ if ( ! function_exists('jot_validate_confirm'))
 	function jot_validate_confirm($object, $attribute, $options)
 	{
 		$confirm_attribute = "confirm_{$attribute}";
-		$value = $object->attribute($value);
+		$value = $object->attribute($attribute);
 	
-		if ( $object->has_attribute($confirm_attribute) )
+		if ( ! $object->has_attribute($confirm_attribute) )
 		{
 			$object->add_error(array($attribute, "Confirm {$value} is required"));
 			return FALSE;

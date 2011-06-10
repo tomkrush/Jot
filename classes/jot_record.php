@@ -56,6 +56,7 @@ public function __construct($attributes = array(), $options = array())
 
 	$this->load->helper('inflector');
 	$this->load->helper('jot_validation');
+	$this->load->helper('jot_array_helper');
 
 	# Load in Table Name
 	$this->_tablename();
