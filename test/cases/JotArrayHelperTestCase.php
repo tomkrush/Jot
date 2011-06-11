@@ -4,7 +4,7 @@ class JotArrayHelperTestCase extends UnitTestCase
 {
 	public function __construct()
 	{
-		$this->load->helper('array_helper');
+		$this->load->helper('jot_array');
 	}
 	
 	public function test_is_assoc()
