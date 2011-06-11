@@ -193,7 +193,7 @@ class JotRecordPersistanceTestCase extends UnitTestCase
 		));	
 			
 		$blogs = $this->blog_model->destroy(array($blog->id, $blog2->id));	
-				
+
 		$this->assertFalse($blogs[0]->persisted(), 'Object should be destroyed');
 		$this->assertFalse($blogs[1]->persisted(), 'Object should be destroyed');
 	}

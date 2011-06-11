@@ -54,10 +54,10 @@ public function __construct($attributes = array(), $options = array())
 	
 	$this->load->add_package_path(APPPATH.'third_party/jot');
 
-	$this->load->helper('inflector');
+	$this->load->library('inflector');
 	$this->load->helper('jot_validation');
 	$this->load->helper('jot_array_helper');
-
+	
 	# Load in Table Name
 	$this->_tablename();
 			
@@ -111,11 +111,24 @@ public function __set($key, $value)
 		# If has one association exists link objects
 		if ($this->has_one_association($key) )
 		{
-			$foreign_type = $this->singular_table_name().'_id';
-			$foreign_key = $this->read_attribute($this->primary_key());
+			$options = $this->get_has_one_association($key);
+			$id = $this->read_attribute($this->primary_key());
 
-			# Add Association
-			$value->write_attribute($foreign_type, $foreign_key);
+			if ( $polymorphic = value_for_key('as', $options) )
+			{
+				$foreign_type = $polymorphic.'_type';
+				$foreign_id = $polymorphic.'_id';
+
+				$value->update_attribute($foreign_type, $this->singular_table_name());
+				$value->update_attribute($foreign_id, $id);
+			}
+			else
+			{
+				$foreign_type = $this->singular_table_name().'_id';
+
+				# Add Association
+				$value->write_attribute($foreign_type, $id);				
+			}
 		}
 		
 		# If has belongs to association link objects
@@ -131,12 +144,31 @@ public function __set($key, $value)
 		# If has many assocation links objects
 		elseif ( $this->has_many_association($key) )
 		{
-			$foreign_type = $this->singular_table_name().'_id';
-			$foreign_key = $this->read_attribute($this->primary_key());
+			$options = $this->get_has_many_association($key);
 
-			foreach($value as $object)
+			$options = $this->get_has_many_association($key);
+			$id = $this->read_attribute($this->primary_key());
+			
+			if ( $polymorphic = value_for_key('as', $options) )
 			{
-				$object->update_attribute($foreign_type, $foreign_key);
+				$foreign_type = $polymorphic.'_type';
+				$foreign_id = $polymorphic.'_id';
+				
+				foreach($value as $object)
+				{
+					$object->update_attribute($foreign_type, $this->singular_table_name());
+					$object->update_attribute($foreign_id, $id);
+				}
+			}
+			else
+			{
+				$foreign_type = $this->singular_table_name().'_id';
+				$foreign_key = $this->read_attribute($this->primary_key());
+
+				foreach($value as $object)
+				{
+					$object->update_attribute($foreign_type, $foreign_key);
+				}
 			}
 		}	
 	}
@@ -206,59 +238,104 @@ public function __get($key)
 		if ( $this->has_many_association($key) )
 		{
 			# Create Object			
-			$modelName = ucwords(singular($key)).'_Model';
+			$modelName = ucwords($this->inflector->singularize($key)).'_Model';
 
 			$this->load->model($modelName);
-			
-			$foreign_type = $this->singular_table_name().'_id';
-			$id = $this->read_attribute($this->primary_key());
 
-			# Base Filter
+			$options = $this->get_has_many_association($key);
 			$object = new $modelName;
+			$id = $this->read_attribute($this->primary_key());
 			
-			$object->set_base_filter(array(
-				$foreign_type => $id
-			));
-															
+			if ( $polymorphic = value_for_key('as', $options) )
+			{
+				$foreign_type = $polymorphic.'_type';
+				$foreign_id = $polymorphic.'_id';
+				
+				$object->set_base_filter(array(
+					$foreign_type => $this->singular_table_name(),
+					$foreign_id => $id
+				));
+			}
+			else
+			{
+				$foreign_type = $this->singular_table_name().'_id';
+
+				$object->set_base_filter(array(
+					$foreign_type => $id
+				));
+			}
+											
 			return $object;
 		}
 		
 		# Object has one association
 		else if ($this->has_one_association($key) )
 		{
-			# Create Object
-			$modelName = ucwords($key).'_Model';
-			
-			$this->load->model($modelName);
-			
-			# Create Conditions
-			$conditions = array(
-				$this->singular_table_name().'_id' => $this->read_attribute($this->primary_key())
-			);
+			$options = $this->get_has_one_association($key);
+	
+			if ( $polymorphic = value_for_key('as', $options) )
+			{
+				$foreign_type = $polymorphic.'_type';
+				$foreign_id = $polymorphic.'_id';
+
+				$id = $this->read_attribute($this->primary_key());
+
+				$modelName = ucwords($this->inflector->singularize($key)).'_Model';
+				
+				$this->load->model($modelName);
+				
+				$conditions = array(
+					$foreign_type => $this->singular_table_name(),
+					$foreign_id => $id
+				);
+			}
+			else
+			{
+				$modelName = ucwords($key).'_Model';
+
+				$this->load->model($modelName);
+								
+				# Create Conditions
+				$conditions = array(
+					$this->singular_table_name().'_id' => $this->read_attribute($this->primary_key())
+				);
+			}
 
 			# Load Object
 			$object = $this->$modelName->first($conditions);
-
+			
 			return $object;
 		}
 		
 		# Object has belongs association
 		else if ($this->has_belongs_to_association($key) )
 		{
-			# Create Object
-			$modelName = ucwords($key).'_Model';
+			$options = $this->get_belongs_to_association($key);
 
-			$this->load->model($modelName);
+			if (  value_for_key('polymorphic', $options) )
+			{
+				$foreign_type = $this->read_attribute($key.'_type');
 
-			$foreign_type = $this->$modelName->singular_table_name().'_id';
-			$id = $this->read_attribute($foreign_type);
-			
-			$conditions = array($this->primary_key() => $id);
-			
-			# Load Object
-			$object = $this->$modelName->first($conditions);
-			
-			return $object;			
+				$modelName = ucwords($foreign_type).'_Model';
+				
+				$this->load->model($modelName);
+
+				$id = $this->read_attribute($key.'_id');
+			}
+			else
+			{
+				$modelName = ucwords($key).'_Model';
+				
+				$this->load->model($modelName);
+				
+				$foreign_type = $this->$modelName->singular_table_name().'_id';
+				$id = $this->read_attribute($foreign_type);
+			}
+		
+		
+			$conditions = array($this->$modelName->primary_key() => $id);
+						
+			return $this->$modelName->first($conditions);			
 		}
 	}	
 	
@@ -448,8 +525,8 @@ protected function tablename($table_name)
 protected function _tablename()
 {
 	if ( empty($this->table_name) )
-	{
-		$this->table_name = plural(str_replace('_model', '', strtolower(get_class($this))));
+	{	
+		$this->table_name = $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
 	}
 
 	return $this->table_name;
@@ -458,13 +535,14 @@ protected function _tablename()
 # Returns singular form of model name.
 public function singular_table_name()
 {
-	return strtolower(singular($this->table_name));
+	return strtolower($this->inflector->singularize($this->table_name));
 }
 
 # Returns plural form of model name.
 public function plural_table_name()
 {
-	return strtolower(plural($this->table_name));		
+	echo $this->inflector->pluralize('page');
+	return strtolower($this->inflector->pluralize($this->table_name));		
 }
 
 /*-------------------------------------------------
@@ -505,7 +583,7 @@ protected function has_one_association($association)
 protected function has_one($association, $options = array())
 {
 	$this->relationships['has_one'][$association] = $options;
-	$this->relationship_vars[] = singular($association);
+	$this->relationship_vars[] = $this->inflector->singularize($association);
 }
 
 protected function get_belongs_to_association($association)
@@ -522,7 +600,7 @@ protected function has_belongs_to_association($association)
 protected function belongs_to($association, $options = array())
 {
 	$this->relationships['belongs_to'][$association] = $options;
-	$this->relationship_vars[] = singular($association);
+	$this->relationship_vars[] = $this->inflector->singularize($association);
 }
 
 protected function get_has_many_association($association)
@@ -539,7 +617,7 @@ protected function has_many_association($association)
 protected function has_many($association, $options = array())
 {
 	$this->relationships['has_many'][$association] = $options;
-	$this->relationship_vars[] = plural($association);
+	$this->relationship_vars[] = $this->inflector->pluralize($association);
 }
 	
 /*-------------------------------------------------
@@ -1015,10 +1093,8 @@ public function count($conditions = array())
 
 # Returns first row using conditions
 public function first($conditions = array())
-{
-	$conditions = $this->_conditions($conditions);
-			
-	$this->db->order_by($this->primary_key.' ASC');
+{						
+	$this->db->order_by($this->primary_key().' ASC');
 	$this->db->limit(1);
 	$result = $this->find($conditions);
 	return count($result) ? $result[0] : NULL;
@@ -1026,9 +1102,7 @@ public function first($conditions = array())
 
 # Returns last row using conditions
 public function last($conditions = array())
-{
-	$conditions = $this->_conditions($conditions);
-			
+{			
 	$this->db->order_by($this->primary_key.' DESC');
 	$this->db->limit(1);
 	$result = $this->find($conditions);
@@ -1048,7 +1122,7 @@ public function all($conditions = array())
 public function find($conditions = array(), $page = 1, $limit = 10)
 {
 	$conditions = $this->_conditions($conditions);
-			
+						
 	$this->_find($conditions);
 	
 	if ( $limit > 0 )
@@ -1064,6 +1138,7 @@ public function find($conditions = array(), $page = 1, $limit = 10)
 	}
 
 	$r = $this->db->get();
+		
 	$r->result_object();
 	$result = array();
 	

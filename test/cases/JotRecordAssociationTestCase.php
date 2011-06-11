@@ -7,7 +7,14 @@ class JotRecordAssociationTestCase extends UnitTestCase
 		$this->load->database();
 		$this->load->dbutil();
 		
-		$this->load->model(array('blog_model', 'article_model', 'page_model'));
+		$this->load->model(array(
+			'blog_model', 
+			'article_model', 
+			'page_model',
+			'company_model',
+			'person_model',
+			'image_model'
+		));
 	}
 	
 	public function setup()
@@ -15,6 +22,10 @@ class JotRecordAssociationTestCase extends UnitTestCase
 		$this->db->truncate('blogs');
 		$this->db->truncate('articles');	
 		$this->db->truncate('pages');	
+
+		$this->db->truncate('companies');
+		$this->db->truncate('people');	
+		$this->db->truncate('images');
 	}
 	
 	public function test_has_one_association()
@@ -57,10 +68,45 @@ class JotRecordAssociationTestCase extends UnitTestCase
 		$blog2->save();
 
 		$page->blog = $blog2;
-
-		$this->assertEquals('blog2', $page->blog->name, 'Names should be the same');
-		$this->assertEquals('blog2', $page->blog->slug, 'Slugs should be the same');	
 		
+		$this->assertEquals('blog2', $page->blog->name, 'Names should be the same');
+		$this->assertEquals('blog2', $page->blog->slug, 'Slugs should be the same');
+	}
+
+	public function test_polypmorphic_has_one_association()
+	{
+		$person = $this->person_model->create(array(
+			'name' => 'John Doe'
+		));
+				
+		$person->image = $this->image_model->create(array('image' => 'image_1.png'));
+				
+		$image = $person->image;
+
+		$person = $image->imageable;
+		
+		$this->assertEquals('John Doe', $person->name, 'Polymorphic object retrieves parent');
+	}
+	
+	public function test_polypmorphic_has_many_association()
+	{
+		$company = $this->company_model->create(array(
+			'name' => 'Pet Store'
+		));
+		
+		$company->images = array(
+			$this->image_model->create(array('image' => 'image_1.png')),
+			$this->image_model->create(array('image' => 'image_2.png')),
+			$this->image_model->create(array('image' => 'image_3.png')),
+		);
+		
+		$this->assertEquals(3, $company->images->count(), 'Correct number of images returned');
+		
+		$image = $company->images->first();
+
+		$company = $image->imageable;
+						
+		$this->assertEquals('Pet Store', $company->name, 'Polymorphic object retrieves parent');
 	}
 	
 	public function test_chained_associations()
@@ -71,11 +117,12 @@ class JotRecordAssociationTestCase extends UnitTestCase
 		));
 
 		$this->assertTrue($page, 'Page should exist');
-		
+
 		$blog = $page->create_blog(array(
 			'name' => 'Blog',
 			'slug' => 'blog'
 		));
+		
 		
 		$this->assertTrue($blog, 'Blog should exist');
 	}
@@ -103,6 +150,5 @@ class JotRecordAssociationTestCase extends UnitTestCase
 		$blog->articles = array($article, $article2);
 
 		$this->assertEquals(2, count($blog->articles->all()), 'Correct number of articles returned');
-	}
-	
+	}	
 }
