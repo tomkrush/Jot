@@ -109,6 +109,19 @@ class JotRecordAssociationTestCase extends UnitTestCase
 		$this->assertEquals('Pet Store', $company->name, 'Polymorphic object retrieves parent');
 	}
 	
+	public function test_polymorphic_belongs_to_association()
+	{
+		$image = $this->image_model->create(array('image' => 'image_1.png'));
+		
+		$company = $this->company_model->create(array(
+			'name' => 'Pet Store'
+		));
+		
+		$image->imageable = $company;
+		
+		$this->assertEquals('Pet Store', $image->imageable->name, 'Polymorphic object retrieves parent');
+	}
+	
 	public function test_chained_associations()
 	{
 		$page = $this->page_model->create(array(

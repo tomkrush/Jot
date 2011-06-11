@@ -134,11 +134,26 @@ public function __set($key, $value)
 		# If has belongs to association link objects
 		elseif ($this->has_belongs_to_association($key) )
 		{
-			$foreign_type = $value->singular_table_name().'_id';
-			$foreign_key = $value->read_attribute($value->primary_key());
+			$options = $this->get_belongs_to_association($key);
 
-			# Add Association
-			$this->write_attribute($foreign_type, $foreign_key);	
+			if ( $polymorphic = value_for_key('polymorphic', $options) )
+			{
+				$foreign_type = $key.'_type';
+				$foreign_key = $key.'_id';
+				$foreign_key_value = $value->read_attribute($value->primary_key());
+				
+				
+				$this->write_attribute($foreign_type, $value->singular_table_name());
+				$this->write_attribute($foreign_key, $foreign_key_value);				
+			}
+			else
+			{
+				$foreign_type = $value->singular_table_name().'_id';
+				$foreign_key = $value->read_attribute($value->primary_key());
+
+				# Add Association
+				$this->write_attribute($foreign_type, $foreign_key);
+			}	
 		}
 		
 		# If has many assocation links objects
