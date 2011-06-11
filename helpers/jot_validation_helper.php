@@ -1,8 +1,8 @@
 <?php
 
-if ( ! function_exists('jot_validate_presence'))
+if ( ! function_exists('jot_validate_required'))
 {
-	function jot_validate_presence($object, $attribute, $options) 
+	function jot_validate_required($object, $attribute, $options) 
 	{
 		if ( !($object->has_attribute($attribute) ) )
 		{
