@@ -20,37 +20,37 @@ class JotArrayHelperTestCase extends UnitTestCase
 		$this->assertFalse(is_assoc($index), 'Is not associated array');
 	}
 	
-	public function test_single_level_element()
+	public function test_single_level_value_for_key()
 	{
 		$assoc = array(
 			'name' => 'John'
 		);
 		
-		$this->assertEquals('John', element('name', $assoc));
+		$this->assertEquals('John', value_for_key('name', $assoc));
 	}
 	
-	public function test_single_level_no_element()
+	public function test_single_level_no_value_for_key()
 	{
 		$assoc = array();
 	
-		$this->assertFalse(element('name', $assoc));
+		$this->assertFalse(value_for_key('name', $assoc));
 	}
 	
-	public function test_default_value_element()
+	public function test_default_value_value_for_key()
 	{
 		$person = array();
 		
-		$this->assertEquals('John Doe', element('name', $person, 'John Doe'), 'Used default value because no value was found');
+		$this->assertEquals('John Doe', value_for_key('name', $person, 'John Doe'), 'Used default value because no value was found');
 	}
 	
-	public function test_no_index_element()
+	public function test_no_index_value_for_key()
 	{
 		$indexed = array(1);
 		
-		$this->assertFalse(element('name', $indexed), 'Can not find indexed elements');
+		$this->assertFalse(value_for_key('name', $indexed), 'Can not find indexed elements');
 	}
 	
-	public function test_deep_element()
+	public function test_deep_value_for_key()
 	{
 		$assoc = array(
 			'person' => array(
@@ -61,6 +61,6 @@ class JotArrayHelperTestCase extends UnitTestCase
 			)
 		);
 		
-		$this->assertEquals('John', element('person.name.first', $assoc), 'Found deep element');
+		$this->assertEquals('John', value_for_key('person.name.first', $assoc), 'Found deep element');
 	}
 }

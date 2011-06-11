@@ -26,9 +26,9 @@ if ( ! function_exists('rotate'))
 	}
 }
 
-if ( ! function_exists('element'))
+if ( ! function_exists('value_for_key'))
 {
-	function element($keys, $array, $default = FALSE)
+	function value_for_key($keys, $array, $default = FALSE)
 	{
 		$array = (array)$array;
 		

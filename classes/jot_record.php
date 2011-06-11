@@ -32,10 +32,10 @@ public function unserialize($data)
 	
 	$data = unserialize($data);
 	
-	$this->errors = element('errors', $data);
-	$this->attributes = element('attributes', $data);
-	$this->new_record = element('new_record', $data);
-	$this->destroyed = element('destroyed', $data);
+	$this->errors = value_for_key('errors', $data);
+	$this->attributes = value_for_key('attributes', $data);
+	$this->new_record = value_for_key('new_record', $data);
+	$this->destroyed = value_for_key('destroyed', $data);
 }
 
 /*-------------------------------------------------
@@ -360,7 +360,7 @@ protected function add_hook($name, $hook)
 protected function call_hook($name)
 {
 	# Return hooks if exist otherwise return empty array.
-	$hooks = element($name, $this->hooks, array());
+	$hooks = value_for_key($name, $this->hooks, array());
 
 	# Execute each hook
 	foreach($hooks as $hook)
@@ -493,7 +493,7 @@ protected function has_association($association)
 
 protected function get_has_one_association($association)
 {	
-	return element("has_one.{$association}", $this->relationships, FALSE);
+	return value_for_key("has_one.{$association}", $this->relationships, FALSE);
 }
 
 protected function has_one_association($association)
@@ -510,7 +510,7 @@ protected function has_one($association, $options = array())
 
 protected function get_belongs_to_association($association)
 {
-	return element("belongs_to.{$association}", $this->relationships, FALSE);
+	return value_for_key("belongs_to.{$association}", $this->relationships, FALSE);
 }
 
 protected function has_belongs_to_association($association)
@@ -527,7 +527,7 @@ protected function belongs_to($association, $options = array())
 
 protected function get_has_many_association($association)
 {
-	return element("has_many.{$association}", $this->relationships, FALSE);
+	return value_for_key("has_many.{$association}", $this->relationships, FALSE);
 }
 
 protected function has_many_association($association)
