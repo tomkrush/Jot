@@ -4,7 +4,9 @@ if ( ! function_exists('jot_validate_required'))
 {
 	function jot_validate_required($object, $attribute, $options) 
 	{
-		if ( !($object->has_attribute($attribute) ) )
+		$value = $object->read_attribute($attribute);
+		
+		if ( empty($value) )
 		{
 			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
 			return FALSE;
