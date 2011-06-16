@@ -9,6 +9,9 @@ if ( ! function_exists('form_for'))
 	
 		$jot_form = new JotForm($record);
 	
+		$name = $record->singular_table_name();
+	
+		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $name.'_form';
 		$options['method'] = array_key_exists('method', $options) ? $options['method'] : 'POST';
 	
 		if ( array_key_exists('multipart', $options) && $options['multipart'] == TRUE)
