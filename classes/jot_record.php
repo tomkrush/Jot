@@ -80,6 +80,8 @@ public function __toString()
 	
 	$string .= $this->singular_table_name();
 	
+	$fields_strings = array();
+	
 	foreach($this->attributes as $attribute => $value)
 	{
 		if ($attribute == 'created_at' || $attribute == 'updated_at')
