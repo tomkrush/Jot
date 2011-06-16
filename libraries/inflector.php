@@ -210,4 +210,10 @@ class Inflector
 
         return $word;
     }
+
+
+	function contextual($num, $str)
+	{
+	    return $num.' '.(($num != 1) ? $this->pluralize($str) : $this->singularize($str));
+	}
 }
