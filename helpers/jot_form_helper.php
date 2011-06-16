@@ -35,6 +35,22 @@ if ( ! function_exists('form_end'))
 	}
 }
 
+if ( ! function_exists('fields_for'))
+{
+	function fields_for(&$jot_form, $field)
+	{
+
+	}
+}
+
+if ( ! function_exists('fields_end'))
+{
+	function fields_end()
+	{
+
+	}
+}
+
 if ( ! function_exists('submit_tag'))
 {
 	function submit_tag($value = "Save changes", $options = array())
