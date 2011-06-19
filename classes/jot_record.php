@@ -866,7 +866,7 @@ public function write_attribute($key, $value)
 	{
 		$this->save_associations[$nested_attributes] = $value;
 	}
-	elseif ( ! is_array($value) )
+	else
 	{
 		$this->attributes[$key] = $value;		
 	}
