@@ -104,95 +104,105 @@ public function __toString()
 	return $string;
 }
 
+public function write_association($association_name, $value)
+{	
+	# If has one association exists link objects
+	if ($this->has_one_association($association_name) )
+	{
+		$options = $this->get_has_one_association($association_name);
+		$foreign_id = $this->read_attribute($this->primary_key());
+
+		if ( $polymorphic = value_for_key('as', $options) )
+		{
+			$foreign_type = $polymorphic.'_type';
+			$foreign_key = $polymorphic.'_id';
+
+			$value->update_attributes(array(
+				$foreign_type => $this->singular_table_name(),
+				$foreign_key => $foreign_id
+			));
+		}
+		else
+		{
+			$foreign_key = $this->singular_table_name().'_id';
+
+			# Add Association
+			$value->write_attribute($foreign_key, $foreign_id);				
+		}
+	}
+	
+	# If has belongs to association link objects
+	elseif ($this->has_belongs_to_association($association_name) )
+	{
+		$options = $this->get_belongs_to_association($association_name);
+
+		if ( $polymorphic = value_for_key('polymorphic', $options) )
+		{
+			$foreign_type = $association_name.'_type';
+			$foreign_key = $association_name.'_id';
+			$foreign_id = $value->read_attribute($value->primary_key());
+			
+			$this->assign_attributes(array(
+				$foreign_type => $value->singular_table_name(),
+				$foreign_key => $foreign_id
+			));			
+		}
+		else
+		{
+			$foreign_key = $value->singular_table_name().'_id';
+			$foreign_id = $value->read_attribute($value->primary_key());
+
+			# Add Association
+			$this->write_attribute($foreign_key, $foreign_id);
+		}	
+	}
+	
+	# If has many assocation links objects
+	elseif ( $this->has_many_association($association_name) )
+	{
+		$options = $this->get_has_many_association($association_name);
+
+		$options = $this->get_has_many_association($association_name);
+		$foreign_id = $this->read_attribute($this->primary_key());
+		
+		if ( $polymorphic = value_for_key('as', $options) )
+		{
+			$foreign_type = $polymorphic.'_type';
+			$foreign_key = $polymorphic.'_id';
+			
+			foreach($value as $object)
+			{
+				$object->update_attributes(array(
+					$foreign_type => $this->singular_table_name(),
+					$foreign_key => $foreign_id
+				));
+			}
+		}
+		else
+		{
+			$foreign_key = $this->singular_table_name().'_id';
+			$foreign_id = $this->read_attribute($this->primary_key());
+
+			foreach($value as $object)
+			{
+				$object->update_attribute($foreign_key, $foreign_id);
+			}
+		}
+	}	
+}
+
 # Allows for attributes and associations to be assigned.
 public function __set($key, $value)
-{
+{	
 	# Association
 	if ( $this->has_association($key) )
-	{
-		# If has one association exists link objects
-		if ($this->has_one_association($key) )
-		{
-			$options = $this->get_has_one_association($key);
-			$id = $this->read_attribute($this->primary_key());
-
-			if ( $polymorphic = value_for_key('as', $options) )
-			{
-				$foreign_type = $polymorphic.'_type';
-				$foreign_id = $polymorphic.'_id';
-
-				$value->update_attribute($foreign_type, $this->singular_table_name());
-				$value->update_attribute($foreign_id, $id);
-			}
-			else
-			{
-				$foreign_type = $this->singular_table_name().'_id';
-
-				# Add Association
-				$value->write_attribute($foreign_type, $id);				
-			}
-		}
-		
-		# If has belongs to association link objects
-		elseif ($this->has_belongs_to_association($key) )
-		{
-			$options = $this->get_belongs_to_association($key);
-
-			if ( $polymorphic = value_for_key('polymorphic', $options) )
-			{
-				$foreign_type = $key.'_type';
-				$foreign_key = $key.'_id';
-				$foreign_key_value = $value->read_attribute($value->primary_key());
-				
-				
-				$this->write_attribute($foreign_type, $value->singular_table_name());
-				$this->write_attribute($foreign_key, $foreign_key_value);				
-			}
-			else
-			{
-				$foreign_type = $value->singular_table_name().'_id';
-				$foreign_key = $value->read_attribute($value->primary_key());
-
-				# Add Association
-				$this->write_attribute($foreign_type, $foreign_key);
-			}	
-		}
-		
-		# If has many assocation links objects
-		elseif ( $this->has_many_association($key) )
-		{
-			$options = $this->get_has_many_association($key);
-
-			$options = $this->get_has_many_association($key);
-			$id = $this->read_attribute($this->primary_key());
-			
-			if ( $polymorphic = value_for_key('as', $options) )
-			{
-				$foreign_type = $polymorphic.'_type';
-				$foreign_id = $polymorphic.'_id';
-				
-				foreach($value as $object)
-				{
-					$object->update_attribute($foreign_type, $this->singular_table_name());
-					$object->update_attribute($foreign_id, $id);
-				}
-			}
-			else
-			{
-				$foreign_type = $this->singular_table_name().'_id';
-				$foreign_key = $this->read_attribute($this->primary_key());
-
-				foreach($value as $object)
-				{
-					$object->update_attribute($foreign_type, $foreign_key);
-				}
-			}
-		}	
+	{		
+		$this->write_association($key, $value);
 	}
 	
 	# Attribute
 	else
-	{
+	{			
 		$this->write_attribute($key, $value);
 	}
 }
@@ -361,6 +371,9 @@ public function __get($key)
 	{
 		return $this->read_attribute($key);
 	}
+	
+	# There is absolutely nothing to return.
+	return NULL;
 }
 
 /*-------------------------------------------------
@@ -558,7 +571,6 @@ public function singular_table_name()
 # Returns plural form of model name.
 public function plural_table_name()
 {
-	echo $this->inflector->pluralize('page');
 	return strtolower($this->inflector->pluralize($this->table_name));		
 }
 
@@ -772,10 +784,92 @@ public function read_attribute($key)
 	return NULL;
 }
 
+protected function save_associations()
+{
+	$save_associations = $this->save_associations;
+	$this->save_associations = array();
+	
+	$id = $this->read_attribute($this->primary_key());
+	
+	foreach($save_associations as $key => $value)
+	{
+		$modelName = ucwords($this->inflector->singularize($key)).'_Model';
+		$this->load->model($modelName);
+		$primary_key = $this->$modelName->primary_key();		
+		
+		if ( $this->has_many_association($key) )
+		{
+			foreach($value as $attributes)
+			{
+				$associated_id = value_for_key($primary_key, $attributes);
+			
+				$foreign_key = $this->singular_table_name().'_id';
+			
+				$attributes[$foreign_key] = $id;
+															
+				if ( $associated_id )
+				{
+					unset($attributes[$primary_key]);
+					$this->$modelName->update($associated_id, $attributes);
+				}
+				else
+				{
+					$this->$modelName->create($attributes);
+				}
+			}
+		}
+		else if ($this->has_one_association($key) )
+		{	
+			$associated_id = value_for_key($primary_key, $value);
+
+			$foreign_key = $this->singular_table_name().'_id';
+			$value[$foreign_key] = $id;
+						
+			print_r($attributes);
+						
+			if ( $associated_id )
+			{
+				unset($value[$primary_key]);
+				$object = $this->$modelName->update($associated_id, $value);
+			}
+			else
+			{
+				$object = $this->$modelName->create($value);
+			}			
+		}
+		else if ($this->has_belongs_to_association($key) )
+		{
+			$associated_id = value_for_key($primary_key, $value);
+						
+			if ( $associated_id )
+			{
+				unset($value[$primary_key]);
+				$object = $this->$modelName->update($associated_id, $value);
+			}
+			else
+			{
+				$object = $this->$modelName->create($value);
+			}
+			
+			$foreign_key = $object->singular_table_name().'_id';			
+			$this->update_attribute($foreign_key, $object->read_attribute($this->primary_key()));	
+		}
+	}
+}
+
 # Writes attribute value to object
 public function write_attribute($key, $value)
-{
-	$this->attributes[$key] = $value;
+{	
+	$nested_attributes = str_replace('_attributes', '', $key);
+	
+	if ( $this->has_association($nested_attributes) )
+	{
+		$this->save_associations[$nested_attributes] = $value;
+	}
+	elseif ( ! is_array($value) )
+	{
+		$this->attributes[$key] = $value;		
+	}
 }
 
 # Read all attributes
@@ -821,6 +915,8 @@ PERSISTANCE
 -------------------------------------------------*/
 protected $new_record = TRUE;
 protected $destroyed = FALSE;
+
+protected $save_associations = array();
 
 # Returns boolean if object is persisted. A persisted object
 # is stored in the database.
@@ -1016,6 +1112,8 @@ public function save($validate  = TRUE)
 		$this->call_hook('after_update');
 	}
 	
+	$this->save_associations();
+	
 	$this->call_hook('after_save');
 	
 	return $this;
@@ -1112,7 +1210,8 @@ public function count($conditions = array())
 public function first($conditions = array())
 {						
 	$this->db->order_by($this->primary_key().' ASC');
-	$result = $this->find($conditions);
+
+	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
 }
 
@@ -1120,7 +1219,8 @@ public function first($conditions = array())
 public function last($conditions = array())
 {			
 	$this->db->order_by($this->primary_key.' DESC');
-	$result = $this->find($conditions);
+
+	$result = $this->find($conditions, 0, 1);
 	
 	return count($result) ? $result[0] : NULL;
 }
