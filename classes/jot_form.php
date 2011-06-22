@@ -21,7 +21,7 @@ class JotForm
 	
 	private function field_value($field)
 	{
-		return $this->record->$field;
+		return $this->record->read_attribute($field);
 	}
 	
 	private function field_id($field)
@@ -53,17 +53,17 @@ class JotForm
 	
 	public function check_box($field, $options = array(), $checked_value = "1", $unchecked_value = "0")
 	{				
-		$html = '';
-		
+		$html = '';		
 		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
 
 		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
 		$options['value'] = $checked_value;
 		$options['checked'] = $this->field_value($field) == $checked_value ? TRUE : FALSE;
-		$html .= form_checkbox($options);
-		
+
 		$html .= form_hidden($options['name'], $unchecked_value);
-		
+
+		$html .= form_checkbox($options);
+				
 		return $html;
 	}
 	
@@ -141,5 +141,54 @@ class JotForm
 		$options['value'] = $this->field_value($field);
 		
 		return form_input($options);		
+	}
+
+	public function date_field($field, $options = array())
+	{
+		$timestamp = $this->field_value($field);
+		$timestamp = $timestamp ? $timestamp : time();
+		$name = $this->field_name($field);
+		
+		$m = date('n', $timestamp);
+		$d = date('j', $timestamp);
+		$y = date('Y', $timestamp);
+
+		$html = '';
+
+		$default['id'] = $this->field_id($field);
+		$html_options = _parse_form_attributes($default, $default);
+
+		// Years
+		$months = array(
+			'01' => 'January',
+			'02' => 'February',
+			'03' => 'March',
+			'04' => 'April',
+			'05' => 'May',
+			'06' => 'June',
+			'07' => 'July',
+			'08' => 'August',
+			'09' => 'September',
+			'10' => 'October',
+			'11' => 'November',
+			'12' => 'December'
+		);
+		
+		$html .= form_dropdown($name.'[month]', $months, $m, $html_options);
+		
+		// Days
+		$days = array();
+		for($i = 1; $i <= 31; $i++) $days[$i] = $i;
+
+		$html .= form_dropdown($name.'[day]', $days, $d);
+
+		// Years
+		$years = array();
+		for($i = date('Y'); $i <= date('Y')+3; $i++) $years[$i] = $i;
+
+		$html .= form_dropdown($name.'[year]', $years, $y);
+		
+		return $html;
+		
 	}
 }

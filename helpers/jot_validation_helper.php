@@ -25,7 +25,7 @@ if ( ! function_exists('jot_validate_uniqueness'))
 			$scopes = isset($options['scope']) ? $options['scope'] : array();
 			$scopes = is_string($scopes) ? array($options['scope']) : $scopes;
 
-			$conditions = array($attribute => $object->read_attribute($object));
+			$conditions = array($attribute => $object->read_attribute($attribute));
 
 			foreach($scopes as $scope )
 			{
@@ -38,7 +38,7 @@ if ( ! function_exists('jot_validate_uniqueness'))
 			if ( isset($options['exclude_self']) && $options['exclude_self'] == TRUE )
 			{
 				$primary_key = $object->primary_key();
-				$primary_key_value = $object->has_attribute($primary_key);
+				$primary_key_value = $object->read_attribute($primary_key);
 				
 				if ( $primary_key_value )
 				{
@@ -46,9 +46,9 @@ if ( ! function_exists('jot_validate_uniqueness'))
 				}
 			}
 
-			if ( $this->exists($conditions) )
+			if ( $object->exists($conditions) )
 			{		
-				$object->add_error(array($field, ucfirst($field).' "'.$value.'" already exist'));
+				$object->add_error(array($attribute, ucfirst($attribute).' "'.$object->read_attribute($attribute).'" already exist'));
 		 		return FALSE;
 			}
 		}

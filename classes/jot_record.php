@@ -874,7 +874,7 @@ public function write_attribute($key, $value)
 	{
 		$this->save_associations[$nested_attributes] = $value;
 	}
-	elseif ( ! is_array($value) )
+	else
 	{
 		$this->attributes[$key] = $value;		
 	}
@@ -1218,7 +1218,8 @@ public function count($conditions = array())
 public function first($conditions = array())
 {						
 	$this->db->order_by($this->primary_key().' ASC');
-	$result = $this->find($conditions, 1, 1);
+
+	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
 }
 
@@ -1226,7 +1227,8 @@ public function first($conditions = array())
 public function last($conditions = array())
 {			
 	$this->db->order_by($this->primary_key.' DESC');
-	$result = $this->find($conditions, 1, 1);
+
+	$result = $this->find($conditions, 0, 1);
 	
 	return count($result) ? $result[0] : NULL;
 }
@@ -1240,7 +1242,7 @@ public function all($conditions = array())
 }
 
 # Returns a range of rows using conditions
-public function find($conditions = array(), $page = 1, $limit = 10)
+public function find($conditions = array(), $page = 0, $limit = 10)
 {
 	$conditions = $this->_conditions($conditions);
 						
@@ -1250,11 +1252,11 @@ public function find($conditions = array(), $page = 1, $limit = 10)
 	{
 		if ( $limit && $page )
 		{
-			$this->db->limit($limit, ($page - 1) * $limit);
+			$this->db->limit($limit, $page);
 		} 
 		else
 		{
-			$this->db->limit($limit, ($page - 1) * $limit);
+			$this->db->limit($limit, $page);
 		}
 	}
 
