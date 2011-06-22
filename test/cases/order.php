@@ -7,6 +7,7 @@ $order = array(
 	'JotRecordNestedAttributesTestCase',
 	'JotRecordPersistanceTestCase',
 	'JotRecordFindTestCase',
+	'JotRecordCalculationTestCase',
 	'JotRecordHookTestCase',
 	'JotRecordValidationTestCase',
 	'JotRecordAssociationTestCase',

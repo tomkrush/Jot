@@ -1165,6 +1165,65 @@ protected function _create()
 }
 	
 /*-------------------------------------------------
+CALCULATIONS
+-------------------------------------------------*/	
+# Return count of items using conditions.
+public function count($conditions = array())
+{
+	$conditions = $this->_conditions($conditions);
+
+	$this->_find($conditions);
+
+	return $this->db->count_all_results();		
+}
+
+public function average($attribute, $conditions = array())
+{
+	$this->db->select_avg($attribute);
+	$conditions = $this->_conditions($conditions);
+	$this->_find($conditions);
+	$result =  $this->db->get()->row();
+
+	return value_for_key($attribute, $result);
+}
+
+public function maximum($attribute, $conditions = array())
+{
+	$this->db->select_max($attribute);
+	
+	$conditions = $this->_conditions($conditions);
+	$this->_find($conditions);
+	
+	$result =  $this->db->get()->row();
+
+	return value_for_key($attribute, $result);
+}
+
+public function minimum($attribute, $conditions = array())
+{
+	$this->db->select_min($attribute);
+	
+	$conditions = $this->_conditions($conditions);
+	$this->_find($conditions);
+	
+	$result =  $this->db->get()->row();
+
+	return value_for_key($attribute, $result);
+}
+
+public function sum($attribute, $conditions = array())
+{
+	$this->db->select_sum($attribute);
+	
+	$conditions = $this->_conditions($conditions);
+	$this->_find($conditions);
+	
+	$result =  $this->db->get()->row();
+
+	return value_for_key($attribute, $result);
+}
+	
+/*-------------------------------------------------
 FINDERS
 -------------------------------------------------*/	
 
@@ -1202,16 +1261,6 @@ protected function _conditions($conditions)
 public function exists($conditions = array())
 {
 	return !!$this->count($conditions);		
-}	
-
-# Return count of items using conditions.
-public function count($conditions = array())
-{
-	$conditions = $this->_conditions($conditions);
-
-	$this->_find($conditions);
-
-	return $this->db->count_all_results();		
 }
 
 # Returns first row using conditions
