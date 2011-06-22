@@ -14,9 +14,9 @@ class JotForm
 	
 	private function field_name($field)
 	{
-		$table_name = $this->record->singular_table_name();
+		$record_name = $this->record->singular_table_name();
 
-		return strtolower(sprintf('%s[%s]', $table_name, $field));
+		return strtolower(sprintf('%s[%s]', $record_name, $field));
 	}
 	
 	private function field_value($field)
@@ -29,6 +29,26 @@ class JotForm
 		$table_name = $this->record->singular_table_name();
 
 		return strtolower(sprintf('%s_%s_field', $table_name, $field));
+	}
+	
+	public function fields_for($field)
+	{
+		$associations = $this->record->read_association($field);
+		$associations = is_array($associations) ? $associations : array($associations);
+		
+		$forms = array();
+		
+		foreach($associations as $association)
+		{
+			$forms[] = new self($association);
+		}
+		
+		return $forms;
+	}
+	
+	public function fields_end()
+	{
+		
 	}
 	
 	public function check_box($field, $options = array(), $checked_value = "1", $unchecked_value = "0")

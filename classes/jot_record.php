@@ -253,13 +253,8 @@ public function __call($name, $arguments)
 	}
 }
 
-# Returns row attributes and properties from CodeIgniter.
-public function __get($key)
+public function read_association($key)
 {
-	# Return property from CodeIgniter if exists
-	$CI =& get_instance();
-	if (property_exists($CI, $key)) return $CI->$key;		
-	
 	if ( $this->has_association($key) )
 	{
 		if ( $this->has_many_association($key) )
@@ -344,7 +339,7 @@ public function __get($key)
 				$foreign_type = $this->read_attribute($key.'_type');
 
 				$modelName = ucwords($foreign_type).'_Model';
-				
+
 				$this->load->model($modelName);
 
 				$id = $this->read_attribute($key.'_id');
@@ -365,6 +360,19 @@ public function __get($key)
 			return $this->$modelName->first($conditions);			
 		}
 	}	
+}
+
+# Returns row attributes and properties from CodeIgniter.
+public function __get($key)
+{
+	# Return property from CodeIgniter if exists
+	$CI =& get_instance();
+	if (property_exists($CI, $key)) return $CI->$key;		
+	
+	if ( $this->has_association($key) )
+	{
+		return $this->read_association($key);
+	}
 	
 	# Only retrieve attribute if it exists
 	if ( $this->has_attribute($key) )
