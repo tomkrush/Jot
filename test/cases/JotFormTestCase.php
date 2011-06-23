@@ -16,7 +16,7 @@ class JotFormTestCase extends UnitTestCase
 		));
 		
 		$html = form_for($f, $blog, 'http://example.com');
-		$expects = '<form action="http://example.com" accept-charset="utf-8" method="POST">';
+		$expects = '<form action="http://example.com" accept-charset="utf-8" id="blog_form" method="POST">';
 		
 		$this->assertEquals(htmlentities($expects), htmlentities($html), 'Form open tag');
 	}
