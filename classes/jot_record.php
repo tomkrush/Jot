@@ -199,6 +199,12 @@ public function __set($key, $value)
 	{		
 		$this->write_association($key, $value);
 	}
+
+	# Retrieve attribute if getter function exists
+	else if ( $this->has_write_attribute_function($key) )
+	{
+		$this->write_attribute_function($key, $value);
+	}
 	
 	# Attribute
 	else
@@ -372,6 +378,12 @@ public function __get($key)
 	if ( $this->has_association($key) )
 	{
 		return $this->read_association($key);
+	}
+	
+	# Retrieve attribute if getter function exists
+	if ( $this->has_read_attribute_function($key) )
+	{
+		return $this->read_attribute_function($key);
 	}
 	
 	# Only retrieve attribute if it exists
@@ -781,6 +793,30 @@ public function assign_attributes($attributes)
 	}		
 }
 
+# Returns attribute value if get function exists
+public function read_attribute_function($attribute)
+{
+	$method_name = 'get_'.$attribute;
+	
+	if ( method_exists($this, $method_name) )
+	{
+		return $this->$method_name();
+	}
+	
+	return NULL;
+}
+
+# Write attribute with value
+public function write_attribute_function($attribute, $value)
+{
+	$method_name = 'set_'.$attribute;
+	
+	if ( method_exists($this, $method_name) )
+	{
+		$this->$method_name($attribute, $value);
+	}
+}
+
 # Returns attribute value if exists otherwise null
 public function read_attribute($key)
 {
@@ -832,9 +868,7 @@ protected function save_associations()
 
 			$foreign_key = $this->singular_table_name().'_id';
 			$value[$foreign_key] = $id;
-						
-			print_r($attributes);
-						
+												
 			if ( $associated_id )
 			{
 				unset($value[$primary_key]);
@@ -894,6 +928,22 @@ public function attributes($transient = TRUE)
 	}
 	
 	return $attributes;
+}
+
+# Returns boolean value if read function exists for attribute
+public function has_read_attribute_function($attribute)
+{
+	$method_name = 'get_'.$attribute;
+	
+	return method_exists($this, $method_name);
+}
+
+# Returns boolean value if write function exists for attribute
+public function has_write_attribute_function($attribute)
+{
+	$method_name = 'set_'.$attribute;
+	
+	return method_exists($this, $method_name);
 }
 
 # Returns TRUE if attribute exists

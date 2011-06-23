@@ -84,4 +84,19 @@ class JotRecordAttributesTestCase extends UnitTestCase
 		
 		$this->assertFalse($this->description, 'Description was temporary');
 	}
+
+	public function test_read_attribute_function()
+	{
+		$object = new Blog_Model;
+		
+		$this->assertEquals(10, $object->popularity, 'Read attribute function pass');
+	}
+	
+	public function test_write_attibute_function()
+	{
+		$object = new Blog_Model;
+		$object->category = 'test';
+				
+		$this->assertEquals('TEST', $object->category, 'Write attribute function transformed value');		
+	}
 }
