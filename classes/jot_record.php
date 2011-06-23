@@ -1174,7 +1174,7 @@ public function count($conditions = array())
 
 	$this->_find($conditions);
 
-	return $this->db->count_all_results();		
+	return (int)$this->db->count_all_results();		
 }
 
 public function average($attribute, $conditions = array())
@@ -1184,7 +1184,7 @@ public function average($attribute, $conditions = array())
 	$this->_find($conditions);
 	$result =  $this->db->get()->row();
 
-	return value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $result);
 }
 
 public function maximum($attribute, $conditions = array())
@@ -1196,7 +1196,7 @@ public function maximum($attribute, $conditions = array())
 	
 	$result =  $this->db->get()->row();
 
-	return value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $result);
 }
 
 public function minimum($attribute, $conditions = array())
@@ -1208,7 +1208,7 @@ public function minimum($attribute, $conditions = array())
 	
 	$result =  $this->db->get()->row();
 
-	return value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $result);
 }
 
 public function sum($attribute, $conditions = array())
@@ -1220,7 +1220,7 @@ public function sum($attribute, $conditions = array())
 	
 	$result =  $this->db->get()->row();
 
-	return value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $result);
 }
 	
 /*-------------------------------------------------

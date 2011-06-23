@@ -32,13 +32,6 @@ class JotRecordFindTestCase extends UnitTestCase
 		));
 	}
 	
-	public function test_count()
-	{
-		$count = $this->blog_model->count();
-		
-		$this->assertEquals(20, $count, 'Specified number of rows should return');
-	}
-	
 	public function test_exists()
 	{
 		$exists = $this->blog_model->exists(array(
