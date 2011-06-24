@@ -32,13 +32,13 @@ class JotFormTestCase extends UnitTestCase
 		
 		// Without Attributes
 		$html = $f->check_box('name');	
-		$expects = '<input type="checkbox" name="blog[name]" value="1" id="blog_name_field"  />'."\n".'<input type="hidden" name="blog[name]" value="0" />'."\n";
+		$expects = "\n".'<input type="hidden" name="blog[name]" value="0" />'."\n".'<input type="checkbox" name="blog[name]" value="1" id="blog_name_field"  />';
 		
 		$this->assertEquals(htmlentities($expects), htmlentities($html), 'Checkbox tag (no attributes)');
 
 		// With Attributes
 		$html = $f->check_box('name', array('class'=>'test'));	
-		$expects = '<input type="checkbox" name="blog[name]" value="1" class="test" id="blog_name_field"  />'."\n".'<input type="hidden" name="blog[name]" value="0" />'."\n";
+		$expects = "\n".'<input type="hidden" name="blog[name]" value="0" />'."\n".'<input type="checkbox" name="blog[name]" value="1" class="test" id="blog_name_field"  />';
 		
 		$this->assertEquals(htmlentities($expects), htmlentities($html), 'Checkbox tag (attributes)');
 	}
