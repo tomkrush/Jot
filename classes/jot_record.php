@@ -2,398 +2,207 @@
 
 class JotRecord extends CI_Model implements Serializable
 {
-
+		
 /*-------------------------------------------------
-SERIALIZABLE
+ATTRIBUTE METHODS
 -------------------------------------------------*/
 
-# Serializes the information that is required to recreate
-# object.
-#
-# - Attributes
-# - Errors
-# - Persisted
-#
-public function serialize()
+protected $attributes = array();
+protected $changed_attributes = array();
+protected $transient_attributes = array();
+
+#Set transient attributes
+public function transient($attributes)
 {
-	$data = array();
-	
-	$data['errors'] = $this->errors;
-	$data['attributes'] = $this->attributes;
-	$data['new_record'] = $this->new_record;
-	$data['destroyed'] = $this->destroyed;
-	
-	return serialize($data);
+	$attributes = is_array($attributes) ? $attributes : array($attributes);
+
+	$this->transient_attributes = $attributes;
 }
 
-public function unserialize($data)
-{	
-	$this->__construct();
-	
-	$data = unserialize($data);
-	
-	$this->errors = value_for_key('errors', $data);
-	$this->attributes = value_for_key('attributes', $data);
-	$this->new_record = value_for_key('new_record', $data);
-	$this->destroyed = value_for_key('destroyed', $data);
-}
-
-/*-------------------------------------------------
-MAGIC METHODS
--------------------------------------------------*/
-
-#
-# Options:
-#    new_record: true|false
-#
-public function __construct($attributes = array(), $options = array()) 
+# Allows you to assign multiple attributes.
+public function assign_attributes($attributes)
 {
-	parent::__construct();
+	$attributes = (array)$attributes;
 
-	$this->init();
-	
-	$this->load->add_package_path(APPPATH.'third_party/jot');
-
-	$this->load->library('inflector');
-	$this->load->helper('jot_validation');
-	$this->load->helper('jot_array_helper');
-	
-	# Load in Table Name
-	$this->_tablename();
-			
-	# If attributes exist assign them.
-	if ( is_object($attributes) || is_array($attributes) )
+	foreach($attributes as $key => $value)
 	{
-		$this->assign_attributes($attributes);
-
-		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : TRUE;
-	}
-}
-
-# Returns string describing object
-#
-# format: blog name: "Blog", slug: "blog"
-#
-public function __toString()
-{		
-	$string = '';
-	
-	$string .= $this->singular_table_name();
-	
-	$fields_strings = array();
-	
-	foreach($this->attributes as $attribute => $value)
-	{
-		if ($attribute == 'created_at' || $attribute == 'updated_at')
-		{
-			$value = date('"F j, Y, g:i a"', $value);
-		}
-		else if ( is_string($value) )
-		{
-			$value = '"'.$value.'"';
-		}
-		
-		if ( $value )
-		{
-			$fields_strings[] = $attribute.': '.$value;
-		}
-	}
-		
-	$string .= ' '.implode(', ', $fields_strings);
-
-	return $string;
-}
-
-public function write_association($association_name, $value)
-{	
-	# If has one association exists link objects
-	if ($this->has_one_association($association_name) )
-	{
-		$options = $this->get_has_one_association($association_name);
-		$foreign_id = $this->read_attribute($this->primary_key());
-
-		if ( $polymorphic = value_for_key('as', $options) )
-		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_key = $polymorphic.'_id';
-
-			$value->update_attributes(array(
-				$foreign_type => $this->singular_table_name(),
-				$foreign_key => $foreign_id
-			));
-		}
-		else
-		{
-			$foreign_key = $this->singular_table_name().'_id';
-
-			# Add Association
-			$value->write_attribute($foreign_key, $foreign_id);				
-		}
-	}
-	
-	# If has belongs to association link objects
-	elseif ($this->has_belongs_to_association($association_name) )
-	{
-		$options = $this->get_belongs_to_association($association_name);
-
-		if ( $polymorphic = value_for_key('polymorphic', $options) )
-		{
-			$foreign_type = $association_name.'_type';
-			$foreign_key = $association_name.'_id';
-			$foreign_id = $value->read_attribute($value->primary_key());
-			
-			$this->assign_attributes(array(
-				$foreign_type => $value->singular_table_name(),
-				$foreign_key => $foreign_id
-			));			
-		}
-		else
-		{
-			$foreign_key = $value->singular_table_name().'_id';
-			$foreign_id = $value->read_attribute($value->primary_key());
-
-			# Add Association
-			$this->write_attribute($foreign_key, $foreign_id);
-		}	
-	}
-	
-	# If has many assocation links objects
-	elseif ( $this->has_many_association($association_name) )
-	{
-		$options = $this->get_has_many_association($association_name);
-
-		$options = $this->get_has_many_association($association_name);
-		$foreign_id = $this->read_attribute($this->primary_key());
-		
-		if ( $polymorphic = value_for_key('as', $options) )
-		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_key = $polymorphic.'_id';
-			
-			foreach($value as $object)
-			{
-				$object->update_attributes(array(
-					$foreign_type => $this->singular_table_name(),
-					$foreign_key => $foreign_id
-				));
-			}
-		}
-		else
-		{
-			$foreign_key = $this->singular_table_name().'_id';
-			$foreign_id = $this->read_attribute($this->primary_key());
-
-			foreach($value as $object)
-			{
-				$object->update_attribute($foreign_key, $foreign_id);
-			}
-		}
-	}	
-}
-
-# Allows for attributes and associations to be assigned.
-public function __set($key, $value)
-{	
-	# Association
-	if ( $this->has_association($key) )
-	{		
-		$this->write_association($key, $value);
-	}
-
-	# Retrieve attribute if getter function exists
-	else if ( $this->has_write_attribute_function($key) )
-	{
-		$this->write_attribute_function($key, $value);
-	}
-	
-	# Attribute
-	else
-	{			
 		$this->write_attribute($key, $value);
+	}		
+}
+
+# Returns attribute value if get function exists
+public function read_attribute_function($attribute)
+{
+	$method_name = 'get_'.$attribute;
+
+	if ( method_exists($this, $method_name) )
+	{
+		return $this->$method_name();
+	}
+
+	return NULL;
+}
+
+# Write attribute with value
+public function write_attribute_function($attribute, $value)
+{
+	$method_name = 'set_'.$attribute;
+
+	if ( method_exists($this, $method_name) )
+	{
+		$this->$method_name($attribute, $value);
 	}
 }
 
-# Allows for meta functions to exist.
-public function __call($name, $arguments)
+# Returns attribute value if exists otherwise null
+public function read_attribute($key)
 {
-	# Is call a create_ method?
-	if ( substr($name, 0, 7) == 'create_' )
+	if ( array_key_exists($key, $this->attributes) )
 	{
-		# What is create_(x)?
-		$key = strtolower(substr($name, 7));
-
-		#Is key an association?
-		if ( $this->has_association($key) )
-		{
-			$conditions = $arguments[0];
-			$modelName = ucwords($key).'_Model';
-			$object = $this->load->model($modelName);
-
-			# Create Has One Assocation
-			if ($this->has_one_association($key) )
-			{	
-				$foreign_type = $this->singular_table_name().'_id';
-				$foreign_id = $this->read_attribute($foreign_type);
-
-				# Add Association
-				$conditions[$foreign_type] = $foreign_id;
-
-				return $this->$modelName->create($conditions);
-			}
-			
-			# Create Belongs To Association
-			elseif ($this->has_belongs_to_association($key) )
-			{
-				# Create associated object.
-				$object = $this->$modelName->create($conditions);
-				
-				# Create association with this model.
-				$foreign_type = $object->singular_table_name().'_id';
-				$foreign_id = $object->read_attribute($object->primary_key());
-
-				$this->update_attribute($foreign_type, $foreign_id);
-								
-				return $object;
-			}
-		}			
+		return $this->attributes[$key];
 	}
+
+	return NULL;
 }
 
-public function read_association($key)
+protected function save_associations()
 {
-	if ( $this->has_association($key) )
+	$save_associations = $this->save_associations;
+	$this->save_associations = array();
+
+	$id = $this->read_attribute($this->primary_key());
+
+	foreach($save_associations as $key => $value)
 	{
+		$modelName = ucwords($this->inflector->singularize($key)).'_Model';
+		$this->load->model($modelName);
+		$primary_key = $this->$modelName->primary_key();		
+
 		if ( $this->has_many_association($key) )
 		{
-			# Create Object			
-			$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-
-			$this->load->model($modelName);
-
-			$options = $this->get_has_many_association($key);
-			$object = new $modelName;
-			$id = $this->read_attribute($this->primary_key());
-			
-			if ( $polymorphic = value_for_key('as', $options) )
+			foreach($value as $attributes)
 			{
-				$foreign_type = $polymorphic.'_type';
-				$foreign_id = $polymorphic.'_id';
-				
-				$object->set_base_filter(array(
-					$foreign_type => $this->singular_table_name(),
-					$foreign_id => $id
-				));
-			}
-			else
-			{
-				$foreign_type = $this->singular_table_name().'_id';
+				$associated_id = value_for_key($primary_key, $attributes);
 
-				$object->set_base_filter(array(
-					$foreign_type => $id
-				));
+				$foreign_key = $this->singular_table_name().'_id';
+
+				$attributes[$foreign_key] = $id;
+
+				if ( $associated_id )
+				{
+					unset($attributes[$primary_key]);
+					$this->$modelName->update($associated_id, $attributes);
+				}
+				else
+				{
+					$this->$modelName->create($attributes);
+				}
 			}
-											
-			return $object;
 		}
-		
-		# Object has one association
 		else if ($this->has_one_association($key) )
-		{
-			$options = $this->get_has_one_association($key);
-	
-			if ( $polymorphic = value_for_key('as', $options) )
+		{	
+			$associated_id = value_for_key($primary_key, $value);
+
+			$foreign_key = $this->singular_table_name().'_id';
+			$value[$foreign_key] = $id;
+
+			if ( $associated_id )
 			{
-				$foreign_type = $polymorphic.'_type';
-				$foreign_id = $polymorphic.'_id';
-
-				$id = $this->read_attribute($this->primary_key());
-
-				$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-				
-				$this->load->model($modelName);
-				
-				$conditions = array(
-					$foreign_type => $this->singular_table_name(),
-					$foreign_id => $id
-				);
+				unset($value[$primary_key]);
+				$object = $this->$modelName->update($associated_id, $value);
 			}
 			else
 			{
-				$modelName = ucwords($key).'_Model';
-
-				$this->load->model($modelName);
-								
-				# Create Conditions
-				$conditions = array(
-					$this->singular_table_name().'_id' => $this->read_attribute($this->primary_key())
-				);
-			}
-
-			# Load Object
-			$object = $this->$modelName->first($conditions);
-			
-			return $object;
+				$object = $this->$modelName->create($value);
+			}			
 		}
-		
-		# Object has belongs association
 		else if ($this->has_belongs_to_association($key) )
 		{
-			$options = $this->get_belongs_to_association($key);
+			$associated_id = value_for_key($primary_key, $value);
 
-			if (  value_for_key('polymorphic', $options) )
+			if ( $associated_id )
 			{
-				$foreign_type = $this->read_attribute($key.'_type');
-
-				$modelName = ucwords($foreign_type).'_Model';
-
-				$this->load->model($modelName);
-
-				$id = $this->read_attribute($key.'_id');
+				unset($value[$primary_key]);
+				$object = $this->$modelName->update($associated_id, $value);
 			}
 			else
 			{
-				$modelName = ucwords($key).'_Model';
-				
-				$this->load->model($modelName);
-				
-				$foreign_type = $this->$modelName->singular_table_name().'_id';
-				$id = $this->read_attribute($foreign_type);
+				$object = $this->$modelName->create($value);
 			}
-		
-		
-			$conditions = array($this->$modelName->primary_key() => $id);
-						
-			return $this->$modelName->first($conditions);			
+
+			$foreign_key = $object->singular_table_name().'_id';			
+			$this->update_attribute($foreign_key, $object->read_attribute($this->primary_key()));	
 		}
-	}	
+	}
 }
 
-# Returns row attributes and properties from CodeIgniter.
-public function __get($key)
+# Writes attribute value to object
+public function write_attribute($key, $value)
+{	
+	$nested_attributes = str_replace('_attributes', '', $key);
+
+	if ( $this->has_association($nested_attributes) )
+	{
+		$this->save_associations[$nested_attributes] = $value;
+	}
+	else
+	{
+		$this->attributes[$key] = $value;		
+	}
+}
+
+# Read all attributes
+public function attributes($transient = TRUE)
 {
-	# Return property from CodeIgniter if exists
-	$CI =& get_instance();
-	if (property_exists($CI, $key)) return $CI->$key;		
-	
-	if ( $this->has_association($key) )
+	$attributes = $this->attributes;
+
+	if ( $transient === FALSE )
 	{
-		return $this->read_association($key);
+		foreach($this->transient_attributes as $attribute)
+		{
+			unset($attributes[$attribute]);
+		}
 	}
-	
-	# Retrieve attribute if getter function exists
-	if ( $this->has_read_attribute_function($key) )
-	{
-		return $this->read_attribute_function($key);
-	}
-	
-	# Only retrieve attribute if it exists
-	if ( $this->has_attribute($key) )
-	{
-		return $this->read_attribute($key);
-	}
-	
-	# There is absolutely nothing to return.
-	return NULL;
+
+	return $attributes;
+}
+
+# Returns boolean value if read function exists for attribute
+public function has_read_attribute_function($attribute)
+{
+	$method_name = 'get_'.$attribute;
+
+	return method_exists($this, $method_name);
+}
+
+# Returns boolean value if write function exists for attribute
+public function has_write_attribute_function($attribute)
+{
+	$method_name = 'set_'.$attribute;
+
+	return method_exists($this, $method_name);
+}
+
+# Returns TRUE if attribute exists
+public function has_attribute($attribute)
+{
+	return array_key_exists($attribute, $this->attributes);
+}
+
+# Writes the attributes to object and saves to the memory
+public function update_attribute($key, $value)
+{
+	$this->write_attribute($key, $value);
+	$this->save();
+}
+
+# Assigns attributes and saves changes.
+# Note: (This will update all changed attributes on parent object;
+#		not just the attributes sent through the arguments)
+public function update_attributes($attributes)
+{
+	$this->assign_attributes($attributes);
+	$this->save();
 }
 
 /*-------------------------------------------------
@@ -560,47 +369,208 @@ protected function has_timestamps($bool)
 }
 
 /*-------------------------------------------------
-TABLE NAME
--------------------------------------------------*/
-
-public $table_name = '';
-
-# Set table name
-protected function tablename($table_name)
-{
-	$this->table_name = $table_name;
-}
-
-# Guess table name using model name.
-protected function _tablename()
-{
-	if ( empty($this->table_name) )
-	{	
-		$this->table_name = $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
-	}
-
-	return $this->table_name;
-}
-
-# Returns singular form of model name.
-public function singular_table_name()
-{
-	return strtolower($this->inflector->singularize($this->table_name));
-}
-
-# Returns plural form of model name.
-public function plural_table_name()
-{
-	return strtolower($this->inflector->pluralize($this->table_name));		
-}
-
-/*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
 protected $base_filter = null;
 
 protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
 protected $relationship_vars = array();
+
+public function write_association($association_name, $value)
+{	
+	# If has one association exists link objects
+	if ($this->has_one_association($association_name) )
+	{
+		$options = $this->get_has_one_association($association_name);
+		$foreign_id = $this->read_attribute($this->primary_key());
+
+		if ( $polymorphic = value_for_key('as', $options) )
+		{
+			$foreign_type = $polymorphic.'_type';
+			$foreign_key = $polymorphic.'_id';
+
+			$value->update_attributes(array(
+				$foreign_type => $this->singular_table_name(),
+				$foreign_key => $foreign_id
+			));
+		}
+		else
+		{
+			$foreign_key = $this->singular_table_name().'_id';
+
+			# Add Association
+			$value->write_attribute($foreign_key, $foreign_id);				
+		}
+	}
+	
+	# If has belongs to association link objects
+	elseif ($this->has_belongs_to_association($association_name) )
+	{
+		$options = $this->get_belongs_to_association($association_name);
+
+		if ( $polymorphic = value_for_key('polymorphic', $options) )
+		{
+			$foreign_type = $association_name.'_type';
+			$foreign_key = $association_name.'_id';
+			$foreign_id = $value->read_attribute($value->primary_key());
+			
+			$this->assign_attributes(array(
+				$foreign_type => $value->singular_table_name(),
+				$foreign_key => $foreign_id
+			));			
+		}
+		else
+		{
+			$foreign_key = $value->singular_table_name().'_id';
+			$foreign_id = $value->read_attribute($value->primary_key());
+
+			# Add Association
+			$this->write_attribute($foreign_key, $foreign_id);
+		}	
+	}
+	
+	# If has many assocation links objects
+	elseif ( $this->has_many_association($association_name) )
+	{
+		$options = $this->get_has_many_association($association_name);
+
+		$options = $this->get_has_many_association($association_name);
+		$foreign_id = $this->read_attribute($this->primary_key());
+		
+		if ( $polymorphic = value_for_key('as', $options) )
+		{
+			$foreign_type = $polymorphic.'_type';
+			$foreign_key = $polymorphic.'_id';
+			
+			foreach($value as $object)
+			{
+				$object->update_attributes(array(
+					$foreign_type => $this->singular_table_name(),
+					$foreign_key => $foreign_id
+				));
+			}
+		}
+		else
+		{
+			$foreign_key = $this->singular_table_name().'_id';
+			$foreign_id = $this->read_attribute($this->primary_key());
+
+			foreach($value as $object)
+			{
+				$object->update_attribute($foreign_key, $foreign_id);
+			}
+		}
+	}	
+}
+
+public function read_association($key)
+{
+	if ( $this->has_association($key) )
+	{
+		if ( $this->has_many_association($key) )
+		{
+			# Create Object			
+			$modelName = ucwords($this->inflector->singularize($key)).'_Model';
+
+			$this->load->model($modelName);
+
+			$options = $this->get_has_many_association($key);
+			$object = new $modelName;
+			$id = $this->read_attribute($this->primary_key());
+			
+			if ( $polymorphic = value_for_key('as', $options) )
+			{
+				$foreign_type = $polymorphic.'_type';
+				$foreign_id = $polymorphic.'_id';
+				
+				$object->set_base_filter(array(
+					$foreign_type => $this->singular_table_name(),
+					$foreign_id => $id
+				));
+			}
+			else
+			{
+				$foreign_type = $this->singular_table_name().'_id';
+
+				$object->set_base_filter(array(
+					$foreign_type => $id
+				));
+			}
+											
+			return $object;
+		}
+		
+		# Object has one association
+		else if ($this->has_one_association($key) )
+		{
+			$options = $this->get_has_one_association($key);
+	
+			if ( $polymorphic = value_for_key('as', $options) )
+			{
+				$foreign_type = $polymorphic.'_type';
+				$foreign_id = $polymorphic.'_id';
+
+				$id = $this->read_attribute($this->primary_key());
+
+				$modelName = ucwords($this->inflector->singularize($key)).'_Model';
+				
+				$this->load->model($modelName);
+				
+				$conditions = array(
+					$foreign_type => $this->singular_table_name(),
+					$foreign_id => $id
+				);
+			}
+			else
+			{
+				$modelName = ucwords($key).'_Model';
+
+				$this->load->model($modelName);
+								
+				# Create Conditions
+				$conditions = array(
+					$this->singular_table_name().'_id' => $this->read_attribute($this->primary_key())
+				);
+			}
+
+			# Load Object
+			$object = $this->$modelName->first($conditions);
+			
+			return $object;
+		}
+		
+		# Object has belongs association
+		else if ($this->has_belongs_to_association($key) )
+		{
+			$options = $this->get_belongs_to_association($key);
+
+			if (  value_for_key('polymorphic', $options) )
+			{
+				$foreign_type = $this->read_attribute($key.'_type');
+
+				$modelName = ucwords($foreign_type).'_Model';
+
+				$this->load->model($modelName);
+
+				$id = $this->read_attribute($key.'_id');
+			}
+			else
+			{
+				$modelName = ucwords($key).'_Model';
+				
+				$this->load->model($modelName);
+				
+				$foreign_type = $this->$modelName->singular_table_name().'_id';
+				$id = $this->read_attribute($foreign_type);
+			}
+		
+		
+			$conditions = array($this->$modelName->primary_key() => $id);
+						
+			return $this->$modelName->first($conditions);			
+		}
+	}	
+}
 
 protected function set_base_filter($conditions)
 {
@@ -764,208 +734,6 @@ protected function validator_callback($validator)
 	}
 	
 	return $callback;
-}
-
-/*-------------------------------------------------
-ATTRIBUTE METHODS
--------------------------------------------------*/
-
-protected $attributes = array();
-protected $changed_attributes = array();
-protected $transient_attributes = array();
-
-#Set transient attributes
-public function transient($attributes)
-{
-	$attributes = is_array($attributes) ? $attributes : array($attributes);
-	
-	$this->transient_attributes = $attributes;
-}
-	
-# Allows you to assign multiple attributes.
-public function assign_attributes($attributes)
-{
-	$attributes = (array)$attributes;
-	
-	foreach($attributes as $key => $value)
-	{
-		$this->write_attribute($key, $value);
-	}		
-}
-
-# Returns attribute value if get function exists
-public function read_attribute_function($attribute)
-{
-	$method_name = 'get_'.$attribute;
-	
-	if ( method_exists($this, $method_name) )
-	{
-		return $this->$method_name();
-	}
-	
-	return NULL;
-}
-
-# Write attribute with value
-public function write_attribute_function($attribute, $value)
-{
-	$method_name = 'set_'.$attribute;
-	
-	if ( method_exists($this, $method_name) )
-	{
-		$this->$method_name($attribute, $value);
-	}
-}
-
-# Returns attribute value if exists otherwise null
-public function read_attribute($key)
-{
-	if ( array_key_exists($key, $this->attributes) )
-	{
-		return $this->attributes[$key];
-	}
-	
-	return NULL;
-}
-
-protected function save_associations()
-{
-	$save_associations = $this->save_associations;
-	$this->save_associations = array();
-	
-	$id = $this->read_attribute($this->primary_key());
-	
-	foreach($save_associations as $key => $value)
-	{
-		$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-		$this->load->model($modelName);
-		$primary_key = $this->$modelName->primary_key();		
-		
-		if ( $this->has_many_association($key) )
-		{
-			foreach($value as $attributes)
-			{
-				$associated_id = value_for_key($primary_key, $attributes);
-			
-				$foreign_key = $this->singular_table_name().'_id';
-			
-				$attributes[$foreign_key] = $id;
-															
-				if ( $associated_id )
-				{
-					unset($attributes[$primary_key]);
-					$this->$modelName->update($associated_id, $attributes);
-				}
-				else
-				{
-					$this->$modelName->create($attributes);
-				}
-			}
-		}
-		else if ($this->has_one_association($key) )
-		{	
-			$associated_id = value_for_key($primary_key, $value);
-
-			$foreign_key = $this->singular_table_name().'_id';
-			$value[$foreign_key] = $id;
-												
-			if ( $associated_id )
-			{
-				unset($value[$primary_key]);
-				$object = $this->$modelName->update($associated_id, $value);
-			}
-			else
-			{
-				$object = $this->$modelName->create($value);
-			}			
-		}
-		else if ($this->has_belongs_to_association($key) )
-		{
-			$associated_id = value_for_key($primary_key, $value);
-						
-			if ( $associated_id )
-			{
-				unset($value[$primary_key]);
-				$object = $this->$modelName->update($associated_id, $value);
-			}
-			else
-			{
-				$object = $this->$modelName->create($value);
-			}
-			
-			$foreign_key = $object->singular_table_name().'_id';			
-			$this->update_attribute($foreign_key, $object->read_attribute($this->primary_key()));	
-		}
-	}
-}
-
-# Writes attribute value to object
-public function write_attribute($key, $value)
-{	
-	$nested_attributes = str_replace('_attributes', '', $key);
-	
-	if ( $this->has_association($nested_attributes) )
-	{
-		$this->save_associations[$nested_attributes] = $value;
-	}
-	else
-	{
-		$this->attributes[$key] = $value;		
-	}
-}
-
-# Read all attributes
-public function attributes($transient = TRUE)
-{
-	$attributes = $this->attributes;
-	
-	if ( $transient === FALSE )
-	{
-		foreach($this->transient_attributes as $attribute)
-		{
-			unset($attributes[$attribute]);
-		}
-	}
-	
-	return $attributes;
-}
-
-# Returns boolean value if read function exists for attribute
-public function has_read_attribute_function($attribute)
-{
-	$method_name = 'get_'.$attribute;
-	
-	return method_exists($this, $method_name);
-}
-
-# Returns boolean value if write function exists for attribute
-public function has_write_attribute_function($attribute)
-{
-	$method_name = 'set_'.$attribute;
-	
-	return method_exists($this, $method_name);
-}
-
-# Returns TRUE if attribute exists
-public function has_attribute($attribute)
-{
-	return array_key_exists($attribute, $this->attributes);
-}
-
-# Writes the attributes to object and saves to the memory
-public function update_attribute($key, $value)
-{
-	$this->write_attribute($key, $value);
-	$this->save();
-}
-
-# Assigns attributes and saves changes.
-# Note: (This will update all changed attributes on parent object;
-#		not just the attributes sent through the arguments)
-public function update_attributes($attributes)
-{
-	$this->assign_attributes($attributes);
-	$this->save();
 }
 
 /*-------------------------------------------------
@@ -1394,6 +1162,238 @@ protected function _find($conditions = array())
 	}
 	
 	$this->db->from($this->table_name);
+}
+
+/*-------------------------------------------------
+TABLE NAME
+-------------------------------------------------*/
+
+public $table_name = '';
+
+# Set table name
+protected function tablename($table_name)
+{
+	$this->table_name = $table_name;
+}
+
+# Guess table name using model name.
+protected function _tablename()
+{
+	if ( empty($this->table_name) )
+	{	
+		$this->table_name = $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
+	}
+
+	return $this->table_name;
+}
+
+# Returns singular form of model name.
+public function singular_table_name()
+{
+	return strtolower($this->inflector->singularize($this->table_name));
+}
+
+# Returns plural form of model name.
+public function plural_table_name()
+{
+	return strtolower($this->inflector->pluralize($this->table_name));		
+}
+
+/*-------------------------------------------------
+SERIALIZABLE
+-------------------------------------------------*/
+
+# Serializes the information that is required to recreate
+# object.
+#
+# - Attributes
+# - Errors
+# - Persisted
+#
+public function serialize()
+{
+	$data = array();
+	
+	$data['errors'] = $this->errors;
+	$data['attributes'] = $this->attributes;
+	$data['new_record'] = $this->new_record;
+	$data['destroyed'] = $this->destroyed;
+	
+	return serialize($data);
+}
+
+public function unserialize($data)
+{	
+	$this->__construct();
+	
+	$data = unserialize($data);
+	
+	$this->errors = value_for_key('errors', $data);
+	$this->attributes = value_for_key('attributes', $data);
+	$this->new_record = value_for_key('new_record', $data);
+	$this->destroyed = value_for_key('destroyed', $data);
+}
+
+/*-------------------------------------------------
+MAGIC METHODS
+-------------------------------------------------*/
+
+#
+# Options:
+#    new_record: true|false
+#
+public function __construct($attributes = array(), $options = array()) 
+{
+	parent::__construct();
+
+	$this->init();
+	
+	$this->load->add_package_path(APPPATH.'third_party/jot');
+
+	$this->load->library('inflector');
+	$this->load->helper('jot_validation');
+	$this->load->helper('jot_array_helper');
+	
+	# Load in Table Name
+	$this->_tablename();
+			
+	# If attributes exist assign them.
+	if ( is_object($attributes) || is_array($attributes) )
+	{
+		$this->assign_attributes($attributes);
+
+		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : TRUE;
+	}
+}
+
+# Returns string describing object
+#
+# format: blog name: "Blog", slug: "blog"
+#
+public function __toString()
+{		
+	$string = '';
+	
+	$string .= $this->singular_table_name();
+	
+	$fields_strings = array();
+	
+	foreach($this->attributes as $attribute => $value)
+	{
+		if ($attribute == 'created_at' || $attribute == 'updated_at')
+		{
+			$value = date('"F j, Y, g:i a"', $value);
+		}
+		else if ( is_string($value) )
+		{
+			$value = '"'.$value.'"';
+		}
+		
+		if ( $value )
+		{
+			$fields_strings[] = $attribute.': '.$value;
+		}
+	}
+		
+	$string .= ' '.implode(', ', $fields_strings);
+
+	return $string;
+}
+
+# Allows for attributes and associations to be assigned.
+public function __set($key, $value)
+{	
+	# Association
+	if ( $this->has_association($key) )
+	{		
+		$this->write_association($key, $value);
+	}
+
+	# Retrieve attribute if getter function exists
+	else if ( $this->has_write_attribute_function($key) )
+	{
+		$this->write_attribute_function($key, $value);
+	}
+	
+	# Attribute
+	else
+	{			
+		$this->write_attribute($key, $value);
+	}
+}
+
+# Allows for meta functions to exist.
+public function __call($name, $arguments)
+{
+	# Is call a create_ method?
+	if ( substr($name, 0, 7) == 'create_' )
+	{
+		# What is create_(x)?
+		$key = strtolower(substr($name, 7));
+
+		#Is key an association?
+		if ( $this->has_association($key) )
+		{
+			$conditions = $arguments[0];
+			$modelName = ucwords($key).'_Model';
+			$object = $this->load->model($modelName);
+
+			# Create Has One Assocation
+			if ($this->has_one_association($key) )
+			{	
+				$foreign_type = $this->singular_table_name().'_id';
+				$foreign_id = $this->read_attribute($foreign_type);
+
+				# Add Association
+				$conditions[$foreign_type] = $foreign_id;
+
+				return $this->$modelName->create($conditions);
+			}
+			
+			# Create Belongs To Association
+			elseif ($this->has_belongs_to_association($key) )
+			{
+				# Create associated object.
+				$object = $this->$modelName->create($conditions);
+				
+				# Create association with this model.
+				$foreign_type = $object->singular_table_name().'_id';
+				$foreign_id = $object->read_attribute($object->primary_key());
+
+				$this->update_attribute($foreign_type, $foreign_id);
+								
+				return $object;
+			}
+		}			
+	}
+}
+
+# Returns row attributes and properties from CodeIgniter.
+public function __get($key)
+{
+	# Return property from CodeIgniter if exists
+	$CI =& get_instance();
+	if (property_exists($CI, $key)) return $CI->$key;		
+	
+	if ( $this->has_association($key) )
+	{
+		return $this->read_association($key);
+	}
+	
+	# Retrieve attribute if getter function exists
+	if ( $this->has_read_attribute_function($key) )
+	{
+		return $this->read_attribute_function($key);
+	}
+	
+	# Only retrieve attribute if it exists
+	if ( $this->has_attribute($key) )
+	{
+		return $this->read_attribute($key);
+	}
+	
+	# There is absolutely nothing to return.
+	return NULL;
 }
 
 } # End Class
