@@ -99,6 +99,25 @@ class JotIdentityMap
 		return FALSE;		
 	}
 	
+	public static function object_count()
+	{
+		$self = self::getInstance();
+
+		if ( $self->enabled )
+		{		
+			$count = 0;
+			
+			foreach($self->repository as $repo)
+			{
+				$count += count($repo);
+			}
+			
+			return $count;
+		}
+		
+		return FALSE;
+	}
+	
 	public static function exists($object)
 	{
 		$self = self::getInstance();
