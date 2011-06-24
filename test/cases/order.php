@@ -1,14 +1,17 @@
 <?php
 
-$order = array(
+$order = array(	
 	'JotIdentityMapTestCase',
-	// 'JotTestCase',
-	// 'JotAttributesTestCase',
-	// 'JotPersistanceTestCase',
-	// 'JotFindTestCase',
-	// 'JotHookTestCase',
-	// 'JotValidationTestCase',
-	// 'JotRelationshipsTestCase',
-	// 'JotSerializationTestCase',
-	// 'JotFormTestCase',
+	'JotArrayHelperTestCase',
+	'JotRecordTestCase',
+	'JotRecordAttributesTestCase',
+	'JotRecordNestedAttributesTestCase',
+	'JotRecordPersistanceTestCase',
+	'JotRecordFindTestCase',
+	'JotRecordCalculationTestCase',
+	'JotRecordHookTestCase',
+	'JotRecordValidationTestCase',
+	'JotRecordAssociationTestCase',
+	'JotRecordSerializationTestCase',
+	'JotFormTestCase',
 );

@@ -13,7 +13,7 @@ class Blog_Hook_Model extends My_Model
 	
 	public function hooks_called($hook)
 	{
-		return !!element($hook, $this->hooks_called, FALSE);
+		return !!value_for_key($hook, $this->hooks_called, FALSE);
 	}
 	
 	public function hooks_reset()
@@ -22,6 +22,8 @@ class Blog_Hook_Model extends My_Model
 	}
 	
 	protected function _update() {}
+	
+	protected function _delete() {}
 	
 	protected function _create()
 	{

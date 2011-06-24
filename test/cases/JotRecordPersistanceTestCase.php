@@ -1,6 +1,6 @@
 <?php
 
-class JotPersistanceTestCase extends UnitTestCase
+class JotRecordPersistanceTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		
@@ -35,23 +35,7 @@ class JotPersistanceTestCase extends UnitTestCase
 		$this->assertEquals(NULL, $blog->description, "Description should return NULL");
 		$this->assertEquals(NULL, $blog->rss_url, "RSS URL should return NULL");		
 	}
-	
-	public function test_reload() {
-		$blog = $this->blog_model->create(array(
-			'name' => 'Test title'
-		));
 		
-		$name = $blog->name;
-		
-		$blog->name = NULL;
-		
-		$this->assertNotEquals($name, $blog->name, 'Attribute changed');
-		
-		$blog->reload();
-
-		$this->assertEquals('Test title', $blog->name, 'Attribute reloaded');
-	}
-	
 	public function test_save()
 	{
 		$blog = $this->blog_model->build(array(
@@ -73,6 +57,22 @@ class JotPersistanceTestCase extends UnitTestCase
 		$blog->description = "testing";
 		$blog->save();
 		$this->assertEquals('testing', $blog->description, "Description should return string");		
+	}
+	
+	public function test_reload() {
+		$blog = $this->blog_model->create(array(
+			'name' => 'Test title'
+		));
+		
+		$name = $blog->name;
+		
+		$blog->name = NULL;
+		
+		$this->assertNotEquals($name, $blog->name, 'Attribute changed');
+		
+		$blog->reload();
+
+		$this->assertEquals('Test title', $blog->name, 'Attribute reloaded');
 	}
 	
 	public function test_create()
@@ -106,6 +106,29 @@ class JotPersistanceTestCase extends UnitTestCase
 		$this->assertEquals("1", $blog->id, "ID should be the same");
 		$this->assertEquals('test', $blog->name, "Name should be updated");
 		$this->assertEquals('blog-1', $blog->slug, "Slug should be the same");
+	}
+	
+	public function test_timestamps()
+	{
+		$blog = $this->blog_model->build(array(
+			'name' => 'Blog #1'
+		));
+
+		$this->assertFalse($blog->read_attribute('created_at'), 'Created at timestamp does not exist');
+		$this->assertFalse($blog->read_attribute('updated_at'), 'Updated at timestamp does not exist');
+		
+		$blog->save();
+		
+		$created_at = $blog->read_attribute('created_at');
+		$updated_at = $blog->read_attribute('updated_at');
+		
+		$this->assertTrue($created_at, 'Created at timestamp does not exist');
+		$this->assertTrue($updated_at, 'Updated at timestamp does not exist');		
+
+		// $blog->save();
+		
+		// $this->assertEquals($created_at, $blog->read_attribute('created_at'), 'Created at timestamp not have changed.');
+		// $this->assertNotEquals($updated_at, $blog->read_attribute('updated_at'), 'Updated at timestamp should have changed.');
 	}
 	
 	public function test_update_attribute()
@@ -170,7 +193,7 @@ class JotPersistanceTestCase extends UnitTestCase
 		));	
 			
 		$blogs = $this->blog_model->destroy(array($blog->id, $blog2->id));	
-				
+
 		$this->assertFalse($blogs[0]->persisted(), 'Object should be destroyed');
 		$this->assertFalse($blogs[1]->persisted(), 'Object should be destroyed');
 	}

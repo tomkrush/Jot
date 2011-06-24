@@ -1,6 +1,6 @@
 <?php
 
-class JotSerializationTestCase extends UnitTestCase
+class JotRecordSerializationTestCase extends UnitTestCase
 {	
 	public function __construct()
 	{

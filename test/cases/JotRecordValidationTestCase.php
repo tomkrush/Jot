@@ -1,6 +1,6 @@
 <?php
 
-class JotValidationTestCase extends UnitTestCase
+class JotRecordValidationTestCase extends UnitTestCase
 {
 	public function __construct()
 	{

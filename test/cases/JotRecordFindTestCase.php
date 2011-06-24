@@ -1,6 +1,6 @@
 <?php
 
-class JotFindTestCase extends UnitTestCase
+class JotRecordFindTestCase extends UnitTestCase
 {
 	public function __construct()
 	{		
@@ -30,13 +30,6 @@ class JotFindTestCase extends UnitTestCase
 			'name' => 'Homepage',
 			'slug' => 'index'
 		));
-	}
-	
-	public function test_count()
-	{
-		$count = $this->blog_model->count();
-		
-		$this->assertEquals(20, $count, 'Specified number of rows should return');
 	}
 	
 	public function test_exists()
@@ -92,10 +85,10 @@ class JotFindTestCase extends UnitTestCase
 	
 	public function test_find()
 	{
-		$blogs = $this->blog_model->find(NULL, 1, 20);
+		$blogs = $this->blog_model->find(NULL, 0, 20);
 		$this->assertEquals(20, count($blogs), 'Blog should return specified number rows');
 
-		$blogs = $this->blog_model->find(NULL, 1, 10);
+		$blogs = $this->blog_model->find(NULL, 0, 10);
 		$this->assertEquals(10, count($blogs), 'Limit affects return');
 
 		$blogs = $this->blog_model->find(array('id <' => 7), 1, 5);

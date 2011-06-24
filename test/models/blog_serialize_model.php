@@ -4,7 +4,7 @@ class Blog_Serialize_Model extends My_Model
 {	
 	public function init()
 	{
-		$this->validates('title', 'presence');
+		$this->validates('title', 'required');
 	}
 	
 	protected function _update() {}
