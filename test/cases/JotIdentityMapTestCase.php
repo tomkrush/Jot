@@ -149,12 +149,14 @@ class JotIdentityMapTestCase extends UnitTestCase
 	{		
 		$created_objects = array();
 		
-		for($i = 0; $i < 2; $i++)
+		for($i = 0; $i < 1; $i++)
 		{
 			$created_objects[] = $this->blog_model->create(array(
 				'name' => 'Blog #'.$i
 			));
 		}
+		
+		$created_objects[0]->name = 'Blog Awful';
 		
 		$found_objects = $this->blog_model->all();
 
@@ -162,14 +164,13 @@ class JotIdentityMapTestCase extends UnitTestCase
 
 		foreach($found_objects as $object)
 		{
-			var_dump(in_array($object, $created_objects));
-			// if (in_array($object, $created_objects))
-			// {
-			// 	$exist = TRUE;
-			// }
+			if (in_array($object, $created_objects))
+			{
+				$exist = TRUE;
+			}
 		}
 
-		var_dump($exist);
-		// $this->assertEquals($created_objects, $found_objects, 'Find worked');
+		$this->assertEquals($created_objects, $found_objects, 'Find worked');
+		$this->assertEquals('Blog Awful', $found_objects[0]->name, 'Yippy!');
 	}
 }

@@ -761,8 +761,12 @@ public function reload()
 		# Get primary key so we can retrieve record from database.
 		$id = $this->read_attribute($this->primary_key());
 		
+		JotIdentityMap::disable();
+		
 		# Load object from database.
 		$new_object = $this->first($id);
+		
+		JotIdentityMap::enable();
 		
 		# Assign attributes from new object to this object.
 		$this->attributes = $new_object->attributes();
@@ -976,10 +980,13 @@ protected function _create()
 	
 	# Set primary key.
 	$id = $this->db->insert_id();
-	$this->write_attribute($this->primary_key(), $id);
+	$this->write_attribute($this->primary_key(), (string)$id);
 	
 	# This object is now persisted
 	$this->new_record = FALSE;
+	
+	# Add to Identity Map
+	JotIdentityMap::add($this);
 }
 	
 /*-------------------------------------------------
@@ -1134,8 +1141,12 @@ public function find($conditions = array(), $page = 0, $limit = 10)
 	
 	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
 	{			
-		$result[] = new $this($r->result_object[$i], array(
-			'new_record' => FALSE,
+		// $result[] = new self($r->result_object[$i], array(
+		// 	'new_record' => FALSE
+		// ));
+		
+		$result[] = $this->instantiate($r->result_object[$i], array(
+			'new_record' => FALSE
 		));
 	}
 
@@ -1256,14 +1267,44 @@ public function __construct($attributes = array(), $options = array())
 	
 	# Load in Table Name
 	$this->_tablename();
-			
+
 	# If attributes exist assign them.
-	if ( is_object($attributes) || is_array($attributes) )
+	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )
 	{
 		$this->assign_attributes($attributes);
 
 		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : TRUE;
+
+		$id = value_for_key($this->primary_key(), $attributes);
+
+		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
+		{
+			return $object;
+		}
+
+		if ( $id )
+		{
+			JotIdentityMap::add($this);
+		}
+
+		return $this;
 	}
+}
+
+public function instantiate($attributes = array(), $options = array())
+{
+	# If attributes exist assign them.
+	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )
+	{
+		$id = value_for_key($this->primary_key(), $attributes);
+
+		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
+		{
+			return $object;
+		}	
+	}	
+
+	return new $this($attributes, $options);
 }
 
 # Returns string describing object

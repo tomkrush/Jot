@@ -3,8 +3,8 @@
 class JotIdentityMap 
 {
 	public $repository;
-	public $log;
 	private static $instance;
+	protected $enabled = TRUE;
 	
 	private function __construct() {}
 	
@@ -18,74 +18,107 @@ class JotIdentityMap
         return self::$instance; 
     }
 
+	public function enable()
+	{
+		$self = self::getInstance();
+		$self->enabled = TRUE;
+	}
+	
+	public function disable()
+	{
+		$self = self::getInstance();
+		$self->enabled = FALSE;
+	}
+
 	public static function get($class, $id)
 	{
 		$self = self::getInstance();
+
+		if ( $self->enabled )
+		{		
+			$id = (int)$id;
+				
+		 	$object = isset($self->repository[$class][$id]) ? $self->repository[$class][$id] : FALSE;
+
+			return $object;
+		}
 		
-		$object = isset($self->repository[$class][$id]) ? $self->repository[$class][$id] : FALSE;
-
-		// if ($self->log) echo 'object found';
-
-		return $object;
+		return FALSE;
 	}
 
 	public static function add($object)
 	{
 		$self = self::getInstance();
-	
-		$class = get_class($object);
-		
-		$id = $object->read_attribute($object->primary_key());
 
-		$self->repository[$class][$id] = $object;
+		if ( $self->enabled )
+		{	
+			$class = get_class($object);
 		
-		return TRUE;
+			$id = (int)$object->read_attribute($object->primary_key());
+
+			$self->repository[$class][$id] = $object;
+		
+			return TRUE;
+		}
+		
+		return FALSE;
 	}
 
 	public static function remove($object)
 	{
 		$self = self::getInstance();
+
+		if ( $self->enabled )
+		{	
+			$class = get_class($object);
+			$id = $object->read_attribute($object->primary_key());		
 	
-		$class = get_class($object);
-		$id = $object->read_attribute($object->primary_key());		
-	
-		self::remove_by_id($class, $id);
+			self::remove_by_id($class, $id);
+		}
 	}
 
 	public static function remove_by_id($class, $id)
 	{
 		$self = self::getInstance();
 
-		unset($self->repository[$class][$id]);	
+		if ( $self->enabled )
+		{
+			unset($self->repository[$class][$id]);	
+		}
 	}
 	
 	public static function count()
 	{
 		$self = self::getInstance();
+
+		if ( $self->enabled )
+		{		
+			return count($self->repository);
+		}
 		
-		return count($self->repository);		
-	}
-	
-	public static function log($log)
-	{
-		$self = self::getInstance();
-		$self->log = $log;
+		return FALSE;		
 	}
 	
 	public static function exists($object)
 	{
 		$self = self::getInstance();
+	
+		if ( $self->enabled )
+		{		
+			$class = get_class($object);
+			$id = $object->read_attribute($object->primary_key());
 		
-		$class = get_class($object);
-		$id = $object->read_attribute($object->primary_key());
-		
-		return isset($self->repository[$class][$id]);
+			return isset($self->repository[$class][$id]);
+		}
 	}
 
 	public static function clear()
 	{
 		$self = self::getInstance();
 
-		$self->repository = array();
+		if ( $self->enabled )
+		{
+			$self->repository = array();
+		}
 	}
 }
