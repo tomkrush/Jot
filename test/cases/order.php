@@ -1,7 +1,6 @@
 <?php
 
 $order = array(	
-	'JotIdentityMapTestCase',
 	'JotArrayHelperTestCase',
 	'JotRecordTestCase',
 	'JotRecordAttributesTestCase',
@@ -13,5 +12,6 @@ $order = array(
 	'JotRecordValidationTestCase',
 	'JotRecordAssociationTestCase',
 	'JotRecordSerializationTestCase',
+	'JotIdentityMapTestCase',
 	'JotFormTestCase',
 );
