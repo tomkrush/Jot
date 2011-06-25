@@ -1,11 +1,12 @@
 <?php
 
-class JotRecordAssociationTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordAssociationTestCase extends JotUnitTestCase
 {
 	public function __construct()
-	{
-		$this->load->database();
-		$this->load->dbutil();
+	{		
+		parent::__construct();
 		
 		$this->load->model(array(
 			'blog_model', 
@@ -19,13 +20,7 @@ class JotRecordAssociationTestCase extends UnitTestCase
 	
 	public function setup()
 	{
-		$this->db->truncate('blogs');
-		$this->db->truncate('articles');	
-		$this->db->truncate('pages');	
-
-		$this->db->truncate('companies');
-		$this->db->truncate('people');	
-		$this->db->truncate('images');
+		$this->truncate('blogs', 'articles', 'pages', 'companies', 'people', 'images');
 	}
 	
 	public function test_has_one_association()

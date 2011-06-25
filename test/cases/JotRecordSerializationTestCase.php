@@ -1,9 +1,12 @@
 <?php
 
-class JotRecordSerializationTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordSerializationTestCase extends JotUnitTestCase
 {	
 	public function __construct()
-	{
+	{		
+		parent::__construct();
 		$this->load->model('blog_serialize_model');
 	}
 	

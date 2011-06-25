@@ -1,5 +1,7 @@
 <?php
 
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
 class JotIdentityMapMock
 {
 	protected $id;
@@ -20,19 +22,17 @@ class JotIdentityMapMock
 	}
 }
 
-class JotIdentityMapTestCase extends UnitTestCase
+class JotIdentityMapTestCase extends JotUnitTestCase
 {	
 	public function __construct()
 	{
-		$this->load->database();
-		$this->load->dbutil();
-		
+		parent::__construct();
 		$this->load->model('blog_model');
 	}
 	
 	public function teardown()
 	{
-		$this->db->truncate('blogs');
+		$this->truncate('blogs');
 	
 		JotIdentityMap::clear();
 	}

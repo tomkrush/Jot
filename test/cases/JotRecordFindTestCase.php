@@ -1,17 +1,16 @@
 <?php
 
-class JotRecordFindTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordFindTestCase extends JotUnitTestCase
 {
 	public function __construct()
 	{		
-		$this->load->database();
-		$this->load->dbutil();
+		parent::__construct();
 		
 		$this->load->model(array('blog_model', 'article_model', 'page_model'));
 
-		$this->db->truncate('blogs');
-		$this->db->truncate('articles');
-		$this->db->truncate('pages');
+		$this->truncate('blogs', 'articles', 'pages');
 
 		$this->build();
 	}

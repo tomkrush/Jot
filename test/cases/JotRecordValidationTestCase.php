@@ -1,9 +1,12 @@
 <?php
 
-class JotRecordValidationTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordValidationTestCase extends JotUnitTestCase
 {
 	public function __construct()
 	{
+		parent::__construct();
 		$this->load->model('base_validation_model'); 
 	}
 	

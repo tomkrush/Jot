@@ -1,18 +1,19 @@
 <?php
 
-class JotRecordPersistanceTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordPersistanceTestCase extends JotUnitTestCase
 {
 	public function __construct()
 	{		
-		$this->load->database();
-		$this->load->dbutil();
+		parent::__construct();
 		
 		$this->load->model(array('blog_model'));
 	}
 	
 	public function setup()
 	{
-		$this->db->truncate('blogs');
+		$this->truncate('blogs');
 	}
 	
 	public function test_build()

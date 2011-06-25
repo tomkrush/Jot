@@ -1,11 +1,12 @@
 <?php
 
-class JotRecordCalculationTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordCalculationTestCase extends JotUnitTestCase
 {	
 	public function __construct()
-	{
-		$this->load->database();
-		$this->load->dbutil();
+	{		
+		parent::__construct();
 		
 		$this->load->model('person_model');
 		

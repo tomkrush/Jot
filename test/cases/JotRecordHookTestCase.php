@@ -1,9 +1,12 @@
 <?php
 
-class JotRecordHookTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordHookTestCase extends JotUnitTestCase
 {
 	public function __construct()
-	{				
+	{		
+		parent::__construct();	
 		$this->load->model('blog_hook_model');
 	}
 	

@@ -1,19 +1,18 @@
 <?php
 
-class JotRecordTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotRecordTestCase extends JotUnitTestCase
 {
 	public function __construct()
 	{		
-		$this->load->database();
-		$this->load->dbutil();
-		
+		parent::__construct();
 		$this->load->model(array('blog_model'));
 	}
 	
 	public function setup()
 	{
-		$this->db->truncate('blogs');
-		$this->db->truncate('articles');	
+		$this->truncate('blogs', 'articles');
 	}
 	
 	public function test_to_string()

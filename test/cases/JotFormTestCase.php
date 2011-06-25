@@ -1,9 +1,12 @@
 <?php
 
-class JotFormTestCase extends UnitTestCase
+require_once APPPATH.'third_party/jot/test/JotUnitTestCase.php';
+
+class JotFormTestCase extends JotUnitTestCase
 {
 	public function __construct()
 	{
+		parent::__construct();
 		$this->load->model(array('blog_model', 'article_model', 'page_model'));
 		$this->load->helper('jot_form');
 	}
