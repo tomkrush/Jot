@@ -1,308 +1,377 @@
 <?php
 
-define('MIGRATION_TIMESTAMPS', 1);
-
-function migrations_directory_setup()
+class JotSchema
 {
-	$path = APPPATH.'db/';
-	if ( ! file_exists($path) )
+	public static function createIfNotExists()
 	{
-		mkdir($path);
+		create_table('schema_migrations', array(
+			array('name' => 'version', 'type' => 'integer')
+		), NULL, TRUE);		
 	}
-
-	$path = $path.'migrate';	
-	if ( ! file_exists($path) )
+	
+	public static function version()
 	{
-		mkdir($path);
+		self::createIfNotExists();
+		
+		$CI =& get_instance();
+
+		$row = $CI->db->select_max('version')->get('schema_migrations')->row();
+		$version = $row ? $row->version : 0;		
+
+		return (int)$version;		
 	}
-}
-
-function create_migration($file) {
-	$CI =& get_instance();
-	$CI->load->helper('inflector');
-
-	$path = APPPATH.'db/migrate/';
 	
-	$path .= date('YmdHis').'_'.$file.'.php';
-	
-	if ( ! file_exists($path) )
-	{
-		$class_name = str_replace(' ','_', ucwords(str_replace('_',' ', $file)));	
-			
-		$template = "<?php\nclass {$class_name}\n{\n\tfunction up()\n\t{\n\n\t}\n}";
-	
-		file_put_contents($path, $template);
-	}
-}
-
-function create_schema_table_if_not_exists()
-{
-	create_table('schema_migrations', array(
-		array('name' => 'version', 'type' => 'integer')
-	), NULL, TRUE);		
-}
-
-function schema_created()
-{
-	$CI =& get_instance();
-	
-	return $CI->db->table_exists('schema_migrations');
-}
-
-function schema_version()
-{
-	$schema_created = schema_created();
-	
-	if ( $schema_created )
+	public static function destroy()
 	{
 		$CI =& get_instance();
-	
-		$row = $CI->db->select_max('version')->get('schema_migrations')->row();
-		$version = $row ? $row->version : FALSE;		
-	
-		return $version;
+
+		$tables = $CI->db->list_tables();
+
+		foreach ($tables as $table)
+		{
+			$CI->dbforge->drop_table($table);
+		}
+		
+		$CI->db->data_cache = array();
 	}
 	
-	return FALSE;
-}
-
-function db_path()
-{
-	return APPPATH.'db/';
-}
-
-function migration_path()
-{
-	return db_path().'migrate/';
-}
-
-function local_migration_files()
-{
-	$path = APPPATH.'db/migrate/';
-			
-	// Force files into numerical order
-	$files = directory_map($path);
-	sort($files);
-	
-	return $files;
-}
-
-function migration_up()
-{
-	// Schema Information
-	create_schema_table_if_not_exists();
-	$current_schema_version = schema_version();
-	$new_schema_version = NULL;
-
-	$path = migration_path();
-
-	$files = local_migration_files();
-					
-	// Migrate each file
-	foreach($files as $file)
+	public static function setVersion($version)
 	{
-		$file_path = $path . $file;
-	
-		$class = explode('_', $file, 2);
-		$new_schema_version = strtotime($class[0]);
-			
-		// Only execute a migration if it NEEDs to be done
-		if ( $current_schema_version < $new_schema_version )
-		{			
-			$class = explode('.', $class[1]);
-			$class = $class[0];
-	
-			require($file_path);
-	
-			$migration = new $class;
-			$migration->up();
+		if ( isset($version) )
+		{
+			self::createIfNotExists();
+
+			$CI =& get_instance();
+			$CI->db->insert('schema_migrations', array('version' => $version));
 		}
 	}
-
-	if ( $new_schema_version > $current_schema_version) set_schema_version($new_schema_version);	
 }
 
-function local_migration_version()
+class JotMigrations
 {
-	$files = local_migration_files();
-	$last = end($files);
+	protected $migration_path = 'db/migrate';
+	protected $seed_file_path = 'db/seed.php';
+	protected $migration_files;
+	
+	public function __construct($migration_path, $seed_file_path)
+	{
+		$this->migration_path = $migration_path;
+		$this->seed_file_path = $seed_file_path;
+		
+		$this->clear();
+	}
+	
+	public function migration_path()
+	{
+		return APPPATH.$this->migration_path;
+	}
 
-	$class = explode('_', $last, 2);
-	return strtotime($class[0]);
+	public function seed_file_path()
+	{
+		return APPPATH.$this->seed_file_path;
+	}
+	
+	public function up()
+	{
+		// Schema Information
+		$current_schema_version = JotSchema::version();
+		$new_schema_version = NULL;
+
+		$path = $this->migration_path();
+
+		$files = $this->list_migrations();
+
+		$count = 0;
+
+		// Migrate each file
+		foreach($files as $file)
+		{
+			$file_path = $path . $file;
+
+			$class = explode('_', $file, 2);
+			$new_schema_version = strtotime($class[0]);
+
+			// Only execute a migration if it NEEDs to be done
+			if ( $current_schema_version < $new_schema_version )
+			{			
+				$class = explode('.', $class[1]);
+				$class = $class[0];
+
+				require_once($file_path);
+				$count++;
+
+				$migration = new $class;
+				$migration->up();
+			}
+		}
+
+		if ( $new_schema_version > $current_schema_version) JotSchema::setVersion($new_schema_version);		
+
+		return $count;
+	}
+	
+	public function seed()
+	{
+		JotSchema::destroy();
+		
+		$path = $this->seed_file_path();
+		isset($path) && require($path);
+	}
+	
+	protected function create_schema_table_if_not_exists()
+	{
+		create_table('schema_migrations', array(
+			array('name' => 'version', 'type' => 'integer')
+		), NULL, TRUE);		
+	}
+	
+	public function reset($seed = FALSE)
+	{
+		$tables = $this->db->list_tables();
+
+		foreach ($tables as $table)
+		{
+			$this->drop_table($table);
+		}
+		
+		$seed && $this->up();
+	}
+	
+	public function list_migrations()
+	{
+		if ( ! $this->migration_files )
+		{
+			$path = $this->migration_path();
+
+			// Force files into numerical order
+			$this->migration_files = directory_map($path);
+			// print_r($this->migration_files);
+			sort($this->migration_files);
+		}
+
+		return $this->migration_files;		
+	}
+	
+	public function create($file)
+	{		
+		$CI =& get_instance();
+		$CI->load->helper('inflector');
+
+		$path = $this->migration_path();
+
+		$path .= date('YmdHis').'_'.$file.'.php';
+
+		if ( ! file_exists($path) )
+		{
+			$class_name = str_replace(' ','_', ucwords(str_replace('_',' ', $file)));	
+
+			$template = "<?php\nclass {$class_name}\n{\n\tfunction up()\n\t{\n\n\t}\n}";
+
+			file_put_contents($path, $template);
+			$this->clear();
+			
+			if ( file_exists($path)) return $path;
+		}
+		
+		return FALSE;		
+	}
+	
+	public function clear()
+	{
+		$this->migration_files = array();
+	}
 }
 
-function set_schema_version($version)
-{	
-	$CI =& get_instance();
 
-	$CI->db->insert('schema_migrations', array('version' => $version));
+define('MIGRATION_TIMESTAMPS', 1);
+
+function jot_migration_prepare_column($column, $include_name = FALSE)
+{
+	$column = array_change_key_case($column, CASE_UPPER);
+	$name = value_for_key('NAME', $column);
+			
+	if ( empty($name) )
+	{
+		continue;
+	}
+	
+	if ( $include_name && $value = value_for_key('NAME', $column) )
+	{
+		$field['NAME'] = $value;
+	}	
+ 
+	if ( $value = value_for_key('TYPE', $column) )
+	{
+		$result = _migration_get_type_and_constraint($value);
+		if ( count($result) == 2 )
+		{
+			list($type, $constraint) = $result;
+		}
+		else
+		{
+			list($type) = $result;
+		}
+
+		if ( isset($type) )
+		{
+			$field['TYPE'] = $type;
+		}
+
+		if ( isset($constraint) )
+		{
+			$field['CONSTRAINT'] = $constraint;
+		}			
+	}
+	
+	$value = value_for_key('UNSIGNED', $column);
+	if ( is_bool($value) )
+	{
+		$field['UNSIGNED'] = $value;
+	}
+
+	$value = value_for_key('NOT_NULL', $column);
+	if ( is_bool($value) )
+	{
+		$field['NULL'] = !$value;
+	}
+	
+	if ( $value = value_for_key('DEFAULT', $column) )
+	{
+		$field['DEFAULT'] = $value;
+	}
+	
+	$value = value_for_key('AUTO_INCREMENT', $column);
+	if ( is_bool($value) )
+	{
+		$field['AUTO_INCREMENT'] = $value;
+	}
+	
+	return $field;	
 }
 
 function create_table($table_name, $columns = array(), $options = array(), $if_not_exists = FALSE)
 {
 	$CI =& get_instance();
-
-	$driver = $CI->db->dbdriver ;
-
-
-	$columns_sql = '';
-	$options_sql = '';
+	$CI->load->dbforge();
+	$CI->load->helper('jot_array');
 	
-	if ( isset($options['primary_key']) && $options['primary_key'] == TRUE || empty($options['primary_key']) )
+	$fields = array();	
+	$primary_key = value_for_key('primary_key', $options, 'id');	
+		
+	// Primary Key
+	if ( isset($primary_key) && $primary_key != FALSE )
+	{		
+		array_unshift($columns, array(
+			'name' => $primary_key,
+			'type' => 'integer',
+			'not_null' => TRUE,
+			'auto_increment' => TRUE
+		));
+		
+		$CI->dbforge->add_key($primary_key, TRUE);	
+	}	
+		
+	// Timestamps
+	if ( $key = array_search(MIGRATION_TIMESTAMPS, $columns) )
 	{
-		$id_name = isset($options['primary_key']) ? $options['primary_key'] : 'id';
-		$id = array('name' => $id_name, 'primary_key' => TRUE, 'NOT_NULL' => TRUE, 'AUTO_INCREMENT' => TRUE);		
-
-		if ( $driver == 'pdo' ) unset($id['AUTO_INCREMENT']);
-
-		array_unshift($columns, $id);
-	}
-
-	$create_columns = array();
-
+		unset($columns[$key]);
+		
+		$columns[] = array(
+			'name' => 'created_at',
+			'type' => 'integer',
+			'NOT_NULL' => TRUE
+		);
+		
+		$columns[] = array(
+			'name' => 'updated_at',
+			'type' => 'integer',
+			'NOT_NULL' => TRUE
+		);
+	}		
+		
+	// Columns		
 	foreach($columns as $column)
-	{
-			if ( $column == MIGRATION_TIMESTAMPS )
-			{
-					$create_columns[] = array('name' => 'created_at', 'type' => 'integer', 'NOT_NULL' => TRUE);
-					$create_columns[] = array('name' => 'updated_at', 'type' => 'integer', 'NOT_NULL' => TRUE);
-			}
-			else
-			{
-				$create_columns[] = $column;
-			}
-	}
-	
-	foreach($create_columns as $column)
 	{	
-			// Column Name
-			if ( empty($column['name']) ) continue;
-			$columns_sql .= "  `".$column['name']."`";
+		$field = array();
 
-			// Column Type
-			$type = isset($column['type']) ? $column['type'] : 'integer';
-			$columns_sql .= " "._MigrationDataType($type);
+		$column = array_change_key_case($column, CASE_UPPER);
+		$name = value_for_key('NAME', $column);
+		
+		$fields[$name] = jot_migration_prepare_column($column);
+	}	
+	
+	// Add Fields
+	$CI->dbforge->add_field($fields);
+	
+	// Create Table
+	$CI->dbforge->create_table($table_name, $if_not_exists);
+}
 
-			// DEFAULT
-			$default = array_key_exists('default', $column) ? $column['default'] : NULL;
-			is_bool($default) && $default = $default ? 1 : 0;
-			if ( isset($default) ) $columns_sql .= " DEFAULT '".$default.'\'';
+function rename_table($old, $new)
+{
+	$CI =& get_instance();
+	$CI->load->dbforge();
 
-			// NOT NULL
-			$columns_sql .= isset($column['NOT_NULL']) ? " NOT NULL" : NULL;
+	$CI->dbforge->rename_table($old, $new);	
+}
+
+function drop_table($table)
+{
+	$CI =& get_instance();
+	$CI->load->dbforge();
+
+	$CI->dbforge->drop_table($table);
+}
+
+function create_column($table, $column)
+{
+	$CI =& get_instance();
+	$CI->load->dbforge();
+
+	$fields = array();
+	
+	$name = value_for_key('name', $column);
+	$column = jot_migration_prepare_column($column);
+	$fields[$name]  = $column;
+									
+	$CI->dbforge->add_column($table, $fields);	
+}
+
+function change_column($table, $name, $column)
+{
+	$CI =& get_instance();
+	$CI->load->dbforge();
+
+	$fields = array();
+	
+	$column = jot_migration_prepare_column($column, TRUE);
+	$fields[$name]  = $column;
+				
+	$CI->dbforge->modify_column($table, $fields);	
+}
+
+function drop_column($table, $name)
+{
+	$CI =& get_instance();
+	$CI->load->dbforge();
+
+	$CI->dbforge->drop_column($table, $name);	
+}
+
+function _migration_get_type_and_constraint($type)
+{
+	$type = _MigrationDataType($type);
+	
+	preg_match('/([a-z]*)\(([0-9]*)\)/', $type, $matches);
+	
+	if ( count($matches) == 0 ) return array($type);
 			
-			// AUTO INCREMENT
-			$columns_sql .= isset($column['AUTO_INCREMENT']) ? " AUTO_INCREMENT" : NULL;
-
-			// Close Column
-			$columns_sql .= ",\n";
-	}
-	
-	$columns_sql .= isset($id_name) ? "  PRIMARY KEY (`{$id_name}`)\n" : NULL;
-	
-	$options_sql .= $driver == 'pdo' ? NULL : " CHARSET=utf8";
-
-	$if_not_exists_sql = NULL;
-
-	if ( $if_not_exists )
-	{
-		$if_not_exists_sql = "IF NOT EXISTS";
-	}
-
-	
-	$sql = "CREATE TABLE {$if_not_exists_sql} `{$table_name}` (\n{$columns_sql}) {$options_sql};\n\n";
-
-	if ( ! $if_not_exists )
-	{
-		drop_table($table_name);
-	}
-	
-	$CI->db->query($sql);
-}
-
-function rename_table($old_table_name, $new_table_name)
-{
-	$sql = "RENAME TABLE `{$old_table_name}` TO `{$new_table_name}`;\n\n";
-	
-	$CI =& get_instance();
-	$CI->db->query($sql);
-}
-
-function drop_table($table_name)
-{
-	$sql = "DROP TABLE IF EXISTS `{$table_name}`\n\n";
-	
-	$CI =& get_instance();
-	$CI->db->query($sql);
-}
-
-function create_column($table_name, $options = array())
-{
-	if ( empty($options['name']) ) return FALSE;
-	
-	$column_sql = '';
-	
-	$column_name = $options['name'];
-	
-	// Column Name
-	$column_sql .= "`".$column_name."`";
-
-	// Column Type
-	$type = isset($options['type']) ? $options['type'] : 'integer';
-	$column_sql .= " "._MigrationDataType($type);
-
-	// DEFAULT
-	$default = array_key_exists('default', $options) ? $options['default'] : NULL;
-	if ( isset($default) ) $column_sql .= " DEFAULT '".$default.'\''; 
-
-	// NOT NULL
-	$column_sql .= isset($options['NOT_NULL']) ? " NOT NULL" : NULL;
-	
-	// AUTO INCREMENT
-	$column_sql .= isset($options['AUTO_INCREMENT']) ? " AUTO_INCREMENT" : NULL;
-	
-	$sql = "ALTER TABLE `{$table_name}` ADD COLUMN {$column_sql};\n\n";
-	
-	$CI =& get_instance();
-	$CI->db->query($sql);
-}
-
-function change_column($table_name, $target_column_name, $options)
-{	
-	$column_sql = '';
-	
-  $options['name'] = isset($options['name']) ? $options['name'] : $column_name;
-	$column_name = $options['name'];
-	
-	// Column Name
-	$column_sql .= "`".$column_name."`";
-
-	// Column Type
-	$type = isset($options['type']) ? $options['type'] : 'integer';
-	$column_sql .= " "._MigrationDataType($type);
-
-	// NOT NULL
-	$column_sql .= isset($options['NOT_NULL']) ? " NOT NULL" : NULL;
-
-	// DEFAULT
-	$default = array_key_exists('default', $options) ? $options['default'] : NULL;
-	if ( isset($default) ) $column_sql .= " DEFAULT '".$default.'\''; 
-	
-	// AUTO INCREMENT
-	$column_sql .= isset($options['AUTO_INCREMENT']) ? " AUTO_INCREMENT" : NULL;
-	
-	$sql = "ALTER TABLE `{$table_name}` CHANGE `{$target_column_name}` {$column_sql};\n\n";
-	
-	$CI =& get_instance();
-	$CI->db->query($sql);
-}
-
-function drop_column($table_name, $column_name)
-{
-	$sql = "ALTER TABLE `{$table_name}` DROP  `{$column_name}`\n\n";
-	
-	$CI =& get_instance();
-	$CI->db->query($sql);
+	list($all, $type, $constraint) = $matches;
+		
+	return array(
+		$type,
+		$constraint
+	);
 }
 
 function _MigrationDataType($type)
@@ -312,7 +381,7 @@ function _MigrationDataType($type)
 		
 	switch($driver)
 	{
-		case 'pdo':
+		case 'sqlite3':
 			if ( $type == 'binary' ) 					$type = 'blob';
 			else if ( $type == 'boolean') 		$type = 'boolean';
 			else if ( $type == 'date' ) 			$type = 'date';
