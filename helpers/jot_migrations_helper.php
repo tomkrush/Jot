@@ -24,6 +24,7 @@ class JotSchema
 	public static function destroy()
 	{
 		$CI =& get_instance();
+		$CI->load->dbforge();
 
 		$tables = $CI->db->list_tables();
 
@@ -47,13 +48,27 @@ class JotSchema
 	}
 }
 
+class JotSeed
+{
+	public function __get($key)
+	{
+		$CI =& get_instance();
+		return $CI->$key;
+	}
+	
+	public function run($file)
+	{
+		if (file_exists($file)) require($file);
+	}
+}
+
 class JotMigrations
 {
-	protected $migration_path = 'db/migrate';
-	protected $seed_file_path = 'db/seed.php';
+	protected $migration_path;
+	protected $seed_file_path;
 	protected $migration_files;
 	
-	public function __construct($migration_path, $seed_file_path)
+	public function __construct($migration_path = 'db/migrate/', $seed_file_path = 'db/seed.php')
 	{
 		$this->migration_path = $migration_path;
 		$this->seed_file_path = $seed_file_path;
@@ -111,11 +126,9 @@ class JotMigrations
 	}
 	
 	public function seed()
-	{
-		JotSchema::destroy();
-		
-		$path = $this->seed_file_path();
-		isset($path) && require($path);
+	{		
+		$seed = new JotSeed;
+		$seed->run($this->seed_file_path());
 	}
 	
 	protected function create_schema_table_if_not_exists()
@@ -127,14 +140,10 @@ class JotMigrations
 	
 	public function reset($seed = FALSE)
 	{
-		$tables = $this->db->list_tables();
-
-		foreach ($tables as $table)
-		{
-			$this->drop_table($table);
-		}
+		JotSchema::destroy();
 		
-		$seed && $this->up();
+		$this->up();
+		$seed && $this->seed();
 	}
 	
 	public function list_migrations()

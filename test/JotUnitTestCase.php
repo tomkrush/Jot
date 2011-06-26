@@ -3,6 +3,7 @@
 class JotUnitTestCase extends UnitTestCase
 {
 	public $migration_path = 'third_party/jot/test/jot_record_migrations/';
+	public $seed_path = FALSE;
 	
 	public function __construct()
 	{		
@@ -15,7 +16,7 @@ class JotUnitTestCase extends UnitTestCase
 		{
 			JotSchema::destroy();
 
-			$migrations = new JotMigrations($this->migration_path, FALSE);
+			$migrations = new JotMigrations($this->migration_path, $this->seed_path);
 			$migrations->up();			
 		}
 	}
