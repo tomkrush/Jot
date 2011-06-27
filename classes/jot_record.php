@@ -1091,7 +1091,7 @@ public function exists($conditions = array())
 # Returns first row using conditions
 public function first($conditions = array())
 {						
-	$this->db->order_by($this->primary_key().' ASC');
+	// $this->db->order_by($this->primary_key().' ASC');
 
 	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
@@ -1100,7 +1100,7 @@ public function first($conditions = array())
 # Returns last row using conditions
 public function last($conditions = array())
 {			
-	$this->db->order_by($this->primary_key.' DESC');
+	// $this->db->order_by($this->primary_key.' DESC');
 
 	$result = $this->find($conditions, 0, 1);
 	
@@ -1118,6 +1118,16 @@ public function all($conditions = array())
 # Returns a range of rows using conditions
 public function find($conditions = array(), $page = 0, $limit = 10)
 {
+	$primary_key = $this->primary_key();
+
+	if ( count($conditions) == 1 && $id = value_for_key($primary_key, $conditions))
+	{
+		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
+		{
+			return array($object);
+		}
+	}
+	
 	$conditions = $this->_conditions($conditions);
 						
 	$this->_find($conditions);
