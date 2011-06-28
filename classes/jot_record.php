@@ -1115,7 +1115,7 @@ public function all($conditions = array())
 }
 
 # Returns a range of rows using conditions
-public function find($conditions = array(), $page = 0, $limit = 10)
+public function find($conditions = array(), $offset = 0, $limit = 10)
 {
 	$primary_key = $this->primary_key();
 
