@@ -2,11 +2,20 @@
 
 class JotSchema
 {
+	static $created = FALSE;
+	
 	public static function createIfNotExists()
-	{
-		create_table('schema_migrations', array(
-			array('name' => 'version', 'type' => 'integer')
-		), NULL, TRUE);		
+	{		
+		if ( self::$created == FALSE)
+		{
+			jot_migration_log('Create schema table if not exists');
+			
+			self::$created = TRUE;
+			
+			create_table('schema_migrations', array(
+				array('name' => 'version', 'type' => 'integer')
+			), NULL, TRUE);
+		}
 	}
 	
 	public static function version()
@@ -30,8 +39,11 @@ class JotSchema
 
 		foreach ($tables as $table)
 		{
-			$CI->dbforge->drop_table($table);
+			drop_table($table);
+			// $CI->dbforge->drop_table($table);
 		}
+		
+		self::$created = FALSE;
 		
 		$CI->db->data_cache = array();
 	}
@@ -44,6 +56,8 @@ class JotSchema
 
 			$CI =& get_instance();
 			$CI->db->insert('schema_migrations', array('version' => $version));
+			
+			jot_migration_log('Updated schema version');
 		}
 	}
 }
@@ -97,7 +111,7 @@ class JotMigrations
 		$files = $this->list_migrations();
 
 		$count = 0;
-
+		
 		// Migrate each file
 		foreach($files as $file)
 		{
@@ -115,10 +129,16 @@ class JotMigrations
 				require_once($file_path);
 				$count++;
 
+				jot_migration_log('Start migration '.$class);
+
 				$migration = new $class;
 				$migration->up();
+				
+				jot_migration_log('End migration '.$class);
 			}
 		}
+		
+		jot_migration_log('Schema up to date.');
 
 		if ( $new_schema_version > $current_schema_version) JotSchema::setVersion($new_schema_version);		
 
@@ -126,20 +146,15 @@ class JotMigrations
 	}
 	
 	public function seed()
-	{		
+	{
+		jot_migration_log('Seed data into database');
+		
 		$seed = new JotSeed;
 		$seed->run($this->seed_file_path());
 	}
 	
-	protected function create_schema_table_if_not_exists()
-	{
-		create_table('schema_migrations', array(
-			array('name' => 'version', 'type' => 'integer')
-		), NULL, TRUE);		
-	}
-	
 	public function reset($seed = FALSE)
-	{
+	{		
 		JotSchema::destroy();
 		
 		$this->up();
@@ -178,9 +193,13 @@ class JotMigrations
 
 			file_put_contents($path, $template);
 			$this->clear();
+
+			jot_migration_log('Migration '.$file.' is created');
 			
 			if ( file_exists($path)) return $path;
 		}
+		
+		jot_migration_log('Migration '.$file.' exists');
 		
 		return FALSE;		
 	}
@@ -193,6 +212,14 @@ class JotMigrations
 
 
 define('MIGRATION_TIMESTAMPS', 1);
+
+function jot_migration_log($message)
+{
+	if ( ENVIRONMENT != 'testing')
+	{
+		echo $message."<br/>\n";
+	}
+}
 
 function jot_migration_prepare_column($column, $include_name = FALSE)
 {
@@ -314,6 +341,8 @@ function create_table($table_name, $columns = array(), $options = array(), $if_n
 	
 	// Create Table
 	$CI->dbforge->create_table($table_name, $if_not_exists);
+	
+	jot_migration_log('Create table '.$table_name);
 }
 
 function rename_table($old, $new)
@@ -322,6 +351,8 @@ function rename_table($old, $new)
 	$CI->load->dbforge();
 
 	$CI->dbforge->rename_table($old, $new);	
+
+	jot_migration_log('Rename table '.$old.' '.$new);
 }
 
 function drop_table($table)
@@ -330,6 +361,7 @@ function drop_table($table)
 	$CI->load->dbforge();
 
 	$CI->dbforge->drop_table($table);
+	jot_migration_log('Drop table '.$table);
 }
 
 function create_column($table, $column)
@@ -344,6 +376,7 @@ function create_column($table, $column)
 	$fields[$name]  = $column;
 									
 	$CI->dbforge->add_column($table, $fields);	
+	jot_migration_log('Create column '.$column.' on table'.$table);
 }
 
 function change_column($table, $name, $column)
@@ -356,7 +389,9 @@ function change_column($table, $name, $column)
 	$column = jot_migration_prepare_column($column, TRUE);
 	$fields[$name]  = $column;
 				
-	$CI->dbforge->modify_column($table, $fields);	
+	$CI->dbforge->modify_column($table, $fields);
+	
+	jot_migration_log('Change column '.$column.' on table'.$table);	
 }
 
 function drop_column($table, $name)
@@ -364,7 +399,9 @@ function drop_column($table, $name)
 	$CI =& get_instance();
 	$CI->load->dbforge();
 
-	$CI->dbforge->drop_column($table, $name);	
+	$CI->dbforge->drop_column($table, $name);
+	
+	jot_migration_log('Drop column '.$column.' from table'.$table);	
 }
 
 function _migration_get_type_and_constraint($type)
