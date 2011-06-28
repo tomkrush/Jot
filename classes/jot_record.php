@@ -995,6 +995,7 @@ CALCULATIONS
 # Return count of items using conditions.
 public function count($conditions = array())
 {
+	$this->db->flush_cache();
 	$conditions = $this->_conditions($conditions);
 
 	$this->_find($conditions);
@@ -1124,6 +1125,7 @@ public function find($conditions = array(), $page = 0, $limit = 10)
 	{
 		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
+			$this->db->flush_cache();
 			return array($object);
 		}
 	}
