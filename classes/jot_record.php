@@ -1110,9 +1110,7 @@ public function last($conditions = array())
 
 # Returns all rows using conditions
 public function all($conditions = array())
-{
-	$conditions = $this->_conditions($conditions);
-	
+{	
 	return $this->find($conditions, 1, 0);		
 }
 
