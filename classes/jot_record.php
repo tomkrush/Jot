@@ -1134,13 +1134,13 @@ public function find($conditions = array(), $offset = 0, $limit = 10)
 	
 	if ( $limit > 0 )
 	{
-		if ( $limit && $page )
+		if ( $limit && $offset )
 		{
-			$this->db->limit($limit, $page);
+			$this->db->limit($limit, $offset);
 		} 
 		else
 		{
-			$this->db->limit($limit, $page);
+			$this->db->limit($limit, $offset);
 		}
 	}
 
