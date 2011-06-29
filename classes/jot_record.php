@@ -212,7 +212,7 @@ BUILD FUNCTION
 # Builds empty object using attributes.
 public function build($attributes = array())
 {
-	return new $this($attributes);
+	return $this->instantiate($attributes);
 }
 
 /*-------------------------------------------------
@@ -1151,10 +1151,6 @@ public function find($conditions = array(), $offset = 0, $limit = 10)
 	
 	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
 	{			
-		// $result[] = new self($r->result_object[$i], array(
-		// 	'new_record' => FALSE
-		// ));
-		
 		$result[] = $this->instantiate($r->result_object[$i], array(
 			'new_record' => FALSE
 		));
@@ -1301,6 +1297,11 @@ public function __construct($attributes = array(), $options = array())
 	}
 }
 
+# Returns object
+#
+# If attribute id exists and object exists in memory, that object will
+# be returned. Otherwise a new object will be created using attributes.
+#
 public function instantiate($attributes = array(), $options = array())
 {
 	# If attributes exist assign them.
