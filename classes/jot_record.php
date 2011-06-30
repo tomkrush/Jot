@@ -392,7 +392,7 @@ public function touch()
 		
 		$updated_at = time();
 		
-		$this->db->update($this->table_name, array(
+		$this->db->update($this->table_name(), array(
 			$this->updated_at_column_name => $updated_at
 		), array($key => $value));
 		
@@ -937,7 +937,7 @@ protected function _delete()
 	if ( $id )
 	{ 	
 		# Delete record from table.
-		$this->db->delete($this->table_name, array($this->primary_key() => $id));	
+		$this->db->delete($this->table_name(), array($this->primary_key() => $id));	
 	}
 }
 
@@ -989,7 +989,7 @@ public function save($validate  = TRUE)
 protected function _update()
 {
 	# Set created and updated at attributes if timestamps exist.
-	if ( $this->timestamps)
+		if ( $this->timestamps)
 	{
 		$this->write_attribute($this->updated_at_column_name, time());
 	}	
@@ -998,7 +998,7 @@ protected function _update()
 	$id = $this->read_attribute($this->primary_key);
 	
 	# Update record in database.
-	$this->db->update($this->table_name, $this->attributes(FALSE), array($this->primary_key=>$id));
+	$this->db->update($this->table_name(), $this->attributes(FALSE), array($this->primary_key=>$id));
 }
 
 # Internal Method for creating a record in the database
@@ -1012,7 +1012,7 @@ protected function _create()
 	}
 	
 	# Insert object into table
-	$this->db->insert($this->table_name, $this->attributes(FALSE));
+	$this->db->insert($this->table_name(), $this->attributes(FALSE));
 	
 	# Set primary key.
 	$id = $this->db->insert_id();
@@ -1213,7 +1213,7 @@ protected function _find($conditions = array())
 		}
 	}
 	
-	$this->db->from($this->table_name);
+	$this->db->from($this->table_name());
 }
 
 /*-------------------------------------------------
@@ -1223,32 +1223,26 @@ TABLE NAME
 public $table_name = '';
 
 # Set table name
-protected function tablename($table_name)
-{
-	$this->table_name = $table_name;
-}
-
-# Guess table name using model name.
-protected function _tablename()
+protected function table_name()
 {
 	if ( empty($this->table_name) )
 	{	
 		$this->table_name = $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
-	}
-
+	}	
+	
 	return $this->table_name;
 }
 
 # Returns singular form of model name.
 public function singular_table_name()
 {
-	return strtolower($this->inflector->singularize($this->table_name));
+	return strtolower($this->inflector->singularize($this->table_name()));
 }
 
 # Returns plural form of model name.
 public function plural_table_name()
 {
-	return strtolower($this->inflector->pluralize($this->table_name));		
+	return strtolower($this->inflector->pluralize($this->table_name()));		
 }
 
 /*-------------------------------------------------
@@ -1275,9 +1269,7 @@ public function serialize()
 }
 
 public function unserialize($data)
-{	
-	$this->__construct();
-	
+{		
 	$data = unserialize($data);
 	
 	$this->errors = value_for_key('errors', $data);
@@ -1306,9 +1298,6 @@ public function __construct($attributes = array(), $options = array())
 	$this->load->helper('jot_validation');
 	$this->load->helper('jot_array_helper');
 	
-	# Load in Table Name
-	$this->_tablename();
-
 	# If attributes exist assign them.
 	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )
 	{
