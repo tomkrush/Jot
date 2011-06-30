@@ -16,11 +16,27 @@ Objects have the option to be persisted to a database. The methods **update** an
 All objects can be manipulated using attributes and persisted using the function **save**. 
 
 ### Finders
-
+##### first($conditions, $order)
+##### last($conditions, $order)
+##### all($conditions, $order)
+##### find($conditions, $order, $offset, $limit)
 
 ### Calculations
+##### count($conditions)
+##### average($conditions)
+##### sum($conditions)
+##### minimum
+##### maximum
 
 ### Hooks
+##### before_create
+##### after_create
+##### before_update
+##### after_update
+##### before_save
+##### after_create
+##### before_validation
+##### after_validation
 
 ### Validation
 To ensure valid data is persisted to the database a validation can be created. Most validation cases can be handled using the included methods, but using a simple hook system new validations can be created.
@@ -132,8 +148,6 @@ The validation method 'length' validates **true** only if the attribute value ha
 ##### confirm
 The validation method 'confirm' validates **true** only if attribute value is equal to attribute_confirm.
 
-(At this time you **must** specify the transient attribute for confirm. Your confirm attribute should not be persisted.)
-
 	class User_Model extends My_Model
 	{
 		public function init()
@@ -178,5 +192,11 @@ If a validation method is unique to a certain model than the method can be decla
 ### Associations
 
 ### Serialization
+Serializing allows Jot objects to extend their state across multiple page loads.
+
+Note: To unserialize a jot object the model **must** be loaded. Not loading the model will cause fatal errors because PHP will attempt to create a object without the class.
+
+	serialize($blog); // Outputs string
+	unserialize($blog); // Outputs jot object
 
 ### Forms
