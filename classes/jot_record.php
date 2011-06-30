@@ -180,7 +180,7 @@ public function attributes($transient = TRUE)
 }
 
 # Returns boolean value if read function exists for attribute
-public function has_read_attribute_function($attribute)
+protected function has_read_attribute_function($attribute)
 {
 	$method_name = 'get_'.$attribute;
 
@@ -188,7 +188,7 @@ public function has_read_attribute_function($attribute)
 }
 
 # Returns boolean value if write function exists for attribute
-public function has_write_attribute_function($attribute)
+protected function has_write_attribute_function($attribute)
 {
 	$method_name = 'set_'.$attribute;
 
