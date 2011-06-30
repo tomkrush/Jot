@@ -380,6 +380,27 @@ protected function has_timestamps($bool)
 	$this->timestamps = $bool;
 }
 
+public function touch()
+{
+	if ( $this->persisted() && $this->timestamps )
+	{
+		$key = $this->primary_key();
+		$value = $this->read_attribute($key);
+		
+		$updated_at = time();
+		
+		$this->db->update($this->table_name, array(
+			$this->updated_at_column_name => $updated_at
+		), array($key => $value));
+		
+		$this->write_attribute($this->updated_at_column_name, $updated_at);
+		
+		return TRUE;
+	}
+	
+	return FALSE;
+}
+
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
