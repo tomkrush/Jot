@@ -380,6 +380,9 @@ protected function has_timestamps($bool)
 	$this->timestamps = $bool;
 }
 
+# Objects can now be touched. When touched the database forces the updated_at
+# attribute to newest timestamp.
+#
 public function touch()
 {
 	if ( $this->persisted() && $this->timestamps )
