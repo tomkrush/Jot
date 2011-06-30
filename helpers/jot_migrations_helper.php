@@ -271,7 +271,8 @@ function jot_migration_prepare_column($column, $include_name = FALSE)
 		$field['NULL'] = !$value;
 	}
 	
-	if ( $value = value_for_key('DEFAULT', $column) )
+	$value = value_for_key('DEFAULT', $column, NULL);
+	if ( array_key_exists('DEFAULT', $column) )
 	{
 		$field['DEFAULT'] = $value;
 	}
