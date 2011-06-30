@@ -1032,8 +1032,6 @@ CALCULATIONS
 public function count($conditions = array())
 {
 	$this->db->flush_cache();
-	$conditions = $this->_conditions($conditions);
-
 	$this->_find($conditions);
 
 	return (int)$this->db->count_all_results();		
@@ -1042,82 +1040,38 @@ public function count($conditions = array())
 public function average($attribute, $conditions = array())
 {
 	$this->db->select_avg($attribute);
-	$conditions = $this->_conditions($conditions);
 	$this->_find($conditions);
-	$result =  $this->db->get()->row();
-
-	return (float)value_for_key($attribute, $result);
+	
+	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 
 public function maximum($attribute, $conditions = array())
 {
 	$this->db->select_max($attribute);
-	
-	$conditions = $this->_conditions($conditions);
 	$this->_find($conditions);
 	
-	$result =  $this->db->get()->row();
-
-	return (float)value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 
 public function minimum($attribute, $conditions = array())
 {
 	$this->db->select_min($attribute);
-	
-	$conditions = $this->_conditions($conditions);
 	$this->_find($conditions);
 	
-	$result =  $this->db->get()->row();
-
-	return (float)value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 
 public function sum($attribute, $conditions = array())
 {
 	$this->db->select_sum($attribute);
-	
-	$conditions = $this->_conditions($conditions);
 	$this->_find($conditions);
 	
-	$result =  $this->db->get()->row();
-
-	return (float)value_for_key($attribute, $result);
+	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 	
 /*-------------------------------------------------
 FINDERS
 -------------------------------------------------*/	
-
-# Validates conditions variable.
-protected function _conditions($conditions)
-{
-	# Set Base Filter
-	if ($this->base_filter !== null)
-	{
-		$conditions = array_merge($this->base_filter, $conditions);
-	}	
-	
-	# Return empty array if conditions do not exist
-	if ( $conditions == NULL ) 
-	{
-		return array();
-	}
-	 
-	# If conditions is a single integer or list of ids return ids.
-	if ( is_numeric($conditions) || ! is_assoc($conditions) )
-	{
-		$conditions = array($this->primary_key => $conditions);
-	}
-	
-	# Make sure conditions is an array
-	if ( ! is_array($conditions) )
-	{
-		$conditions = array();
-	}
-	
-	return $conditions;	
-}
 
 # Return true if conditions return results.
 public function exists($conditions = array())
@@ -1152,37 +1106,41 @@ public function all($conditions = array(), $order = NULL)
 # Returns a range of rows using conditions
 public function find($conditions = array(), $order = NULL, $offset = 0, $limit = 10)
 {
+	# Load Primary Key
 	$primary_key = $this->primary_key();
 
+	# Load object from identity map if possible.
 	if ( count($conditions) == 1 && $id = value_for_key($primary_key, $conditions))
 	{
+		# If object id exists in Identity Map return object.
 		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
+			# This data should be cleared because it was orginally was going
+			# to be used to generate sql for this find.
 			$this->db->flush_cache();
+			
+			# Return object from Identity Map.
 			return array($object);
 		}
 	}
 	
-	$conditions = $this->_conditions($conditions);
-					
-	if ( $order ) $this->db->order_by($order);				
-						
+	# Turn conditions into where statements	.	
 	$this->_find($conditions);
+
+	# If needed set default order			
+	$order = $order ? $order : $this->primary_key().' ASC';
+	$this->db->order_by($order);
 	
+	# Limit and Offset
 	if ( $limit > 0 )
 	{
-		if ( $limit && $offset )
-		{
-			$this->db->limit($limit, $offset);
-		} 
-		else
-		{
-			$this->db->limit($limit, $offset);
-		}
+		$this->db->limit($limit, $offset);
 	}
 
+	# Instantiate jot objects from database rows.
 	$r = $this->db->get();
 		
+	# Force CodeIgniter to load rows info objects.
 	$r->result_object();
 	$result = array();
 	
@@ -1193,6 +1151,7 @@ public function find($conditions = array(), $order = NULL, $offset = 0, $limit =
 		));
 	}
 
+	# Return array of jot objects
 	return $result;		
 }
 
@@ -1200,22 +1159,54 @@ public function find($conditions = array(), $order = NULL, $offset = 0, $limit =
 # to the core CodeIgniter object.
 protected function _find($conditions = array())
 {	
-	if ( is_array($conditions) )
+	# Finialize Conditions
+	$conditions = $this->_conditions($conditions);
+
+	# Create Where Statements
+	foreach($conditions as $key => $value)
 	{
-		foreach($conditions as $key => $value)
+		if ( is_array($value) )
 		{
-			if ( is_array($value) )
-			{
-				$this->db->where_in($key, $value);
-			}
-			else
-			{
-				$this->db->where($key, $value);
-			}
+			$this->db->where_in($key, $value);
+		}
+		else
+		{
+			$this->db->where($key, $value);
 		}
 	}
 	
+	# Set From
 	$this->db->from($this->table_name());
+}
+
+# Validates conditions variable.
+protected function _conditions($conditions)
+{
+	# Set Base Filter
+	if ($this->base_filter !== null)
+	{
+		$conditions = array_merge($this->base_filter, $conditions);
+	}	
+	
+	# Return empty array if conditions do not exist
+	if ( $conditions == NULL ) 
+	{
+		return array();
+	}
+	 
+	# If conditions is a single integer or list of ids return ids.
+	if ( is_numeric($conditions) || ! is_assoc($conditions) )
+	{
+		$conditions = array($this->primary_key => $conditions);
+	}
+	
+	# Make sure conditions is an array
+	if ( ! is_array($conditions) )
+	{
+		$conditions = array();
+	}
+	
+	return $conditions;	
 }
 
 /*-------------------------------------------------
