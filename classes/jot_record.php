@@ -409,8 +409,10 @@ ASSOCATIONS
 -------------------------------------------------*/
 protected $base_filter = null;
 
-protected $relationships = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
-protected $relationship_vars = array();
+protected $associations = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
+protected $association_vars = array();
+protected $association_cache = array();
+
 
 public function write_association($association_name, $value)
 {	
@@ -626,7 +628,7 @@ protected function has_association($association)
 
 protected function get_has_one_association($association)
 {	
-	return value_for_key("has_one.{$association}", $this->relationships, FALSE);
+	return value_for_key("has_one.{$association}", $this->associations, FALSE);
 }
 
 protected function has_one_association($association)
@@ -637,13 +639,13 @@ protected function has_one_association($association)
 
 protected function has_one($association, $options = array())
 {
-	$this->relationships['has_one'][$association] = $options;
-	$this->relationship_vars[] = $this->inflector->singularize($association);
+	$this->associations['has_one'][$association] = $options;
+	$this->association_vars[] = $this->inflector->singularize($association);
 }
 
 protected function get_belongs_to_association($association)
 {
-	return value_for_key("belongs_to.{$association}", $this->relationships, FALSE);
+	return value_for_key("belongs_to.{$association}", $this->associations, FALSE);
 }
 
 protected function has_belongs_to_association($association)
@@ -654,13 +656,13 @@ protected function has_belongs_to_association($association)
 
 protected function belongs_to($association, $options = array())
 {
-	$this->relationships['belongs_to'][$association] = $options;
-	$this->relationship_vars[] = $this->inflector->singularize($association);
+	$this->associations['belongs_to'][$association] = $options;
+	$this->association_vars[] = $this->inflector->singularize($association);
 }
 
 protected function get_has_many_association($association)
 {
-	return value_for_key("has_many.{$association}", $this->relationships, FALSE);
+	return value_for_key("has_many.{$association}", $this->associations, FALSE);
 }
 
 protected function has_many_association($association)
@@ -671,8 +673,8 @@ protected function has_many_association($association)
 
 protected function has_many($association, $options = array())
 {
-	$this->relationships['has_many'][$association] = $options;
-	$this->relationship_vars[] = $this->inflector->pluralize($association);
+	$this->associations['has_many'][$association] = $options;
+	$this->association_vars[] = $this->inflector->pluralize($association);
 }
 	
 /*-------------------------------------------------
