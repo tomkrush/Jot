@@ -1126,31 +1126,31 @@ public function exists($conditions = array())
 }
 
 # Returns first row using conditions
-public function first($conditions = array())
+public function first($conditions = array(), $order = NULL)
 {						
-	$this->db->order_by($this->primary_key().' ASC');
+	$order = $order ? $order : $this->primary_key().' ASC';
 
-	$result = $this->find($conditions, 0, 1);
+	$result = $this->find($conditions, $order, 0, 1);
 	return count($result) ? $result[0] : NULL;
 }
 
 # Returns last row using conditions
-public function last($conditions = array())
+public function last($conditions = array(), $order = NULL)
 {			
-	$this->db->order_by($this->primary_key.' DESC');
+	$order = $order ? $order : $this->primary_key().' DESC';
 
-	$result = $this->find($conditions, 0, 1);
+	$result = $this->find($conditions, $order, 0, 1);
 	return count($result) ? $result[0] : NULL;
 }
 
 # Returns all rows using conditions
-public function all($conditions = array())
+public function all($conditions = array(), $order = NULL)
 {	
-	return $this->find($conditions, 1, 0);		
+	return $this->find($conditions, $order, 1, 0);		
 }
 
 # Returns a range of rows using conditions
-public function find($conditions = array(), $offset = 0, $limit = 10)
+public function find($conditions = array(), $order = NULL, $offset = 0, $limit = 10)
 {
 	$primary_key = $this->primary_key();
 
@@ -1164,6 +1164,8 @@ public function find($conditions = array(), $offset = 0, $limit = 10)
 	}
 	
 	$conditions = $this->_conditions($conditions);
+					
+	if ( $order ) $this->db->order_by($order);				
 						
 	$this->_find($conditions);
 	
