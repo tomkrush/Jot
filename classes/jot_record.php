@@ -11,6 +11,18 @@ protected $attributes = array();
 protected $changed_attributes = array();
 protected $transient_attributes = array();
 
+#Has transient attribute
+public function has_transient($attribute)
+{
+	return in_array($attribute, $this->transient_attributes);
+}
+
+#Set transient attribute
+public function add_transient($attribute)
+{	
+	$this->transient_attributes[] = $attribute;
+}
+
 #Set transient attributes
 public function transient($attributes)
 {
