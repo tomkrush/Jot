@@ -1254,7 +1254,7 @@ SERIALIZABLE
 #
 # - Attributes
 # - Errors
-# - Persisted
+# - Persistance
 #
 public function serialize()
 {
