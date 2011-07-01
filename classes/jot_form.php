@@ -97,8 +97,6 @@ class JotForm
 	
 	public function label($field, $text = FALSE, $options = array())
 	{	
-		// Support Translations?
-
 		$text = $text ? $text : ucwords(str_replace('_', ' ', $field));
 		$field = $this->field_id($field);
 		

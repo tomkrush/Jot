@@ -1219,12 +1219,18 @@ TABLE NAME
 
 public $table_name = '';
 
-# Set table name
-protected function table_name()
+# Deprecated
+protected function tablename($table_name = NULL)
 {
-	if ( empty($this->table_name) )
+	return $this->table_name($table_name);
+}
+
+# Set and get tablename
+protected function table_name($table_name = NULL)
+{	
+	if ( empty($this->table_name) || $table_name )
 	{	
-		$this->table_name = $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
+		$this->table_name = $table_name ? $table_name : $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
 	}	
 	
 	return $this->table_name;
