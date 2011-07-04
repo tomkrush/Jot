@@ -1,6 +1,6 @@
 <?php
 
-# Jot Idenity Map
+# Jot Identity Map
 require 'classes/jot_identity.php';
 
 # Jot Implementation of Active Record
