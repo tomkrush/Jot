@@ -1186,8 +1186,10 @@ protected function _find($conditions = array())
 }
 
 # Validates conditions variable.
-protected function _conditions($conditions)
+protected function _conditions($conditions = array())
 {
+	$conditions = is_array($conditions) ? $conditions : array();
+	
 	# Set Base Filter
 	if ($this->base_filter !== null)
 	{
