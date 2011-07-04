@@ -1167,10 +1167,14 @@ protected function _find($conditions = array())
 	# Create Where Statements
 	foreach($conditions as $key => $value)
 	{
-		if ( is_array($value) )
+		# If value is indexed. It will be used for where_in
+		# array('id'=>array(1,2,3))
+		if ( is_array($value) && is_assoc($value) )
 		{
 			$this->db->where_in($key, $value);
 		}
+		
+		# Simple where statement using 'AND'
 		else
 		{
 			$this->db->where($key, $value);
@@ -1215,11 +1219,14 @@ protected function _conditions($conditions)
 TABLE NAME
 -------------------------------------------------*/
 
-public $table_name = '';
+protected $table_name = NULL;
+protected $singular_table_name = NULL;
+protected $plural_table_name = NULL;
 
 # Deprecated
 protected function tablename($table_name = NULL)
 {
+	log_message('debug', '[Deprecated Method tablename in Jot] Please use table_name instead.');
 	return $this->table_name($table_name);
 }
 
@@ -1237,20 +1244,30 @@ protected function table_name($table_name = NULL)
 # Returns singular form of model name.
 public function singular_table_name()
 {
-	return strtolower($this->inflector->singularize($this->table_name()));
+	if ( ! $this->singular_table_name )
+	{
+		$this->singular_table_name = strtolower($this->inflector->singularize($this->table_name()));
+	}
+	
+	return $this->singular_table_name;
 }
 
 # Returns plural form of model name.
 public function plural_table_name()
 {
-	return strtolower($this->inflector->pluralize($this->table_name()));		
+	if ( ! $this->plural_table_name )
+	{
+		$this->plural_table_name = strtolower($this->inflector->pluralize($this->table_name()));
+	}
+	
+	return $this->plural_table_name;	
 }
 
 /*-------------------------------------------------
 SERIALIZABLE
 -------------------------------------------------*/
 
-# Serializes the information that is required to recreate
+# Serializes the data that is required to recreate
 # object.
 #
 # - Attributes
@@ -1269,6 +1286,12 @@ public function serialize()
 	return serialize($data);
 }
 
+# Unserializes the data that to recreate
+# object.
+#
+# NOTE: JOT MODEL MUST BE IN MEMORY BEFORE RUNNING
+# THIS FUNCTION!
+#
 public function unserialize($data)
 {		
 	$data = unserialize($data);
@@ -1332,14 +1355,17 @@ public function instantiate($attributes = array(), $options = array())
 	# If attributes exist assign them.
 	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )
 	{
+		# Get value for primary key
 		$id = value_for_key($this->primary_key(), $attributes);
 
 		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
+			# Object is in Identity Map
 			return $object;
 		}	
 	}	
 
+	# Create new Jot Object and return
 	return new $this($attributes, $options);
 }
 
