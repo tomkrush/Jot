@@ -1030,7 +1030,7 @@ protected function _create()
 /*-------------------------------------------------
 CALCULATIONS
 -------------------------------------------------*/	
-# Return count of items using conditions.
+# Counts rows with conditions and returns int.
 public function count($conditions = array())
 {
 	$this->db->flush_cache();
@@ -1039,6 +1039,7 @@ public function count($conditions = array())
 	return (int)$this->db->count_all_results();		
 }
 
+# Calculates average on attribute and returns float.
 public function average($attribute, $conditions = array())
 {
 	$this->db->select_avg($attribute);
@@ -1047,6 +1048,7 @@ public function average($attribute, $conditions = array())
 	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 
+# Calculates maximum for attribute and returns float.
 public function maximum($attribute, $conditions = array())
 {
 	$this->db->select_max($attribute);
@@ -1055,6 +1057,7 @@ public function maximum($attribute, $conditions = array())
 	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 
+# Calculates minimum for attribute and returns float.
 public function minimum($attribute, $conditions = array())
 {
 	$this->db->select_min($attribute);
@@ -1063,6 +1066,7 @@ public function minimum($attribute, $conditions = array())
 	return (float)value_for_key($attribute, $this->db->get()->row());
 }
 
+# Calculates sum of attribute and returns float.
 public function sum($attribute, $conditions = array())
 {
 	$this->db->select_sum($attribute);
