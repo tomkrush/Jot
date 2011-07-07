@@ -122,3 +122,76 @@ if ( ! function_exists('jot_validate_confirm'))
 		return TRUE;		
 	}
 }
+
+if ( ! function_exists('jot_validate_attachment_required'))
+{
+	function jot_validate_attachment_required($object, $attribute, $options) 
+	{		
+		$file = $object->_files($attribute);
+		$error = value_for_key('error', $file);				
+						
+		if ( !isset($file) || $error > 0 )
+		{	
+			switch($error)
+			{
+				case 1:
+					$max_upload_size = min(let_to_num(ini_get('post_max_size')), let_to_num(ini_get('upload_max_filesize')));
+
+					$object->add_error(array($attribute, ucfirst($attribute)." was not uploaded because file is larger than {$max_upload_size}."));
+				break;
+
+				case 4:
+					$object->add_error(array($attribute, ucfirst($attribute).' is required.'));
+				break;
+
+				default:
+					$object->add_error(array($attribute, ucfirst($attribute).' failed to upload.'));
+				break;
+			}
+			
+			return FALSE;
+		}
+
+		return TRUE;
+	}
+}
+
+// if ( ! function_exists('jot_validate_attachment_size'))
+// {
+// 	function jot_validate_attachment_size($object, $attribute, $options) 
+// 	{
+// 		$file = $object->_files($attribute);
+// 		$size = (int)value_for_key('size', $file);
+// 		
+// 		if ( $ )
+// 		{
+// 			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
+// 			return FALSE;
+// 		}
+// 
+// 		return TRUE;
+// 	}
+// }
+// 
+if ( ! function_exists('jot_validate_attachment_content_type'))
+{
+	function jot_validate_attachment_content_type($object, $attribute, $options) 
+	{		
+		$file = $object->_files($attribute);
+		$error = value_for_key('error', $file);				
+
+		if ( !isset($file) || $error == 0 )
+		{
+			$type = value_for_key('type', $file);
+			$options = is_array($options) ? $options : array($options);
+									
+			if ( ! in_array($type, $options) )
+			{
+				$object->add_error(array($attribute, 'Uploaded '.ucfirst($attribute).' is a '.$type.'. Should be a '.implode(', ', $options).'.'));
+				return FALSE;
+			}
+		}
+		
+		return TRUE;
+	}
+}

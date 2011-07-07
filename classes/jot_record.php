@@ -699,7 +699,10 @@ public function is_valid()
 protected function validates($attribute, $validators)
 {
 	# Add validator to object
-	$this->validators[$attribute] = $validators;
+	$old_validators = value_for_key($attribute, $this->validators, array());
+	$validators = is_array($validators) ? $validators : array($validators);
+	
+	$this->validators[$attribute] = array_merge($old_validators, $validators);
 }
 
 # Perform validators (Should include caching)
@@ -737,7 +740,7 @@ protected function perform_validations()
 			}
 		}
 	}
-	
+
 	return $validates;
 }
 
@@ -1091,7 +1094,7 @@ public function exists($conditions = array())
 # Returns first row using conditions
 public function first($conditions = array())
 {						
-	$order = $order ? $order : $this->primary_key().' ASC';
+	$order = $this->primary_key().' ASC';
 
 	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
@@ -1100,7 +1103,7 @@ public function first($conditions = array())
 # Returns last row using conditions
 public function last($conditions = array())
 {			
-	$order = $order ? $order : $this->primary_key().' DESC';
+	$order = $this->primary_key().' DESC';
 
 	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
@@ -1160,13 +1163,18 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		}
 	}
 
+	# Lets set limit if available
 	if (isset($limit)) 
 	{
 		$this->limit = $limit;
 	}
 
 	# Check $conditions array to see if it is a one for all
-	if (is_array($conditions) && ($conditions['conditions'] || $conditions['order'] || $conditions['offset'] || $conditions['page'] || $conditions['limit']))
+	if ( 	value_for_key('conditions', $conditions) || 
+			value_for_key('order', $conditions) ||
+			value_for_key('offset', $conditions) ||
+			value_for_key('page', $conditions) ||
+			value_for_key('limit', $conditions))
 	{		
 		$conf 		= $conditions;
 		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
@@ -1220,7 +1228,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	}
 
 	# Return array of jot objects
-	return $result;		
+	return $result;
 }
 
 # Private find method. The purpose of this is too apply db functions
@@ -1390,6 +1398,84 @@ public function unserialize($data)
 	$this->attributes = value_for_key('attributes', $data);
 	$this->new_record = value_for_key('new_record', $data);
 	$this->destroyed = value_for_key('destroyed', $data);
+}
+
+/*-------------------------------------------------
+UPLOAD METHODS
+-------------------------------------------------*/
+
+# Cache stores information from $_FILES
+protected $files_cache = NULL;
+
+# Store attachment objects
+protected $attachments = array();
+
+# Creates attachment object and hooks into Jot.
+public function has_attached_file($name, $options = array())
+{
+	$this->attachments[$name] = new JotAttachment($name, $this, $options);
+	
+	$this->before_save('save_attached_files');
+}
+
+# Writes attributes to object and moves file to final path.
+public function save_attached_files()
+{	
+	foreach($this->attachments as $name => $attachment)
+	{
+		# If file exists lets attach it.
+		if ( $file = $this->_files($name) )
+		{
+			# Write attributes
+			$this->write_attribute("{$name}_file_name", $file['name']);
+			$this->write_attribute("{$name}_content_type", $file['type']);
+			$this->write_attribute("{$name}_file_size", $file['size']);
+			$this->write_attribute("{$name}_updated_at", time());
+			
+			# Move file to attachment path
+			move_uploaded_file($file['tmp'], $attachment->path);
+		}
+	}
+}
+
+# Return attachment
+protected function read_attachment($name)
+{
+	return value_for_key($name, $this->attachments);
+}
+
+# Does attachment exist?
+protected function is_attachment($name)
+{
+	return array_key_exists($name, $this->attachments);
+}
+
+# Return files
+public function _files($attachment_name)
+{
+	# Does file cache exist
+	if ( ! $this->files_cache )
+	{
+		$this->files_cache = array();
+		
+		# Lets check each attachment to see if an associated file exists.
+		foreach($this->attachments as $name => $attachment) {
+			foreach($_FILES as $file)
+			{
+				# Create file cache instance;
+				$this->files_cache[$name] = array(
+					'name'  => value_for_key("name.{$name}", $file),
+					'type'  => value_for_key("type.{$name}", $file),
+					'tmp'   => value_for_key("tmp_name.{$name}", $file),
+					'error' => value_for_key("error.{$name}", $file),
+					'size'  => value_for_key("size.{$name}", $file),
+				);
+			}
+		}
+	}
+		
+	# Return file attachment from file cache
+	return value_for_key($attachment_name, $this->files_cache);
 }
 
 /*-------------------------------------------------
@@ -1567,6 +1653,11 @@ public function __get($key)
 	# Return property from CodeIgniter if exists
 	$CI =& get_instance();
 	if (property_exists($CI, $key)) return $CI->$key;		
+	
+	if ( $this->is_attachment($key) )
+	{
+		return $this->read_attachment($key);
+	}
 	
 	if ( $this->has_association($key) )
 	{
