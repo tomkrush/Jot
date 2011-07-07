@@ -188,6 +188,94 @@ If a validation method is unique to a certain model than the method can be decla
 			// Same as function helper
 		}
 	}
+	
+### File Attachments
+File attachments allow Jot objects to abstract files and treat them as attributes. File attachments are **not being tested** right now. This may lead to unexpected bugs.
+
+#### Getting Started
+
+To attach a file in a jot model;
+	class Person_Model extends MY_Model
+	{
+		public function init()
+		{
+			$this->has_attached_file('avatar');
+		}
+	}
+	
+Four new fields are required in your migration.
+	create_table('person', array(
+		...
+		
+		array('name'=>'avatar_file_name', 'type'=>'string'),
+		array('name'=>'avatar_content_type', 'type'=>'string'),
+		array('name'=>'avatar_file_size', 'type'=>'integer'),
+		array('name'=>'avatar_updated_at', 'type'=>'integer'),
+		MIGRATION_TIMESTAMPS
+	));
+	
+To attach a file use the file_field in your form.
+	<?php print form_for($f, $person, site_url('people/create'), array('multipart' => TRUE)); ?>
+		<?php print $f->file_field('avatar'); ?>
+	<?php print form_end(); ?>
+
+To access your file in your view use url.
+	<img src="<?=$person->avatar->url?>" />
+
+#### has_attached_file options
+
+$this->has_attached_file('avatar', array(
+	'path' => 'assets/avatars',
+	'url' => 'assets/avatars'
+));
+
+- **path** Server side path Jot uses to locate attachment. (default: assets/files)
+- **url** Client side path that is used to locate attachment. (default: assets/files)
+
+Note: If you change the url, you must also change the path.
+
+#### Validators
+
+##### attachment_required
+The validation method 'attachment_required' validates **true** only if the attachment is present.
+
+	class Person_Model extends My_Model
+	{
+		public function init()
+		{
+			$this->has_attached_file('avatar');
+			
+			$this->validates('avatar', 'attachment_required');
+		}
+	}
+
+##### attachment_content_type
+The validation method 'attachment_content_type' validates **true** only if the file content type matches specified types.
+
+	class Person_Model extends My_Model
+	{
+		public function init()
+		{
+			$this->has_attached_file('avatar');
+			
+			$this->validates('avatar', array('attachment_content_type' => 'image/jpeg'));
+		}
+	}
+
+or
+
+	class Person_Model extends My_Model
+	{
+		public function init()
+		{
+			$this->has_attached_file('avatar');
+		
+			$this->validates('avatar', array('attachment_content_type' => array(
+				'image/jpeg', 
+				'image/png'
+			)));
+		}
+	}
 
 ### Associations
 
