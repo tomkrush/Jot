@@ -33,7 +33,7 @@ class JotAttachment
 	{
 		if ( ! $this->_url )
 		{
-			$url = rtrim(value_for_key('url', $this->options, 'files'),'/').'/';
+			$url = rtrim(value_for_key('url', $this->options, 'assets/files'),'/').'/';
 		
 			if ( $file_name = $this->instance->read_attribute("{$this->name}_file_name") )
 			{
@@ -50,7 +50,7 @@ class JotAttachment
 	{
 		if ( ! $this->_path )
 		{
-			$path = rtrim(value_for_key('path', $this->options, FCPATH.'files'),'/');
+			$path = rtrim(value_for_key('path', $this->options, FCPATH.'assets/files'),'/');
 					
 			if ( $file_name = $this->instance->read_attribute("{$this->name}_file_name") )
 			{
