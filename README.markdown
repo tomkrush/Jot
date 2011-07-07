@@ -195,6 +195,7 @@ File attachments allow Jot objects to abstract files and treat them as attribute
 #### Getting Started
 
 To attach a file in a jot model;
+
 	class Person_Model extends MY_Model
 	{
 		public function init()
@@ -204,6 +205,7 @@ To attach a file in a jot model;
 	}
 	
 Four new fields are required in your migration.
+
 	create_table('person', array(
 		...
 		
@@ -215,19 +217,20 @@ Four new fields are required in your migration.
 	));
 	
 To attach a file use the file_field in your form.
+
 	<?php print form_for($f, $person, site_url('people/create'), array('multipart' => TRUE)); ?>
 		<?php print $f->file_field('avatar'); ?>
 	<?php print form_end(); ?>
 
 To access your file in your view use url.
-	<img src="<?=$person->avatar->url?>" />
+	<?=$person->avatar->url?>
 
 #### has_attached_file options
 
-$this->has_attached_file('avatar', array(
-	'path' => 'assets/avatars',
-	'url' => 'assets/avatars'
-));
+	$this->has_attached_file('avatar', array(
+		'path' => 'assets/avatars',
+		'url' => 'assets/avatars'
+	));
 
 - **path** Server side path Jot uses to locate attachment. (default: assets/files)
 - **url** Client side path that is used to locate attachment. (default: assets/files)
