@@ -1077,7 +1077,10 @@ public function sum($attribute, $conditions = array())
 	
 /*-------------------------------------------------
 FINDERS
--------------------------------------------------*/	
+-------------------------------------------------*/
+
+protected $limit;
+protected $order;
 
 # Return true if conditions return results.
 public function exists($conditions = array())
@@ -1086,54 +1089,59 @@ public function exists($conditions = array())
 }
 
 # Returns first row using conditions
-public function first($conditions = array(), $order = NULL)
+public function first($conditions = array())
 {						
 	$order = $order ? $order : $this->primary_key().' ASC';
 
-	$result = $this->find($conditions, $order, 0, 1);
+	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
 }
 
 # Returns last row using conditions
-public function last($conditions = array(), $order = NULL)
+public function last($conditions = array())
 {			
 	$order = $order ? $order : $this->primary_key().' DESC';
 
-	$result = $this->find($conditions, $order, 0, 1);
+	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
 }
 
 # Returns all rows using conditions
-public function all($conditions = array(), $order = NULL)
+public function all($conditions = array())
 {	
-	return $this->find($conditions, $order, 1, 0);		
+	return $this->find($conditions, 0, 0);		
+}
+
+public function find_by_sql($query)
+{	
+	$args = func_get_args();
+	array_shift($args);
+	
+	if ( isset($args[0]) && is_array($args[0]) )
+	{
+		$args = $args[0];
+	}
+
+	$r = $this->db->query($query, $args);
+	
+	# Force CodeIgniter to load rows info objects.
+	$r->result_object();
+	$result = array();
+	
+	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
+	{			
+		$result[] = $this->instantiate($r->result_object[$i], array(
+			'new_record' => FALSE
+		));
+	}
+
+	# Return array of jot objects
+	return $result;
 }
 
 # Returns a range of rows using conditions
-protected $limit;
 public function find($conditions = array(), $offset = 0, $limit = null)
 {
-	# Check $conditions array to see if it is a one for all
-	if (is_array($conditions) && ($conditions['conditions'] || $conditions['offset'] || $conditions['page'] || $conditions['limit']))
-	{
-		$conf 		= $conditions;
-		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
-		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
-		$limit		= isset($conf['limit']) ? $conf['limit'] : $this->limit;
-		
-		if (isset($conf['page']))
-		{
-			$page	= $conf['page'];
-			$offset = ($limit - 1) * $page;
-		}
-	}
-	
-	# Set default limit for Jot model
-	if ($limit === null)
-	{
-		$limit = $this->limit;
-	}
-	
 	# Load Primary Key
 	$primary_key = $this->primary_key();
 
@@ -1151,23 +1159,55 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 			return array($object);
 		}
 	}
+
+	if (isset($limit)) 
+	{
+		$this->limit = $limit;
+	}
+
+	# Check $conditions array to see if it is a one for all
+	if (is_array($conditions) && ($conditions['conditions'] || $conditions['order'] || $conditions['offset'] || $conditions['page'] || $conditions['limit']))
+	{		
+		$conf 		= $conditions;
+		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
+		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
 	
+		// We have a limit. Lets store it!
+		if(isset($conf['limit'])) 
+		{
+			$this->limit = $conf['limit'];
+		}
+		
+		# We have an order. Lets store it!
+		if(isset($conf['order'])) 
+		{
+			$this->order = $conf['order'];
+		}
+		
+		# Page isset so lets do the math and fix things up.
+		if (isset($conf['page']))
+		{
+			$page	= $conf['page'];
+			$offset = ($limit - 1) * $page;
+		}
+	}
+
 	# Turn conditions into where statements	.	
 	$this->_find($conditions);
 
 	# If needed set default order			
-	$order = $order ? $order : $this->primary_key().' ASC';
-	$this->db->order_by($order);
+	$this->db->order_by($this->_order());
 	
 	# Limit and Offset
-	if ( $limit > 0 )
+	if ( $this->_limit() )
 	{
-		$this->db->limit($limit, $offset);
+		$this->db->limit($this->_limit());
+		$this->db->offset($offset);
 	}
 
 	# Instantiate jot objects from database rows.
 	$r = $this->db->get();
-		
+
 	# Force CodeIgniter to load rows info objects.
 	$r->result_object();
 	$result = array();
@@ -1241,6 +1281,28 @@ protected function _conditions($conditions = array())
 	}
 	
 	return $conditions;	
+}
+
+# Return limit (Default 10)
+protected function _limit()
+{
+	if ( !isset($this->limit) )
+	{
+		$this->limit = 10;
+	}
+	
+	return $this->limit;
+}
+
+# Return order (id ASC)
+protected function _order()
+{
+	if ( !isset($this->order) )
+	{
+		$this->order = $this->primary_key().' ASC';
+	}
+	
+	return $this->order;	
 }
 
 /*-------------------------------------------------
@@ -1341,8 +1403,6 @@ MAGIC METHODS
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
-	
-	$this->limit = 10;
 
 	$this->init();
 	
