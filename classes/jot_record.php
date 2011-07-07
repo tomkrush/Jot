@@ -1110,8 +1110,30 @@ public function all($conditions = array(), $order = NULL)
 }
 
 # Returns a range of rows using conditions
-public function find($conditions = array(), $order = NULL, $offset = 0, $limit = 10)
+protected $limit;
+public function find($conditions = array(), $offset = 0, $limit = null)
 {
+	# Check $conditions array to see if it is a one for all
+	if (is_array($conditions) && ($conditions['conditions'] || $conditions['offset'] || $conditions['page'] || $conditions['limit']))
+	{
+		$conf 		= $conditions;
+		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
+		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
+		$limit		= isset($conf['limit']) ? $conf['limit'] : $this->limit;
+		
+		if (isset($conf['page']))
+		{
+			$page	= $conf['page'];
+			$offset = ($limit - 1) * $page;
+		}
+	}
+	
+	# Set default limit for Jot model
+	if ($limit === null)
+	{
+		$limit = $this->limit;
+	}
+	
 	# Load Primary Key
 	$primary_key = $this->primary_key();
 
@@ -1319,6 +1341,8 @@ MAGIC METHODS
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
+	
+	$this->limit = 10;
 
 	$this->init();
 	
