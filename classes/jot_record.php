@@ -1115,33 +1115,6 @@ public function all($conditions = array())
 	return $this->find($conditions, 0, 0);		
 }
 
-public function find_by_sql($query)
-{	
-	$args = func_get_args();
-	array_shift($args);
-	
-	if ( isset($args[0]) && is_array($args[0]) )
-	{
-		$args = $args[0];
-	}
-
-	$r = $this->db->query($query, $args);
-	
-	# Force CodeIgniter to load rows info objects.
-	$r->result_object();
-	$result = array();
-	
-	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
-	{			
-		$result[] = $this->instantiate($r->result_object[$i], array(
-			'new_record' => FALSE
-		));
-	}
-
-	# Return array of jot objects
-	return $result;
-}
-
 # Returns a range of rows using conditions
 public function find($conditions = array(), $offset = 0, $limit = null)
 {
@@ -1433,9 +1406,14 @@ public function save_attached_files()
 			$this->write_attribute("{$name}_updated_at", time());
 			
 			# Move file to attachment path
-			move_uploaded_file($file['tmp'], $attachment->path);
+			$this->write_file($file, $attachment);
 		}
 	}
+}
+
+protected function write_file($file, $attachment)
+{
+	move_uploaded_file($file['tmp'], $attachment->path);
 }
 
 # Return attachment

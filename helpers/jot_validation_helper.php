@@ -129,8 +129,8 @@ if ( ! function_exists('jot_validate_attachment_required'))
 	{		
 		$file = $object->_files($attribute);
 		$error = value_for_key('error', $file);				
-						
-		if ( !isset($file) || $error > 0 )
+
+		if ( empty($file) || $error > 0 )
 		{	
 			switch($error)
 			{
