@@ -16,17 +16,98 @@ Objects have the option to be persisted to a database. The methods **update** an
 All objects can be manipulated using attributes and persisted using the function **save**. 
 
 ### Finders
-##### first($conditions, $order)
-##### last($conditions, $order)
-##### all($conditions, $order)
-##### find($conditions, $order, $offset, $limit)
+
+#### Methods
+
+##### find($conditions, $offset, $limit)
+Queries database using conditions. You can optionally set a range of rows you would like to return using offset and limit. Find returns an array of Jot objects.
+
+	// Returns 10 blog objects with an offset of 2 where updated in last 2 weeks.
+	$blog = $this->blog_model->find(array(
+		'updated_at >' => strtotime('-2 weeks')
+	), 2, 10);
+
+##### first($conditions)
+Returns first row found using conditions.
+
+	$blog = $this->blog_model->first();
+
+##### last($conditions)
+Identical to first() with the exception that it returns the last row found.
+
+	$blog = $this->blog_model->last();
+
+##### all($conditions)
+Finds all rows using conditions. Returns array of Jot objects.
+
+	$blogs = $this->blog_model->all();
 
 ### Calculations
 ##### count($conditions)
-##### average($conditions)
-##### sum($conditions)
-##### minimum
-##### maximum
+Returns count of rows using conditions.
+
+	$count = $this->blog_model->count();
+
+##### average($attribute, $conditions)
+Returns calculated average of all rows using conditions for attribute.
+
+	$average = $this->blog_model->average('views');
+
+##### sum($attribute, $conditions)
+Returns calculated sum of all rows using conditions for attribute.
+
+	$average = $this->blog_model->sum('views');
+
+##### minimum($attribute, $conditions)
+Returns calculated minimum of all rows using conditions for attribute.
+
+	$minimum = $this->blog_model->minimum('rating');
+
+##### maximum($attribute, $conditions)
+Returns calculated maximum of all rows using conditions for attribute.
+
+	$maximum = $this->blog_model->maximum('views');
+
+#### Additional Condition Syntaxes
+
+#### Primary Key
+A condition that is only numeric is treated as the primary key.
+
+	// Returns array with single jot object that has id 1.
+	$blogs = $this->blog_model->find(1);
+	
+A condition that is an indexed array is treated as WHERE In primary key.
+
+	// Returns array with 3 jot objects.
+	$blogs = $this->blog_model->find(array(1, 3, 4));
+
+#### Where IN
+A condition typically uses a string or numeric datatype for the value. To produce WHERE IN an array can be used.
+
+	$blogs = $this->blog_model->find('type' =>array('draft', 'pending'));
+
+##### Conditions can set other properties of a SQL query.
+
+	// Returns 10 blog objects with an offset of 2 where updated in last 2 weeks.
+	$blog = $this->blog_model->find(array(
+		'conditions' => array(
+			'updated_at >' => strtotime('-2 weeks')
+		),
+		'limit' => 10,
+		'offset' =>1
+	));
+	
+	// Returns 10 blog objects on page 1 where updated in last 2 weeks with order of updated_at descending.
+	$blog = $this->blog_model->find(array(
+		'conditions' => array(
+			'updated_at' => strtotime('-2 weeks')
+ 		),
+		'limit' => 10,
+		'page' => 1,
+		'order' => 'updated_at DESC'
+	));
+	
+
 
 ### Hooks
 ##### before_create
