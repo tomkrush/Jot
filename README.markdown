@@ -190,7 +190,7 @@ If a validation method is unique to a certain model than the method can be decla
 	}
 	
 ### File Attachments
-File attachments allow Jot objects to abstract files and treat them as attributes. File attachments are **not being tested** right now. This may lead to unexpected bugs.
+File attachments allow Jot objects to abstract files and treat them as attributes.
 
 #### Getting Started
 
