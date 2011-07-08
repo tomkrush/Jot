@@ -1433,9 +1433,14 @@ public function save_attached_files()
 			$this->write_attribute("{$name}_updated_at", time());
 			
 			# Move file to attachment path
-			move_uploaded_file($file['tmp'], $attachment->path);
+			$this->write_file($file, $attachment);
 		}
 	}
+}
+
+protected function write_file($file, $attachment)
+{
+	move_uploaded_file($file['tmp'], $attachment->path);
 }
 
 # Return attachment
