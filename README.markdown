@@ -84,7 +84,7 @@ A condition that is an indexed array is treated as WHERE In primary key.
 #### Where IN
 A condition typically uses a string or numeric datatype for the value. To produce WHERE IN an array can be used.
 
-	$blogs = $this->blog_model->find('type' =>array('draft', 'pending'));
+	$blogs = $this->blog_model->find(array('type' =>array('draft', 'pending')));
 
 ##### Conditions can set other properties of a SQL query.
 
