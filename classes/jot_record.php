@@ -149,9 +149,9 @@ protected function save_associations()
 }
 
 # Writes attribute value to object
-public function write_attribute($key, $value)
+public function write_attribute($attribute, $value)
 {	
-	$nested_attributes = str_replace('_attributes', '', $key);
+	$nested_attributes = str_replace('_attributes', '', $attribute);
 
 	if ( $this->has_association($nested_attributes) )
 	{
@@ -159,7 +159,7 @@ public function write_attribute($key, $value)
 	}
 	else
 	{
-		$this->attributes[$key] = $value;		
+		$this->attributes[$attribute] = $value;		
 	}
 }
 
@@ -202,9 +202,9 @@ public function has_attribute($attribute)
 }
 
 # Writes the attributes to object and saves to the memory
-public function update_attribute($key, $value)
+public function update_attribute($attribute, $value)
 {
-	$this->write_attribute($key, $value);
+	$this->write_attribute($attribute, $value);
 	$this->save();
 }
 

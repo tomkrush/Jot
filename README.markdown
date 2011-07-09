@@ -3,12 +3,53 @@
 What is Jot? Jot is a CodeIgniter Active Record solution developed specifically for people who want to make kick-ass web applications. Jot is influenced after Active Record from Ruby on Rails and Core Data from Cocoa. Why is Jot different from other ORM's in PHP. Jot is designed **for** the PHP syntax. It doesn't use clever magic to create an illusion that PHP is non-existant. PHP is a beautiful language and Jot proves it.
 
 ### Attributes
-#### Types
-The core is built around an attributes API. There are two types of attributes.
-- Persisted attributes are stored in a database.
-- Transient attributes are temporarily stored in memory. These attributes are not stored to the database.
-#### Functions
-Custom methods and be used to set and get attributes from memory.
+Jot is built around attributes. Attributes are an abstraction of table fields in a database. Two types of attributes are defined in Jot. **Persisted attributes** are saved to the database. In current iterations of Jot persisted attributes are not defined. The second type of attributes are transient. Transient attributes exist only the memory of a Jot object.
+
+#### Reading Attributes
+
+##### read_attribute($attribute)
+Returns attribute if it exists in Jot object. This will not return attributes if they are not in Jot object.
+
+	$name = $this->blog_model->read_attribute('name');
+
+#### Writing Attributes (Does not persist automatically)
+
+##### write_attribute($attribute, $value)
+Writes attribute to Jot object.
+
+	$this->blog_model->write_attribute('name', 'Blog');
+
+##### assign_attributes($attributes)
+Writes attributes to Jot object. Attributes must be an associative array.
+	
+	$this->blog_model->assign_attributes(array(
+		'name' => 'Blog',
+		'description' => 'lorem ipsum'
+	));
+
+#### Writing Attributes (Does persist automatically)
+
+##### update_attribute($attribute, $value)
+Writes attribute to Jot object and persists it. This will only persist if the attribute isn't transient. This will update all attributes changed, not just the one specified by function.
+
+	$this->blog_model->update_attribute('name', 'Blog');
+
+##### update_attribute($attributes)
+Writes attributes to Jot object. Attributes must be an associative array. This will only persist if the attribute isn't transient. This will update all attributes changed, not just the one specified by function.
+	
+	$this->blog_model->update_attributes(array(
+		'name' => 'Blog',
+		'description' => 'lorem ipsum'
+	));
+
+#### Transient Attributes
+Transient attributes are defined in **init** method on Jot object.
+
+##### add_transient($attribute)
+Sets a single transient attribute.
+
+##### transient($attributes)
+Sets an array of transient attributes.
 
 ### Persistance
 Objects have the option to be persisted to a database. The methods **update** and **create** persist the object. The method destroy removes persistance.
@@ -81,7 +122,7 @@ A condition that is an indexed array is treated as WHERE In primary key.
 	// Returns array with 3 jot objects.
 	$blogs = $this->blog_model->find(array(1, 3, 4));
 
-#### Where IN
+#### WHERE IN
 A condition typically uses a string or numeric datatype for the value. To produce WHERE IN an array can be used.
 
 	$blogs = $this->blog_model->find('type' =>array('draft', 'pending'));
@@ -110,14 +151,53 @@ A condition typically uses a string or numeric datatype for the value. To produc
 
 
 ### Hooks
+Hooks enable models that extends Jot to provide custom functionality such as revisions, notifications, and calculations.
+
+#### Hook Syntax
+The preferred place to attach hooks is the **init** method. The only argument is the method that is called when the hook runs.
+
+	$this->before_create('name_of_function');
+
+#### Hook Example
+
+	class Blog_Model extends MY_Model
+	{
+		public function init()
+		{
+			$this->before_save('post_notification');
+		}
+		
+		protected function post_notification()
+		{
+			$this->notification_model->create('Blog saved!');
+		}
+	}
+
+#### Available Hooks
+
 ##### before_create
+Called before Jot persists object to database for first time.
+
 ##### after_create
+Called after Jot persists object to database for first time.
+
 ##### before_update
+Called before Jot persists object changes to database.
+
 ##### after_update
+Called after Jot persists object changes to database.
+
 ##### before_save
+Called before Jot persists object to database.
+
 ##### after_create
+Called after Jot persists object to database.
+
 ##### before_validation
+Called before Jot validates object.
+
 ##### after_validation
+Called after Jot validates object.
 
 ### Validation
 To ensure valid data is persisted to the database a validation can be created. Most validation cases can be handled using the included methods, but using a simple hook system new validations can be created.
