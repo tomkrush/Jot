@@ -1300,13 +1300,6 @@ protected $table_name = NULL;
 protected $singular_table_name = NULL;
 protected $plural_table_name = NULL;
 
-# Deprecated
-protected function tablename($table_name = NULL)
-{
-	log_message('debug', '[Deprecated Method tablename in Jot] Please use table_name instead.');
-	return $this->table_name($table_name);
-}
-
 # Set and get tablename
 protected function table_name($table_name = NULL)
 {	
