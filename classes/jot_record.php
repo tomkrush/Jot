@@ -1216,7 +1216,7 @@ protected function _find($conditions = array())
 	{
 		# If value is indexed. It will be used for where_in
 		# array('id'=>array(1,2,3))
-		if ( is_array($value) && is_assoc($value) )
+		if ( is_array($value) && ! is_assoc($value) )
 		{
 			$this->db->where_in($key, $value);
 		}
