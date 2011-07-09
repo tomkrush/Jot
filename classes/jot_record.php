@@ -1235,7 +1235,7 @@ protected function _find($conditions = array())
 # Validates conditions variable.
 protected function _conditions($conditions = array())
 {
-	$conditions = is_array($conditions) ? $conditions : array();
+	$conditions = is_array($conditions) ? $conditions : array($conditions);
 	
 	# Set Base Filter
 	if ($this->base_filter !== null)
@@ -1253,6 +1253,7 @@ protected function _conditions($conditions = array())
 	if ( is_numeric($conditions) || ! is_assoc($conditions) )
 	{
 		$conditions = array($this->primary_key => $conditions);
+		
 	}
 	
 	# Make sure conditions is an array
