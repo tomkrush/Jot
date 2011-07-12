@@ -1622,6 +1622,18 @@ public function __call($name, $arguments)
 			}
 		}			
 	}
+	elseif ( substr($name, 0, 8) == 'find_by_' )
+	{
+		$field = substr($name, 8);
+		
+		$conditions = array_merge(isset($arguments[1]) ? $arguments[1] : array(), array($field => $arguments[0]));
+		$offset = isset($arguments[2]) ? $arguments[2] : 0;
+		$limit  = isset($arguments[3]) ? $arguments[3] : null;
+		
+		print_r($conditions);
+		
+		return $this->find($conditions, $offset, $limit);
+	}
 }
 
 # Returns row attributes and properties from CodeIgniter.
