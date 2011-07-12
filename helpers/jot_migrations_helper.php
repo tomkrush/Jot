@@ -299,6 +299,7 @@ function create_table($table_name, $columns = array(), $options = array(), $if_n
 	
 	$fields = array();	
 	$primary_key = value_for_key('primary_key', $options, 'id');	
+	$auto_increment = value_for_key('auto_increment', $options, TRUE);	
 		
 	// Primary Key
 	if ( isset($primary_key) && $primary_key != FALSE )
@@ -307,7 +308,7 @@ function create_table($table_name, $columns = array(), $options = array(), $if_n
 			'name' => $primary_key,
 			'type' => 'integer',
 			'not_null' => TRUE,
-			'auto_increment' => TRUE
+			'auto_increment' => $auto_increment
 		));
 		
 		$CI->dbforge->add_key($primary_key, TRUE);	
