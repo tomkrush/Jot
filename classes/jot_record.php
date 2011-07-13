@@ -1703,6 +1703,32 @@ public function __call($name, $arguments)
 			}
 		}			
 	}
+	elseif ( substr($name, 0, 8) == 'find_by_' )
+	{
+		$field = substr($name, 8);
+		
+		$conditions = array_merge(isset($arguments[1]) ? $arguments[1] : array(), array($field => $arguments[0]));
+		$offset = isset($arguments[2]) ? $arguments[2] : 0;
+		$limit  = isset($arguments[3]) ? $arguments[3] : null;
+		
+		return $this->find($conditions, $offset, $limit);
+	}
+	elseif ( substr($name, 0, 9) == 'first_by_' )
+	{
+		$field = substr($name, 9);
+		
+		$conditions = array_merge(isset($arguments[1]) ? $arguments[1] : array(), array($field => $arguments[0]));
+		
+		return $this->first($conditions);
+	}
+	elseif ( substr($name, 0, 8) == 'last_by_' )
+	{
+		$field = substr($name, 8);
+		
+		$conditions = array_merge(isset($arguments[1]) ? $arguments[1] : array(), array($field => $arguments[0]));
+		
+		return $this->last($conditions);
+	}
 }
 
 # Returns row attributes and properties from CodeIgniter.
