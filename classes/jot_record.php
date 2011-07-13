@@ -1490,9 +1490,7 @@ protected function write_file($file, $attachment)
 				
 				$image->save($attachment->file_path($name));
 			}
-		}
-		exit;
-		
+		}		
 	}
 }
 
