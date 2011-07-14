@@ -1398,25 +1398,32 @@ public function save_attached_files()
 		# If file exists lets attach it.
 		if ( $file = $this->_files($name) )
 		{
+			
 			# Write attributes
 			$this->write_attribute("{$name}_file_name", $file['name']);
 			$this->write_attribute("{$name}_content_type", $file['type']);
 			$this->write_attribute("{$name}_file_size", $file['size']);
 			$this->write_attribute("{$name}_updated_at", time());
-			
+
 			# Move file to attachment path
 			$this->write_file($file, $attachment);
+			$this->generate_attachment_styles($attachment);
 		}
 	}
 }
 
-protected function write_file($file, $attachment)
+public function regenerate_attachment_styles()
 {
-	move_uploaded_file($file['tmp'], $attachment->file_path);
-	
+	foreach($this->attachments as $name => $attachment)
+	{
+		$this->generate_attachment_styles($attachment);
+	}
+}
+
+public function generate_attachment_styles($attachment)
+{
 	// Generate Styled Files
 	$options = $attachment->options;
-	$type = value_for_key('type', $file);
 	$valid_types = array(
 		'image/jpeg',
 		'image/png'
@@ -1426,72 +1433,74 @@ protected function write_file($file, $attachment)
 
 	if ( $styles = value_for_key('styles', $options) )
 	{
-		if ( in_array($type, $valid_types) )
+		foreach($styles as $name => $dimensions)
 		{
-			foreach($styles as $name => $dimensions)
+			$dir = $attachment->folder_path($name);
+
+			if ( ! is_dir($dir) )
 			{
-				$dir = $attachment->folder_path($name);
-
-				if ( ! is_dir($dir) )
-				{
-					mkdir($dir);
-				}
-												
-				preg_match("/(?'width'[0-9]*)x(?'height'[0-9]*)(?'action'[#>]*)/", $dimensions, $matches);
-				
-				$width = value_for_key('width', $matches);
-				$height = value_for_key('height', $matches);
-				$action = value_for_key('action', $matches);
-								
-				$file_name = $this->read_attribute("{$attachment->name}_file_name");
-				$image = new JotImage;
-				$image->load($attachment->file_path);
-					
-				$actual_width = $image->getWidth();
-				$actual_height = $image->getHeight();
-				
-				switch($action)
-				{					
-					// case '#';
-					// 	if ( $actual_width > $width && $actual_height > $height )
-					// 	{
-					// 		$image->resizeToHeight($height);					
-					// 	}					
-					// 	else
-					// 	{
-					// 		$image->resizeToWidth($width);
-					// 	}
-					// 
-					// 	$image->crop(($actual_width/ 2) - ($width / 2), ($actual_height / 2) - ($height / 2), $width, $height);
-					// break;
-					
-					case '>':
-						if ( $actual_width > $width && $actual_height > $height )
-						{
-							$image->resize($width, $height, TRUE);					
-						}
-					break;
-
-					case '<':
-						if ( $actual_width < $width || $actual_height < $height )
-						{
-							$image->resize($width, $height, TRUE);					
-						}
-					break;
-					
-					case '!':
-						$image->resize($width, $height, FALSE);					
-					break;
-					
-					default:
-						$image->resize($width, $height, TRUE);					
-					break;
-				}				
-				
-				$image->save($attachment->file_path($name));
+				mkdir($dir);
 			}
-		}		
+										
+			preg_match("/(?'width'[0-9]*)x(?'height'[0-9]*)(?'action'[#>]*)/", $dimensions, $matches);
+		
+			$width = value_for_key('width', $matches);
+			$height = value_for_key('height', $matches);
+			$action = value_for_key('action', $matches);
+						
+			$file_name = $this->read_attribute("{$attachment->name}_file_name");
+			$image = new JotImage;
+			$image->load($attachment->file_path);
+			
+			$actual_width = $image->getWidth();
+			$actual_height = $image->getHeight();
+
+			switch($action)
+			{					
+				// case '#';
+				// 	if ( $actual_width > $width && $actual_height > $height )
+				// 	{
+				// 		$image->resizeToHeight($height);					
+				// 	}					
+				// 	else
+				// 	{
+				// 		$image->resizeToWidth($width);
+				// 	}
+				// 
+				// 	$image->crop(($actual_width/ 2) - ($width / 2), ($actual_height / 2) - ($height / 2), $width, $height);
+				// break;
+			
+				case '>':
+					if ( $actual_width > $width && $actual_height > $height )
+					{
+						$image->resize($width, $height, TRUE);					
+					}
+				break;
+
+				case '<':
+					if ( $actual_width < $width || $actual_height < $height )
+					{
+						$image->resize($width, $height, TRUE);					
+					}
+				break;
+			
+				case '!':
+					$image->resize($width, $height, FALSE);					
+				break;
+			
+				default:
+					$image->resize($width, $height, TRUE);					
+				break;
+			}				
+		
+			$image->save($attachment->file_path($name));
+		}
 	}
+}
+
+protected function write_file($file, $attachment)
+{
+	move_uploaded_file($file['tmp'], $attachment->file_path);
 }
 
 # Return attachment
