@@ -1386,6 +1386,7 @@ protected $attachments = array();
 public function has_attached_file($name, $options = array())
 {
 	$this->attachments[$name] = new JotAttachment($name, $this, $options);
+	$this->transient($name);
 	
 	$this->before_save('save_attached_files');
 }
@@ -1500,7 +1501,14 @@ public function generate_attachment_styles($attachment)
 
 protected function write_file($file, $attachment)
 {
-	move_uploaded_file($file['tmp'], $attachment->file_path);
+	if ( value_for_key('downloaded', $file) )
+	{
+		rename($file['tmp'], $attachment->file_path);
+	}
+	else
+	{
+		move_uploaded_file($file['tmp'], $attachment->file_path);	
+	}
 }
 
 # Return attachment
@@ -1515,9 +1523,64 @@ protected function is_attachment($name)
 	return array_key_exists($name, $this->attachments);
 }
 
+protected function _url($name, $url)
+{
+	$attachment = $this->read_attachment($name);
+	$folder_path = $attachment->folder_path('_temp');
+	
+	if ( ! is_dir($folder_path) )
+	{
+		echo mkdir($folder_path);
+	}
+		
+	$info = pathinfo($url);
+	
+	$file   = array_shift(explode('?', basename($url)));
+	$ext 	=  $info['extension'];
+	
+	$file_name =  basename($file,'.'.$ext);
+	
+	$response = file_get_contents($url);
+	
+	$path = $folder_path.$file;
+	
+	file_put_contents($path, $response);
+	
+	$content_type = NULL;
+	$content_size = NULL;
+	
+	foreach($http_response_header as $header)
+	{
+		if ( preg_match('/Content-Type: (.*)/', $header, $match) )
+		{
+			$content_type = $match[1];
+		}
+		else if ( preg_match('/Content-Length: (.*)/', $header, $match) )
+		{
+			$content_size = $match[1];
+		}
+	}	
+	echo $path."<br/>";
+	return array(
+		'name' => $file,
+		'type' => $content_type,
+		'tmp' => $path,
+		'error' => 0,
+		'size' => $content_size,
+		'downloaded' => TRUE
+	);
+}
+
 # Return files
 public function _files($attachment_name)
 {
+	$attachment_value = $this->read_attribute($attachment_name);
+	
+	if ( is_url_valid($attachment_value) )
+	{
+		$this->files_cache[$attachment_name] = $this->_url($attachment_name, $attachment_value);
+	}
+		
 	# Does file cache exist
 	if ( ! $this->files_cache )
 	{
@@ -1562,6 +1625,7 @@ public function __construct($attributes = array(), $options = array())
 	$this->load->library('inflector');
 	$this->load->helper('jot_validation');
 	$this->load->helper('jot_array_helper');
+	$this->load->helper('jot_url_helper');
 	
 	# If attributes exist assign them.
 	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )

@@ -16,6 +16,25 @@ if ( ! function_exists('jot_validate_required'))
 	}
 }
 
+if ( ! function_exists('jot_validate_valid_url') )
+{
+	function jot_validate_valid_url($object, $attribute, $options)
+	{
+		if ( $object->has_attribute($attribute) )
+		{
+			$value = $object->read_attribute($attribute);
+			
+			if ( ! is_url_valid($value) )
+			{
+				$object->add_error(array($attribute, ucfirst($attribute).' is not a valid url.'));
+				return FALSE;
+			}
+			
+			return TRUE;
+		}
+	}
+}
+
 if ( ! function_exists('jot_validate_uniqueness'))
 {
 	function jot_validate_uniqueness($object, $attribute, $options) 
