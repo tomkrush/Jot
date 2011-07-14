@@ -1560,7 +1560,7 @@ protected function _url($name, $url)
 			$content_size = $match[1];
 		}
 	}	
-	echo $path."<br/>";
+
 	return array(
 		'name' => $file,
 		'type' => $content_type,
@@ -1574,13 +1574,6 @@ protected function _url($name, $url)
 # Return files
 public function _files($attachment_name)
 {
-	$attachment_value = $this->read_attribute($attachment_name);
-	
-	if ( is_url_valid($attachment_value) )
-	{
-		$this->files_cache[$attachment_name] = $this->_url($attachment_name, $attachment_value);
-	}
-		
 	# Does file cache exist
 	if ( ! $this->files_cache )
 	{
@@ -1588,8 +1581,16 @@ public function _files($attachment_name)
 		
 		# Lets check each attachment to see if an associated file exists.
 		foreach($this->attachments as $name => $attachment) {
-			foreach($_FILES as $file)
+			$attachment_value = $this->read_attribute($attachment_name);			
+		
+			if ( is_url_valid($attachment_value) )
 			{
+				$this->files_cache[$attachment_name] = $this->_url($attachment_name, $attachment_value);
+			}
+			else
+			{		
+				$file = value_for_key($this->singular_table_name(), $_FILES);	
+					
 				# Create file cache instance;
 				$this->files_cache[$name] = array(
 					'name'  => value_for_key("name.{$name}", $file),
