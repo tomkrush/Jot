@@ -1468,138 +1468,28 @@ public function generate_attachment_styles($attachment)
 				{		
 					// Resize, if necessary crop			
 					case '#';
-						$new_ratio = $width / $height;
-						$old_ratio = $actual_width / $actual_height;
-					
-						if ( $new_ratio != $old_ratio )
-						{
-							if ( $height > $width )
-							{
-								$image->resizeToWidth($width);
-							}
-							else
-							{
-								$image->resizeToHeight($height);
-							}
-
-							$actual_width = $image->getWidth();
-							$actual_height = $image->getHeight();
-
-							$image->crop(-($actual_width / 2) + ($width / 2), -($actual_height / 2) + ($height / 2), $width, $height);
-						}
-						else
-						{
-							$image->resize($width, $height);
-						}
+						$image->resize_and_clip($width, $height);
 					break;
 
 					// Resize, if necessary crop to lower right
 					case '#nw':
-						$new_ratio = $width / $height;
-						$old_ratio = $actual_width / $actual_height;
-				
-						if ( $new_ratio != $old_ratio )
-						{
-							if ( $height > $width )
-							{
-								$image->resizeToWidth($width);
-							}
-							else
-							{
-								$image->resizeToHeight($height);
-							}
-
-							$actual_width = $image->getWidth();
-							$actual_height = $image->getHeight();
-
-							$image->crop(0, 0, $width, $height);
-						}
-						else
-						{
-							$image->resize($width, $height);
-						}					
+						$image->resize_and_clip($width, $height, 'nw');		
 					break;
 
 					// Resize, if necessary crop to upper right
 					case '#ne':
-						$new_ratio = $width / $height;
-						$old_ratio = $actual_width / $actual_height;
-			
-						if ( $new_ratio != $old_ratio )
-						{
-							if ( $height > $width )
-							{
-								$image->resizeToWidth($width);
-							}
-							else
-							{
-								$image->resizeToHeight($height);
-							}
-
-							$actual_width = $image->getWidth();
-							$actual_height = $image->getHeight();
-
-							$image->crop(-($actual_width - $width), 0, $width, $height);
-						}
-						else
-						{
-							$image->resize($width, $height);
-						}					
+						$image->resize_and_clip($width, $height, 'ne');		
 					break;
 					
 					// Resize, if necessary crop to Upper Left
 					case '#sw':
-						$new_ratio = $width / $height;
-						$old_ratio = $actual_width / $actual_height;
-		
-						if ( $new_ratio != $old_ratio )
-						{
-							if ( $height > $width )
-							{
-								$image->resizeToWidth($width);
-							}
-							else
-							{
-								$image->resizeToHeight($height);
-							}
-
-							$actual_width = $image->getWidth();
-							$actual_height = $image->getHeight();
-
-							$image->crop(0, -($actual_height - $height), $width, $height);
-						}
-						else
-						{
-							$image->resize($width, $height);
-						}					
+						$image->resize_and_clip($width, $height, 'sw');							
 					break;
 					
 					
 					// Resize, if necessary crop to lower right
 					case '#se':
-						$new_ratio = $width / $height;
-						$old_ratio = $actual_width / $actual_height;
-	
-						if ( $new_ratio != $old_ratio )
-						{
-							if ( $height > $width )
-							{
-								$image->resizeToWidth($width);
-							}
-							else
-							{
-								$image->resizeToHeight($height);
-							}
-
-							$actual_width = $image->getWidth();
-							$actual_height = $image->getHeight();
-
-							$image->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
-						}
-						else
-						{
-							$image->resize($width, $height);
-						}					
+						$image->resize_and_clip($width, $height, 'se');							
 					break;
 
 					// Crop to Upper Left

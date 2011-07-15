@@ -108,6 +108,66 @@ class JotImage
 		$height = $this->getheight() * $scale/100;
 		$this->resize($width,$height, FALSE);
 	}
+	
+	function resize_and_clip($width, $height, $corner = NULL)
+	{
+		$actual_width = $this->getWidth();
+		$actual_height = $this->getHeight();		
+		
+		$new_ratio = $width / $height;
+		$old_ratio = $actual_width / $actual_height;
+
+		if ( $new_ratio != $old_ratio )
+		{
+			if ( $new_ratio > $old_ratio )
+			{
+				$this->resizeToWidth($width);
+			}
+			else
+			{
+				$this->resizeToHeight($height);
+			}
+			
+			// if ( $height > $width && $actual_width > $actual_height)
+			// {
+			// 	$this->resizeToWidth($width);
+			// }
+			// else
+			// {
+			// 	$this->resizeToHeight($height);
+			// }
+
+			$actual_width = $this->getWidth();
+			$actual_height = $this->getHeight();
+
+			switch($corner)
+			{	
+				case 'nw':
+					$this->crop(0, 0, $width, $height);
+				break;
+				
+				case 'ne':
+					$this->crop(-($actual_width - $width), 0, $width, $height);
+				break;
+				
+				case 'sw':
+					$this->crop(0, -($actual_height - $height), $width, $height);
+				break;
+				
+				case 'se':
+					$this->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
+				break;
+				
+				default:
+					$this->crop(-($actual_width / 2) + ($width / 2), -($actual_height / 2) + ($height / 2), $width, $height);
+				break;
+			}
+		}
+		else
+		{
+			$this->resize($width, $height);
+		}		
+	}
 
 	function crop($x, $y, $width, $height)
 	{
