@@ -1450,7 +1450,7 @@ public function generate_attachment_styles($attachment)
 			$action = value_for_key('action', $matches);
 			$x = value_for_key('x', $matches);
 			$y = value_for_key('y', $matches);
-						
+												
 			$file_name = $this->read_attribute("{$attachment->name}_file_name");
 			$image = new JotImage;
 			$image->load($attachment->file_path);
@@ -1458,25 +1458,168 @@ public function generate_attachment_styles($attachment)
 			$actual_width = $image->getWidth();
 			$actual_height = $image->getHeight();
 
-			if ( $x && $y)
+			if ( is_numeric($x) && is_numeric($y))
 			{
-				$image->crop($x, $y, $width, $height);
+				$image->crop(-$x, -$y, $width, $height);
 			}
 			else
 			{
-				switch($action)
-				{					
+				switch(strtolower($action))
+				{		
+					// Resize, if necessary crop			
 					case '#';
-						if ( $actual_width > $width && $actual_height > $height )
+						$new_ratio = $width / $height;
+						$old_ratio = $actual_width / $actual_height;
+					
+						if ( $new_ratio != $old_ratio )
 						{
-							$image->resizeToHeight($height);					
-						}					
+							if ( $height > $width )
+							{
+								$image->resizeToWidth($width);
+							}
+							else
+							{
+								$image->resizeToHeight($height);
+							}
+
+							$actual_width = $image->getWidth();
+							$actual_height = $image->getHeight();
+
+							$image->crop(-($actual_width / 2) + ($width / 2), -($actual_height / 2) + ($height / 2), $width, $height);
+						}
 						else
 						{
-							$image->resizeToWidth($width);
+							$image->resize($width, $height);
 						}
+					break;
+
+					// Resize, if necessary crop to lower right
+					case '#nw':
+						$new_ratio = $width / $height;
+						$old_ratio = $actual_width / $actual_height;
 				
-						$image->crop(($actual_width/ 2) - ($width / 2), ($actual_height / 2) - ($height / 2), $width, $height);
+						if ( $new_ratio != $old_ratio )
+						{
+							if ( $height > $width )
+							{
+								$image->resizeToWidth($width);
+							}
+							else
+							{
+								$image->resizeToHeight($height);
+							}
+
+							$actual_width = $image->getWidth();
+							$actual_height = $image->getHeight();
+
+							$image->crop(0, 0, $width, $height);
+						}
+						else
+						{
+							$image->resize($width, $height);
+						}					
+					break;
+
+					// Resize, if necessary crop to upper right
+					case '#ne':
+						$new_ratio = $width / $height;
+						$old_ratio = $actual_width / $actual_height;
+			
+						if ( $new_ratio != $old_ratio )
+						{
+							if ( $height > $width )
+							{
+								$image->resizeToWidth($width);
+							}
+							else
+							{
+								$image->resizeToHeight($height);
+							}
+
+							$actual_width = $image->getWidth();
+							$actual_height = $image->getHeight();
+
+							$image->crop(-($actual_width - $width), 0, $width, $height);
+						}
+						else
+						{
+							$image->resize($width, $height);
+						}					
+					break;
+					
+					// Resize, if necessary crop to Upper Left
+					case '#sw':
+						$new_ratio = $width / $height;
+						$old_ratio = $actual_width / $actual_height;
+		
+						if ( $new_ratio != $old_ratio )
+						{
+							if ( $height > $width )
+							{
+								$image->resizeToWidth($width);
+							}
+							else
+							{
+								$image->resizeToHeight($height);
+							}
+
+							$actual_width = $image->getWidth();
+							$actual_height = $image->getHeight();
+
+							$image->crop(0, -($actual_height - $height), $width, $height);
+						}
+						else
+						{
+							$image->resize($width, $height);
+						}					
+					break;
+					
+					
+					// Resize, if necessary crop to lower right
+					case '#se':
+						$new_ratio = $width / $height;
+						$old_ratio = $actual_width / $actual_height;
+	
+						if ( $new_ratio != $old_ratio )
+						{
+							if ( $height > $width )
+							{
+								$image->resizeToWidth($width);
+							}
+							else
+							{
+								$image->resizeToHeight($height);
+							}
+
+							$actual_width = $image->getWidth();
+							$actual_height = $image->getHeight();
+
+							$image->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
+						}
+						else
+						{
+							$image->resize($width, $height);
+						}					
+					break;
+
+					// Crop to Upper Left
+					case 'nw':
+						$image->crop(0, 0, $width, $height);
+					break;
+					
+					// Crop to Upper Right
+					case 'ne':
+						$image->crop(-($actual_width - $width), 0, $width, $height);
+					break;
+
+					// Crop to Lower Left
+					case 'sw':
+						$image->crop(0, -($actual_height - $height), $width, $height);
+					break;
+
+					// Crop to Upper Right
+					case 'se':
+						$image->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
 					break;
 			
 					case '>':
