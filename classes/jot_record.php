@@ -1530,19 +1530,20 @@ protected function _url($name, $url)
 	
 	if ( ! is_dir($folder_path) )
 	{
-		echo mkdir($folder_path);
+		mkdir($folder_path);
 	}
 		
 	$info = pathinfo($url);
 	
 	$file   = array_shift(explode('?', basename($url)));
 	$ext 	=  $info['extension'];
-	
-	$file_name =  basename($file,'.'.$ext);
-	
+		
 	$response = file_get_contents($url);
 	
 	$path = $folder_path.$file;
+
+	$this->load->helper('string');
+	$file = random_string('alpha', 10).'.'.$ext;
 	
 	file_put_contents($path, $response);
 	
@@ -1574,11 +1575,11 @@ protected function _url($name, $url)
 # Return files
 public function _files($attachment_name)
 {
+	if ( ! is_array($this->files_cache) ) $this->files_cache = array();
+	
 	# Does file cache exist
-	if ( ! $this->files_cache )
-	{
-		$this->files_cache = array();
-		
+	if ( ! value_for_key($attachment_name, $this->files_cache) )
+	{		
 		# Lets check each attachment to see if an associated file exists.
 		foreach($this->attachments as $name => $attachment) {
 			$attachment_value = $this->read_attribute($attachment_name);			
@@ -1590,10 +1591,16 @@ public function _files($attachment_name)
 			else
 			{		
 				$file = value_for_key($this->singular_table_name(), $_FILES);	
-					
+
+				$filename = value_for_key("name.{$name}", $file);
+				$info = pathinfo($filename);
+				$ext 	=  $info['extension'];
+
+				$this->load->helper('string');
+
 				# Create file cache instance;
 				$this->files_cache[$name] = array(
-					'name'  => value_for_key("name.{$name}", $file),
+					'name'  => random_string('alpha', 10).'.'.$ext,
 					'type'  => value_for_key("type.{$name}", $file),
 					'tmp'   => value_for_key("tmp_name.{$name}", $file),
 					'error' => value_for_key("error.{$name}", $file),
