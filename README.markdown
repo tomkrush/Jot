@@ -265,6 +265,16 @@ The validation method 'required' validates **true** only if the attribute is **N
 			$this->validates('name', 'required');
 		}
 	}
+	
+##### valid_url
+The validation method 'valid_url' validates **true** only if the attribute value is a url.
+
+	class Blog_Model extends My_Model {
+		public function init()
+		{
+			$this->validates('name', 'required');
+		}
+	}
 
 ##### uniqueness
 The validation method 'uniqueness' validates **true** only if the attribute value is uniquee in the specified scope. By default the scope includes all items in a table. A scope can be further specified by settings conditions or indicating that the scope should exclude the current object.
