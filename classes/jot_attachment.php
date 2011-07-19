@@ -40,6 +40,7 @@ class JotAttachment
 	public function url($style = NULL)
 	{
 		$url = rtrim(value_for_key('url', $this->options, 'assets/files'),'/').'/';
+		$default = value_for_key('default_url', $this->options);
 
 		if ( $style )
 		{
@@ -52,7 +53,7 @@ class JotAttachment
 		}
 		else
 		{
-			$url = str_replace('{filename}', 'missing.jpg', $url);
+			return $default;
 		}
 		
 		return site_url($url);
