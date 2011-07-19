@@ -1094,7 +1094,7 @@ public function exists($conditions = array())
 # Returns first row using conditions
 public function first($conditions = array())
 {						
-	$order = $this->primary_key().' ASC';
+	$this->order = $this->primary_key().' ASC';
 
 	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
@@ -1103,7 +1103,7 @@ public function first($conditions = array())
 # Returns last row using conditions
 public function last($conditions = array())
 {			
-	$order = $this->primary_key().' DESC';
+	$this->order = $this->primary_key().' DESC';
 
 	$result = $this->find($conditions, 0, 1);
 	return count($result) ? $result[0] : NULL;
