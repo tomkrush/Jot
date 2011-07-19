@@ -127,15 +127,6 @@ class JotImage
 			{
 				$this->resizeToHeight($height);
 			}
-			
-			// if ( $height > $width && $actual_width > $actual_height)
-			// {
-			// 	$this->resizeToWidth($width);
-			// }
-			// else
-			// {
-			// 	$this->resizeToHeight($height);
-			// }
 
 			$actual_width = $this->getWidth();
 			$actual_height = $this->getHeight();
