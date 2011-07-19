@@ -1580,7 +1580,15 @@ protected function _url($name, $url)
 	$file   = array_shift(explode('?', basename($url)));
 	$ext 	=  $info['extension'];
 		
-	$response = file_get_contents($url);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+	$info = curl_getinfo($ch);
+	$content_type = value_for_key('content_type', $info);
+	$content_size = value_for_key('request_size', $info);
+
+    curl_close($ch);
 	
 	$path = $folder_path.$file;
 
@@ -1588,21 +1596,6 @@ protected function _url($name, $url)
 	$file = random_string('alpha', 10).'.'.$ext;
 	
 	file_put_contents($path, $response);
-	
-	$content_type = NULL;
-	$content_size = NULL;
-	
-	foreach($http_response_header as $header)
-	{
-		if ( preg_match('/Content-Type: (.*)/', $header, $match) )
-		{
-			$content_type = $match[1];
-		}
-		else if ( preg_match('/Content-Length: (.*)/', $header, $match) )
-		{
-			$content_size = $match[1];
-		}
-	}	
 
 	return array(
 		'name' => $file,
