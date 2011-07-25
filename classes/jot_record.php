@@ -598,7 +598,7 @@ public function read_association($key)
 				
 				$this->load->model($modelName);
 				
-				$foreign_type = $this->$modelName->singular_table_name().'_id';
+				$foreign_type = $key.'_id';
 				$id = $this->read_attribute($foreign_type);
 			}
 		
@@ -1614,7 +1614,7 @@ public function _files($attachment_name)
 	
 	# Does file cache exist
 	if ( ! value_for_key($attachment_name, $this->files_cache) )
-	{		
+	{
 		# Lets check each attachment to see if an associated file exists.
 		foreach($this->attachments as $name => $attachment) {
 			$attachment_value = $this->read_attribute($attachment_name);			
@@ -1625,9 +1625,9 @@ public function _files($attachment_name)
 			}
 			else
 			{		
-				$file = value_for_key($this->singular_table_name(), $_FILES);	
-
+				$file = value_for_key($this->singular_table_name(), $_FILES);
 				$filename = value_for_key("name.{$name}", $file);
+				if (!$filename) return false;
 				$info = pathinfo($filename);
 				$ext 	=  $info['extension'];
 
