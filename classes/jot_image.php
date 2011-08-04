@@ -31,15 +31,17 @@ class JotImage
 		}
 	}
 
-	function save($filename, $image_type=IMAGETYPE_JPEG, $compression=75, $permissions=null) 
-	{
+	function save($filename, $image_type=NULL, $compression=75, $permissions=null) 
+	{	
+		$image_type = $image_type ? $image_type : $this->image_type;
+		
 		if( $image_type == IMAGETYPE_JPEG ) 
 		{
 			imagejpeg($this->image,$filename,$compression);
 		} 
 		elseif( $image_type == IMAGETYPE_GIF ) 
 		{
-			imagegif($this->image,$filename);
+			imagegif($image,$filename);
 		} 
 		elseif( $image_type == IMAGETYPE_PNG ) 
 		{
