@@ -1574,9 +1574,9 @@ protected function _url($name, $url)
 	{
 		mkdir($folder_path);
 	}
-		
-	$info = pathinfo($url);
 	
+	$info = pathinfo($url);
+		
 	$file   = array_shift(explode('?', basename($url)));
 	$ext 	=  $info['extension'];
 		
@@ -1589,6 +1589,28 @@ protected function _url($name, $url)
 	$content_size = value_for_key('request_size', $info);
 
     curl_close($ch);
+	
+	// Vzaar Thumbnail Support
+	if (preg_match("/vzaar.com/", $url) )
+	{
+		preg_match("/\<a href=\"(?<url>.*)\"\>redirected\<\/a\>/", $response, $match);
+		$url = value_for_key('url', $match);
+		
+		$info = pathinfo($url);
+
+		$file   = array_shift(explode('?', basename($url)));
+		$ext 	=  $info['extension'];
+
+	    $ch = curl_init($url);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+	    $response = curl_exec($ch);
+		$info = curl_getinfo($ch);
+		$content_type = value_for_key('content_type', $info);
+		$content_size = value_for_key('request_size', $info);
+
+	    curl_close($ch);	
+	}
 	
 	$path = $folder_path.$file;
 
