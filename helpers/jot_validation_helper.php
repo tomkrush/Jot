@@ -128,7 +128,7 @@ if ( ! function_exists('jot_validate_confirm'))
 			
 			if ( $value != $confirm )
 			{
-				$object->add_error(array($field, ucfirst($field)." doesn't match confirmation"));
+				$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
 				return FALSE;
 			}
 		}
