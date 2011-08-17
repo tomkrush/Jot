@@ -1545,7 +1545,10 @@ protected function write_file($file, $attachment)
 {
 	if ( value_for_key('downloaded', $file) )
 	{
-		rename($file['tmp'], $attachment->file_path);
+		if ( file_exists($file['tmp']) )
+		{
+			rename($file['tmp'], $attachment->file_path);
+		}
 	}
 	else
 	{
@@ -1578,7 +1581,7 @@ protected function _url($name, $url)
 	$info = pathinfo($url);
 		
 	$file   = array_shift(explode('?', basename($url)));
-	$ext 	=  $info['extension'];
+	$ext 	= value_for_key('extension', $info);
 		
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1599,7 +1602,7 @@ protected function _url($name, $url)
 		$info = pathinfo($url);
 
 		$file   = array_shift(explode('?', basename($url)));
-		$ext 	=  $info['extension'];
+		$ext 	= value_for_key('extension', $info);
 
 	    $ch = curl_init($url);
 	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1615,7 +1618,7 @@ protected function _url($name, $url)
 	$path = $folder_path.$file;
 
 	$this->load->helper('string');
-	$file = random_string('alpha', 10).'.'.$ext;
+	$file = random_string('alpha', 10).($ext ? '.'.$ext : NULL);
 	
 	file_put_contents($path, $response);
 
@@ -1651,7 +1654,7 @@ public function _files($attachment_name)
 				$filename = value_for_key("name.{$name}", $file);
 				if (!$filename) return false;
 				$info = pathinfo($filename);
-				$ext 	=  $info['extension'];
+				$ext 	= value_for_key('extension', $info);
 
 				$this->load->helper('string');
 
