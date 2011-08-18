@@ -117,7 +117,7 @@ if ( ! function_exists('jot_validate_confirm'))
 		
 		if ( ! $object->has_attribute($confirm_attribute) )
 		{
-			$object->add_error(array($attribute, "Confirm {$value} is required"));
+			$object->add_error(array($attribute, "Confirm {$attribute} is required"));
 			return FALSE;
 		}
 	
