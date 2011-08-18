@@ -327,10 +327,9 @@ protected $errors = array();
 public function errors()
 {
 	$errors = array();
-	
-	foreach($this->errors as $error)
+	foreach($this->errors as $key => $error)
 	{
-		$errors[] = $error[1];
+		$errors[$error[0]] = $error[1];
 	}
 	
 	return $errors;
