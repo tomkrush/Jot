@@ -1151,7 +1151,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		$conf 		= $conditions;
 		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
 		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
-	
+
 		// We have a limit. Lets store it!
 		if(isset($conf['limit'])) 
 		{
@@ -1168,7 +1168,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		if (isset($conf['page']))
 		{
 			$page	= $conf['page'];
-			$offset = ($limit - 1) * $page;
+			$offset = ($this->limit - 1) * $page;			
 		}
 	}
 
