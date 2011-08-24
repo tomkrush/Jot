@@ -197,9 +197,9 @@ if ( ! function_exists('jot_validate_attachment_content_type'))
 	function jot_validate_attachment_content_type($object, $attribute, $options) 
 	{		
 		$file = $object->_files($attribute);
-		$error = value_for_key('error', $file);				
+		$error = value_for_key('error', $file);	
 
-		if ( !isset($file) || $error == 0 )
+		if ( isset($file, $error) && $error === 0 )
 		{
 			$type = value_for_key('type', $file);
 			$options = is_array($options) ? $options : array($options);
