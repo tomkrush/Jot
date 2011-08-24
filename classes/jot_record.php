@@ -1385,7 +1385,7 @@ protected $attachments = array();
 public function has_attached_file($name, $options = array())
 {
 	$this->attachments[$name] = new JotAttachment($name, $this, $options);
-	$this->transient($name);
+	$this->add_transient($name);
 	
 	$this->before_save('save_attached_files');
 }
