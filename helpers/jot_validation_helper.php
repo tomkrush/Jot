@@ -114,23 +114,13 @@ if ( ! function_exists('jot_validate_confirm'))
 	{
 		$confirm_attribute = "confirm_{$attribute}";
 		$value = $object->read_attribute($attribute);
-
-		// if ( $object->has_attribute($attribute) && ! $object->has_attribute($confirm_attribute) )
-		// {
-		// 	$object->add_error(array($attribute, "Confirm {$attribute} is required"));
-		// 	return FALSE;
-		// }
-	
+		
 		$confirm = $object->read_attribute($confirm_attribute);
-	
-		if ( isset($value, $confirm) )
+		
+		if ( $value != $confirm )
 		{
-			
-			if ( $value != $confirm )
-			{
-				$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
-				return FALSE;
-			}
+			$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
+			return FALSE;
 		}
 		
 		if ( ! $object->has_transient($confirm_attribute) )
