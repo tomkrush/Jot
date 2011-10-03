@@ -1119,6 +1119,9 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 {
 	# Load Primary Key
 	$primary_key = $this->primary_key();
+	
+	# Array to store includes
+	$includes = array();
 
 	# Load object from identity map if possible.
 	if ( count($conditions) == 1 && $id = value_for_key($primary_key, $conditions))
@@ -1143,6 +1146,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 
 	# Check $conditions array to see if it is a one for all
 	if ( 	value_for_key('conditions', $conditions) || 
+			value_for_key('includes', $conditions) ||
 			value_for_key('order', $conditions) ||
 			value_for_key('offset', $conditions) ||
 			value_for_key('page', $conditions) ||
@@ -1163,7 +1167,13 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		{
 			$this->order = $conf['order'];
 		}
-		
+
+		# We have an order. Lets store it!
+		if(isset($conf['includes'])) 
+		{
+			$includes = $conf['includes'];
+		}
+				
 		# Page isset so lets do the math and fix things up.
 		if (isset($conf['page']))
 		{
@@ -1195,8 +1205,52 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
 	{			
 		$result[] = $this->instantiate($r->result_object[$i], array(
-			'new_record' => FALSE
+			'new_record' => FALSE,
 		));
+	}
+	
+	if ( count($includes) > 0 || strlen($includes) > 0 )
+	{	
+		$includes = is_string($includes) ? array($includes) : $includes;
+	
+		foreach($includes as $key => $value)
+		{
+			$association = is_array($value) ? $key : $value;
+			$association_includes = is_array($value) ? $value : array();
+
+			if ( $this->has_association($association) )
+			{
+				$modelName = ucwords($this->inflector->singularize($association)).'_Model';
+				$this->load->model($modelName);
+				$foreign_key = $this->singular_table_name().'_id';
+				
+				if ( $this->has_many_association($association) )
+				{
+					$ids = array();
+					$primary_key = $this->primary_key();
+					foreach($result as $object)
+					{
+						$ids[] = $object->read_attribute($primary_key);
+					}
+					
+					$this->$modelName->find(array(
+						'conditions'=>array(
+							$foreign_key => $ids
+						),
+						'limit' => FALSE,
+						'includes'=>$association_includes
+					));
+				}
+				else if ( $this->belongs_to_association($association) )
+				{
+				
+				}
+				else if ( $this->has_one_association($association) ) 
+				{
+					
+				}
+			}
+		}
 	}
 
 	# Return array of jot objects
@@ -1275,6 +1329,11 @@ protected function _limit()
 	if ( !isset($this->limit) )
 	{
 		$this->limit = 10;
+	}
+	
+	if ( $this->limit == -1 )
+	{
+		return FALSE;
 	}
 	
 	return $this->limit;
