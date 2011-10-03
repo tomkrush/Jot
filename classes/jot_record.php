@@ -327,10 +327,9 @@ protected $errors = array();
 public function errors()
 {
 	$errors = array();
-	
-	foreach($this->errors as $error)
+	foreach($this->errors as $key => $error)
 	{
-		$errors[] = $error[1];
+		$errors[$error[0]] = $error[1];
 	}
 	
 	return $errors;
@@ -1152,7 +1151,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		$conf 		= $conditions;
 		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
 		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
-	
+
 		// We have a limit. Lets store it!
 		if(isset($conf['limit'])) 
 		{
@@ -1169,7 +1168,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		if (isset($conf['page']))
 		{
 			$page	= $conf['page'];
-			$offset = ($limit - 1) * $page;
+			$offset = ($this->limit - 1) * $page;			
 		}
 	}
 
@@ -1386,7 +1385,7 @@ protected $attachments = array();
 public function has_attached_file($name, $options = array())
 {
 	$this->attachments[$name] = new JotAttachment($name, $this, $options);
-	$this->transient($name);
+	$this->add_transient($name);
 	
 	$this->before_save('save_attached_files');
 }
@@ -1545,7 +1544,10 @@ protected function write_file($file, $attachment)
 {
 	if ( value_for_key('downloaded', $file) )
 	{
-		rename($file['tmp'], $attachment->file_path);
+		if ( file_exists($file['tmp']) )
+		{
+			rename($file['tmp'], $attachment->file_path);
+		}
 	}
 	else
 	{
@@ -1574,11 +1576,11 @@ protected function _url($name, $url)
 	{
 		mkdir($folder_path);
 	}
-		
-	$info = pathinfo($url);
 	
+	$info = pathinfo($url);
+		
 	$file   = array_shift(explode('?', basename($url)));
-	$ext 	=  $info['extension'];
+	$ext 	= value_for_key('extension', $info);
 		
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1590,10 +1592,32 @@ protected function _url($name, $url)
 
     curl_close($ch);
 	
+	// Vzaar Thumbnail Support
+	if (preg_match("/vzaar.com/", $url) )
+	{
+		preg_match("/\<a href=\"(?<url>.*)\"\>redirected\<\/a\>/", $response, $match);
+		$url = value_for_key('url', $match);
+		
+		$info = pathinfo($url);
+
+		$file   = array_shift(explode('?', basename($url)));
+		$ext 	= value_for_key('extension', $info);
+
+	    $ch = curl_init($url);
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+	    $response = curl_exec($ch);
+		$info = curl_getinfo($ch);
+		$content_type = value_for_key('content_type', $info);
+		$content_size = value_for_key('request_size', $info);
+
+	    curl_close($ch);	
+	}
+	
 	$path = $folder_path.$file;
 
 	$this->load->helper('string');
-	$file = random_string('alpha', 10).'.'.$ext;
+	$file = random_string('alpha', 10).($ext ? '.'.$ext : NULL);
 	
 	file_put_contents($path, $response);
 
@@ -1629,7 +1653,7 @@ public function _files($attachment_name)
 				$filename = value_for_key("name.{$name}", $file);
 				if (!$filename) return false;
 				$info = pathinfo($filename);
-				$ext 	=  $info['extension'];
+				$ext 	= value_for_key('extension', $info);
 
 				$this->load->helper('string');
 
@@ -1666,9 +1690,11 @@ public function __construct($attributes = array(), $options = array())
 	$this->load->add_package_path(APPPATH.'third_party/jot');
 
 	$this->load->library('inflector');
-	$this->load->helper('jot_validation');
-	$this->load->helper('jot_array_helper');
-	$this->load->helper('jot_url_helper');
+	$this->load->helper(array(
+		'jot_validation', 
+		'jot_array_helper', 
+		'jot_url_helper'
+	));
 	
 	# If attributes exist assign them.
 	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )
@@ -1733,7 +1759,7 @@ public function __toString()
 	{
 		if ($attribute == 'created_at' || $attribute == 'updated_at')
 		{
-			$value = date('"F j, Y, g:i a"', $value);
+			$value = date(DateTime::W3C, $value);
 		}
 		else if ( is_string($value) )
 		{
