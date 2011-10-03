@@ -1684,20 +1684,27 @@ MAGIC METHODS
 public function __construct($attributes = array(), $options = array()) 
 {
 	parent::__construct();
+	
+	static $loaded = false;
 
 	$this->init();
 	
-	$this->load->add_package_path(APPPATH.'third_party/jot');
-
-	$this->load->library('inflector');
-	$this->load->helper(array(
-		'jot_validation', 
-		'jot_array_helper', 
-		'jot_url_helper'
-	));
+	if ( $loaded == FALSE )
+	{
+		$this->load->add_package_path(APPPATH.'third_party/jot');
+	
+		$this->load->library('inflector');
+		$this->load->helper(array(
+			'jot_validation', 
+			'jot_array_helper', 
+			'jot_url_helper'
+		));
+		
+		$loaded = TRUE;
+	}
 	
 	# If attributes exist assign them.
-	if ( is_object($attributes) || (is_array($attributes) && count($attributes) > 0) )
+	if ( $attributes && (is_object($attributes) || (is_array($attributes) && count($attributes) > 0)) )
 	{
 		$this->assign_attributes($attributes);
 
