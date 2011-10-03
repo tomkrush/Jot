@@ -14,6 +14,9 @@
 */
 class Inflector
 {
+	protected static $_pluralize_cache = array();
+	protected static $_singularize_cache = array();
+
 
     /**
     * Pluralizes English nouns.
@@ -24,7 +27,12 @@ class Inflector
     * @return string Plural noun
     */
     function pluralize($word)
-    {
+    {    	
+    	if ( array_key_exists($word, Inflector::$_pluralize_cache) )
+    	{
+    		return Inflector::$_pluralize_cache[$word];
+    	}	
+    
         $plural = array(
             '/(s)tatus$/i' => '\1\2tatuses',
             '/(quiz)$/i' => '\1zes',
@@ -90,22 +98,35 @@ class Inflector
 
         foreach ($uncountable as $_uncountable){
             if(substr($lowercased_word,(-1*strlen($_uncountable))) == $_uncountable){
+            	Inflector::$_pluralize_cache[$word] = $word;
+            
                 return $word;
             }
         }
 
         foreach ($irregular as $_plural=> $_singular){
             if (preg_match('/('.$_plural.')$/i', $word, $arr)) {
-                return preg_replace('/('.$_plural.')$/i', substr($arr[0],0,1).substr($_singular,1), $word);
+                $result = preg_replace('/('.$_plural.')$/i', substr($arr[0],0,1).substr($_singular,1), $word);
+                
+                Inflector::$_pluralize_cache[$word] = $result;
+                
+                return $result;
             }
         }
 
         foreach ($plural as $rule => $replacement) {
             if (preg_match($rule, $word)) {
-                return preg_replace($rule, $replacement, $word);
+                $result = preg_replace($rule, $replacement, $word);
+                
+                Inflector::$_pluralize_cache[$word] = $result;
+                
+                return $result;
             }
         }
-        return false;
+        
+        Inflector::$_pluralize_cache[$word] = $word;
+         
+        return $word;
 
     }
 
@@ -118,7 +139,12 @@ class Inflector
     * @return string Singular noun.
     */
     function singularize($word)
-    {
+    {    
+	 	if ( array_key_exists($word, Inflector::$_singularize_cache) )
+	 	{
+	 		return Inflector::$_singularize_cache[$word];
+	 	}	
+    
         $singular = array (
              '/(s)tatuses$/i' => '\1\2tatus',
             '/^(.*)(menu)s$/i' => '\1\2',
@@ -156,8 +182,6 @@ class Inflector
         $uncountable = array('.*[nrlm]ese', '.*deer', '.*fish', '.*measles', '.*ois', '.*pox', '.*sheep', '.*ss', 'Amoyese','bison', 'Borghese', 'bream', 'breeches', 'britches', 'buffalo', 'cantus', 'carp', 'chassis', 'clippers','cod', 'coitus', 'Congoese', 'contretemps', 'corps', 'debris', 'diabetes', 'djinn', 'eland', 'elk',    'equipment', 'Faroese', 'flounder', 'Foochowese', 'gallows', 'Genevese', 'Genoese', 'Gilbertese', 'graffiti','headquarters', 'herpes', 'hijinks', 'Hottentotese', 'information', 'innings', 'jackanapes', 'Kiplingese',    'Kongoese', 'Lucchese', 'mackerel', 'Maltese', 'media', 'mews', 'moose', 'mumps', 'Nankingese', 'news',    'nexus', 'Niasese', 'Pekingese', 'Piedmontese', 'pincers', 'Pistoiese', 'pliers', 'Portuguese', 'proceedings','rabies', 'rice', 'rhinoceros', 'salmon', 'Sarawakese', 'scissors', 'sea[- ]bass', 'series', 'Shavese', 'shears','siemens', 'species', 'swine', 'testes', 'trousers', 'trout', 'tuna', 'Vermontese', 'Wenchowese',
             'whiting', 'wildebeest', 'Yengeese');
 
-//        'equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep');
-
         $irregular = array(
             'atlases' => 'atlas',
             'beefs' => 'beef',
@@ -192,21 +216,33 @@ class Inflector
         $lowercased_word = strtolower($word);
         foreach ($uncountable as $_uncountable){
             if(substr($lowercased_word,(-1*strlen($_uncountable))) == $_uncountable){
+            	Inflector::$_singularize_cache[$word] = $word;
+            	
                 return $word;
             }
         }
 
         foreach ($irregular as $_plural=> $_singular){
             if (preg_match('/('.$_singular.')$/i', $word, $arr)) {
-                return preg_replace('/('.$_singular.')$/i', substr($arr[0],0,1).substr($_plural,1), $word);
+                $result = preg_replace('/('.$_singular.')$/i', substr($arr[0],0,1).substr($_plural,1), $word);
+                
+                Inflector::$_singularize_cache[$word] = $result;
+                
+                return $result;
             }
         }
 
         foreach ($singular as $rule => $replacement) {
             if (preg_match($rule, $word)) {
-                return preg_replace($rule, $replacement, $word);
+                $result = preg_replace($rule, $replacement, $word);
+                
+                Inflector::$_singularize_cache[$word] = $result;
+
+                return $result;
             }
         }
+        
+        Inflector::$_singularize_cache[$word] = $word;
 
         return $word;
     }
