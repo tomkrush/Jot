@@ -67,13 +67,15 @@ class JotForm
 		return $html;
 	}
 	
-	public function select($field, $options = array(), $html_options = array())
+	public function select($field, $options = array(), $html_options = array(), $default_value = FALSE)
 	{
 		$name = $this->field_name($field);
 		$value = $this->field_value($field);
 						
 		$default['id'] = $this->field_id($field);
-		
+				
+		$value = $value == FALSE && $default_value ? $default_value : $value;
+				
 		$html_options = _parse_form_attributes($html_options, $default);
 		
 		return form_dropdown($name, $options, $value, $html_options);

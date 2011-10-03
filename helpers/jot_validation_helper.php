@@ -115,22 +115,12 @@ if ( ! function_exists('jot_validate_confirm'))
 		$confirm_attribute = "confirm_{$attribute}";
 		$value = $object->read_attribute($attribute);
 		
-		if ( ! $object->has_attribute($confirm_attribute) )
-		{
-			$object->add_error(array($attribute, "Confirm {$value} is required"));
-			return FALSE;
-		}
-	
 		$confirm = $object->read_attribute($confirm_attribute);
-	
-		if ( isset($value, $confirm) )
+		
+		if ( $value != $confirm )
 		{
-			
-			if ( $value != $confirm )
-			{
-				$object->add_error(array($field, ucfirst($field)." doesn't match confirmation"));
-				return FALSE;
-			}
+			$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
+			return FALSE;
 		}
 		
 		if ( ! $object->has_transient($confirm_attribute) )
@@ -197,9 +187,9 @@ if ( ! function_exists('jot_validate_attachment_content_type'))
 	function jot_validate_attachment_content_type($object, $attribute, $options) 
 	{		
 		$file = $object->_files($attribute);
-		$error = value_for_key('error', $file);				
+		$error = value_for_key('error', $file);	
 
-		if ( !isset($file) || $error == 0 )
+		if ( isset($file, $error) && $error === 0 )
 		{
 			$type = value_for_key('type', $file);
 			$options = is_array($options) ? $options : array($options);
