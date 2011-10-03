@@ -29,15 +29,27 @@ if ( ! function_exists('rotate'))
 if ( ! function_exists('value_for_key'))
 {
 	function value_for_key($keys, $array, $default = FALSE)
-	{
+	{	
+		// Cast all variables as array.
 		$array = (array)$array;
 		
+		// If array is empty return default.
 		if (empty($array))
+		{
 			return $default;
+		}
 
 		// Prepare for loop
 		$keys = explode('.', $keys);
 
+		// If there is one key than we can skip the loop and check directly.
+		if ( count($keys) == 1 )
+		{
+			$key = $keys[0];
+			return array_key_exists($key, $array) ? $array[$key] : $default;
+		}
+		
+		// Loop through array tree and find value.
 		do
 		{
 			// Get the next key
@@ -64,6 +76,7 @@ if ( ! function_exists('value_for_key'))
 		}
 		while ( ! empty($keys));
 
+		// Nothing found so return default.
 		return $default;
 	}
 }
