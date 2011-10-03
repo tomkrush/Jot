@@ -1757,7 +1757,7 @@ public function __toString()
 	{
 		if ($attribute == 'created_at' || $attribute == 'updated_at')
 		{
-			$value = date('"F j, Y, g:i a"', $value);
+			$value = date(DateTime::W3C, $value);
 		}
 		else if ( is_string($value) )
 		{
