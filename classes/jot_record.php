@@ -1224,7 +1224,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 				$this->load->model($modelName);
 				$foreign_key = $this->singular_table_name().'_id';
 				
-				if ( $this->has_many_association($association) )
+				if ( $this->has_many_association($association) || $this->has_one_association($association))
 				{
 					$ids = array();
 					$primary_key = $this->primary_key();
@@ -1243,11 +1243,22 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 				}
 				else if ( $this->belongs_to_association($association) )
 				{
+					$foreign_association_key = $this->$modalName->singular_table_name().'_id';
+					$foreign_key = $this->$modalName->read_attribute($this->$modalName->primary_key());
 				
-				}
-				else if ( $this->has_one_association($association) ) 
-				{
+					$ids = array();
+					foreach($result as $object)
+					{
+						$ids[] = $object->read_attribute($foreign_association_key);
+					}
 					
+					$this->$modelName->find(array(
+						'conditions'=>array(
+							$foreign_key => $ids
+						),
+						'limit' => FALSE,
+						'includes'=>$association_includes
+					));				
 				}
 			}
 		}
@@ -1524,52 +1535,53 @@ public function generate_attachment_styles($attachment)
 			{
 				switch(strtolower($action))
 				{		
-					// Resize, if necessary crop			
+					# Resize, if necessary crop			
 					case '#';
 						$image->resize_and_clip($width, $height);
 					break;
 
-					// Resize, if necessary crop to lower right
+					# Resize, if necessary crop to lower right
 					case '#nw':
 						$image->resize_and_clip($width, $height, 'nw');		
 					break;
 
-					// Resize, if necessary crop to upper right
+					# Resize, if necessary crop to upper right
 					case '#ne':
 						$image->resize_and_clip($width, $height, 'ne');		
 					break;
 					
-					// Resize, if necessary crop to Upper Left
+					# Resize, if necessary crop to Upper Left
 					case '#sw':
 						$image->resize_and_clip($width, $height, 'sw');							
 					break;
 					
 					
-					// Resize, if necessary crop to lower right
+					# Resize, if necessary crop to lower right
 					case '#se':
 						$image->resize_and_clip($width, $height, 'se');							
 					break;
 
-					// Crop to Upper Left
+					# Crop to Upper Left
 					case 'nw':
 						$image->crop(0, 0, $width, $height);
 					break;
 					
-					// Crop to Upper Right
+					# Crop to Upper Right
 					case 'ne':
 						$image->crop(-($actual_width - $width), 0, $width, $height);
 					break;
 
-					// Crop to Lower Left
+					# Crop to Lower Left
 					case 'sw':
 						$image->crop(0, -($actual_height - $height), $width, $height);
 					break;
 
-					// Crop to Upper Right
+					# Crop to Upper Right
 					case 'se':
 						$image->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
 					break;
 			
+					# 
 					case '>':
 						if ( $actual_width > $width && $actual_height > $height )
 						{
@@ -1577,6 +1589,7 @@ public function generate_attachment_styles($attachment)
 						}
 					break;
 
+					
 					case '<':
 						if ( $actual_width < $width || $actual_height < $height )
 						{
@@ -1584,10 +1597,12 @@ public function generate_attachment_styles($attachment)
 						}
 					break;
 			
+					# Force width and height
 					case '!':
 						$image->resize($width, $height, FALSE);					
 					break;
 			
+					# I Forget...
 					default:
 						$image->resize($width, $height, TRUE);					
 					break;
@@ -1599,6 +1614,7 @@ public function generate_attachment_styles($attachment)
 	}
 }
 
+# Write file to filesystem.
 protected function write_file($file, $attachment)
 {
 	if ( value_for_key('downloaded', $file) )
@@ -1626,6 +1642,7 @@ protected function is_attachment($name)
 	return array_key_exists($name, $this->attachments);
 }
 
+# Download and get information about file.
 protected function _url($name, $url)
 {
 	$attachment = $this->read_attachment($name);
@@ -1742,12 +1759,14 @@ MAGIC METHODS
 #
 public function __construct($attributes = array(), $options = array()) 
 {
+	# CodeIgniter adds access to super object.
 	parent::__construct();
 	
 	static $loaded = false;
 
 	$this->init();
 	
+	# We only want to execute the following functions once!
 	if ( $loaded == FALSE )
 	{
 		$this->load->add_package_path(APPPATH.'third_party/jot');
@@ -1909,6 +1928,8 @@ public function __call($name, $arguments)
 			}
 		}			
 	}
+	
+	# Pseudo method to make accessing find_by_ faster.
 	elseif ( substr($name, 0, 8) == 'find_by_' )
 	{
 		$field = substr($name, 8);
@@ -1919,6 +1940,8 @@ public function __call($name, $arguments)
 		
 		return $this->find($conditions, $offset, $limit);
 	}
+	
+	# Pseudo method to make accessing first_by_ faster.
 	elseif ( substr($name, 0, 9) == 'first_by_' )
 	{
 		$field = substr($name, 9);
@@ -1927,6 +1950,8 @@ public function __call($name, $arguments)
 		
 		return $this->first($conditions);
 	}
+	
+	# Pseudo method to make accessing last_by_ faster.
 	elseif ( substr($name, 0, 8) == 'last_by_' )
 	{
 		$field = substr($name, 8);
@@ -1944,11 +1969,13 @@ public function __get($key)
 	$CI =& get_instance();
 	if (property_exists($CI, $key)) return $CI->$key;		
 	
+	# Return attachment with key.
 	if ( $this->is_attachment($key) )
 	{
 		return $this->read_attachment($key);
 	}
 	
+	# Return association with key
 	if ( $this->has_association($key) )
 	{
 		return $this->read_association($key);
