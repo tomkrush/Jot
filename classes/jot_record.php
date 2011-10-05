@@ -1209,7 +1209,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		));
 	}
 	
-	if ( count($includes) > 0 || strlen($includes) > 0 )
+	if ( count($includes) > 0 || ( !is_array($includes) && strlen($includes) > 0 ) )
 	{	
 		$includes = is_string($includes) ? array($includes) : $includes;
 	
