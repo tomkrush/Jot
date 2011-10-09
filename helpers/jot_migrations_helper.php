@@ -166,6 +166,9 @@ class JotMigrations
 		if ( ! $this->migration_files )
 		{
 			$path = $this->migration_path();
+			
+			$CI = &get_instance();
+			$CI->load->helper('directory');
 
 			// Force files into numerical order
 			$this->migration_files = directory_map($path);
