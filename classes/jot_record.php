@@ -1697,13 +1697,26 @@ protected function _url($name, $url)
 	
 	file_put_contents($path, $response);
 
-	return array(
-		'name' => $file,
-		'type' => $content_type,
-		'tmp' => $path,
-		'error' => 0,
-		'size' => $content_size,
-		'downloaded' => TRUE
+	return $this->set_file_attachment(
+		$name,
+		$ext,
+		$content_type,
+		$path,
+		0,
+		$content_size,
+		TRUE
+	);
+}
+
+public function set_file_attachment($key, $ext, $type, $temp_path, $error, $size, $downloaded = FALSE)
+{
+	$this->files_cache[$key] = array(
+		'name' => random_string('alpha', 10).'.'.$ext,
+		'type' => $type,
+		'tmp' => $temp_path,
+		'error' => $error,
+		'size' => $size,
+		'downloaded' => $downloaded
 	);
 }
 
@@ -1721,7 +1734,7 @@ public function _files($attachment_name)
 		
 			if ( is_url_valid($attachment_value) )
 			{
-				$this->files_cache[$attachment_name] = $this->_url($attachment_name, $attachment_value);
+				$this->_url($attachment_name, $attachment_value);
 			}
 			else
 			{		
@@ -1734,12 +1747,13 @@ public function _files($attachment_name)
 				$this->load->helper('string');
 
 				# Create file cache instance;
-				$this->files_cache[$name] = array(
-					'name'  => random_string('alpha', 10).'.'.$ext,
-					'type'  => value_for_key("type.{$name}", $file),
-					'tmp'   => value_for_key("tmp_name.{$name}", $file),
-					'error' => value_for_key("error.{$name}", $file),
-					'size'  => value_for_key("size.{$name}", $file),
+				$this->set_file_attachment(
+					$name,
+					$ext,
+					value_for_key("type.{$name}", $file),
+					value_for_key("tmp_name.{$name}", $file),
+					value_for_key("error.{$name}", $file),
+					value_for_key("size.{$name}", $file)
 				);
 			}
 		}
