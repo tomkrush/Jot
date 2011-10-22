@@ -113,19 +113,23 @@ if ( ! function_exists('jot_validate_confirm'))
 	function jot_validate_confirm($object, $attribute, $options)
 	{
 		$confirm_attribute = "confirm_{$attribute}";
-		$value = $object->read_attribute($attribute);
-		
-		$confirm = $object->read_attribute($confirm_attribute);
-		
-		if ( $value != $confirm )
+
+		if ( $object->has_attribute($attribute) && $object->has_attribute($confirm_attribute) )
 		{
-			$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
-			return FALSE;
-		}
-		
-		if ( ! $object->has_transient($confirm_attribute) )
-		{
-			$object->add_transient($confirm_attribute);
+			$value = $object->read_attribute($attribute);
+			
+			$confirm = $object->read_attribute($confirm_attribute);
+			
+			if ( $value != $confirm )
+			{
+				$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
+				return FALSE;
+			}
+			
+			if ( ! $object->has_transient($confirm_attribute) )
+			{
+				$object->add_transient($confirm_attribute);
+			}
 		}
 	
 		return TRUE;		
