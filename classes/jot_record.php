@@ -695,7 +695,7 @@ public function is_valid()
 }
 
 # Attach validators to model
-protected function validates($attribute, $validators)
+public function validates($attribute, $validators)
 {
 	# Add validator to object
 	$old_validators = value_for_key($attribute, $this->validators, array());
