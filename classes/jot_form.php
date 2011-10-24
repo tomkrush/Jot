@@ -4,7 +4,7 @@ class JotForm
 {
 	protected $record;
 	
-	public function __construct($record, $index = null;)
+	public function __construct($record, $index = null)
 	{
 		$CI =& get_instance();
 		$CI->load->helper('form');
