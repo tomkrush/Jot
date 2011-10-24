@@ -4,19 +4,20 @@ class JotForm
 {
 	protected $record;
 	
-	public function __construct($record)
+	public function __construct($record, $index = null;)
 	{
 		$CI =& get_instance();
 		$CI->load->helper('form');
 		
-		$this->record = $record;	
+		$this->record = $record;
+		$this->index  = $index;
 	}
 	
 	private function field_name($field)
 	{
 		$record_name = $this->record->singular_table_name();
 
-		return strtolower(sprintf('%s[%s]', $record_name, $field));
+		return strtolower(sprintf('%s%s[%s]', $record_name, $this->index !== null ? '['.$this->index.']' : '', $field));
 	}
 	
 	private function field_value($field)
