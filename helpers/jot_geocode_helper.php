@@ -18,7 +18,7 @@ if ( ! function_exists('geocode') )
 				
 		$data = value_for_key('ResultSet.Result', $data);
 							
-		if ( count($data) && $data = array_shift($data) )
+		if ( is_array($data) && count($data) && $data = array_shift($data) )
 		{
 			$latitude = value_for_key('latitude', $data);
 			$longitude = value_for_key('longitude', $data);
