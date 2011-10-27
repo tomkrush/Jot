@@ -1512,7 +1512,7 @@ public function generate_attachment_styles($attachment)
 				mkdir($dir);
 			}
 										
-			preg_match("/(?'width'[0-9]*)x(?'height'[0-9]*)((\+(?'x'[0-9]*)\+(?'y'[0-9]*))|(?'action'.*))/", $dimensions, $matches);
+			preg_match("/(?P<width>[0-9]*)x(?P<height>[0-9]*)((\+(?P<x>[0-9]*)\+(?P<y>[0-9]*))|(?P<action>.*))/", $dimensions, $matches);
 
 			$width = value_for_key('width', $matches);
 			$height = value_for_key('height', $matches);
