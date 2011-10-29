@@ -1175,9 +1175,8 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		}
 				
 		# Page isset so lets do the math and fix things up.
-		if (isset($conf['page']))
+		if (isset($conf['page']) && $page = $conf['page'])
 		{
-			$page	= $conf['page'];
 			$offset = $this->limit * ($page - 1);
 		}
 	}
