@@ -1693,9 +1693,6 @@ protected function _url($name, $url)
 	}
 	
 	$path = $folder_path.$file;
-
-	$this->load->helper('string');
-	$file = random_string('alpha', 10).($ext ? '.'.$ext : NULL);
 	
 	file_put_contents($path, $response);
 
@@ -1712,6 +1709,8 @@ protected function _url($name, $url)
 
 public function set_file_attachment($key, $ext, $type, $temp_path, $error, $size, $downloaded = FALSE)
 {
+	$this->load->helper('string');
+	
 	$this->files_cache[$key] = array(
 		'name' => random_string('alpha', 10).'.'.$ext,
 		'type' => $type,
@@ -1731,7 +1730,8 @@ public function _files($attachment_name)
 	if ( ! value_for_key($attachment_name, $this->files_cache) )
 	{
 		# Lets check each attachment to see if an associated file exists.
-		foreach($this->attachments as $name => $attachment) {
+		foreach($this->attachments as $name => $attachment) 
+		{
 			$attachment_value = $this->read_attribute($attachment_name);			
 		
 			if ( is_url_valid($attachment_value) )
@@ -1742,21 +1742,22 @@ public function _files($attachment_name)
 			{		
 				$file = value_for_key($this->singular_table_name(), $_FILES);
 				$filename = value_for_key("name.{$name}", $file);
-				if (!$filename) return false;
+				
+				if ( ! $filename ) 
+				{
+					return false;
+				}
+				
 				$info = pathinfo($filename);
-				$ext 	= value_for_key('extension', $info);
+				$ext = value_for_key('extension', $info);
 
-				$this->load->helper('string');
-
-				# Create file cache instance;
-				$this->set_file_attachment(
-					$name,
-					$ext,
-					value_for_key("type.{$name}", $file),
-					value_for_key("tmp_name.{$name}", $file),
-					value_for_key("error.{$name}", $file),
-					value_for_key("size.{$name}", $file)
-				);
+				# Create file cache instance
+				$type = value_for_key("type.{$name}", $file);
+				$tmp_name = value_for_key("tmp_name.{$name}", $file);
+				$error = value_for_key("error.{$name}", $file);
+				$size = value_for_key("size.{$name}", $file);
+				
+				$this->set_file_attachment($name, $ext, $type, $tmp_name, $error, $size);
 			}
 		}
 	}
@@ -1849,33 +1850,36 @@ public function instantiate($attributes = array(), $options = array())
 # format: blog name: "Blog", slug: "blog"
 #
 public function __toString()
-{		
+{	
+	$fields_strings = array();	
 	$string = '';
 	
+	# Table Name
 	$string .= $this->singular_table_name();
-	
-	$fields_strings = array();
-	
+		
 	foreach($this->attributes as $attribute => $value)
 	{
+		# Handle timestamps
 		if ($attribute == 'created_at' || $attribute == 'updated_at')
 		{
 			$value = date(DateTime::W3C, $value);
 		}
+		
+		# Handle Strings
 		else if ( is_string($value) )
 		{
 			$value = '"'.$value.'"';
 		}
 		
+		# Create Attribute String
 		if ( $value )
 		{
 			$fields_strings[] = $attribute.': '.$value;
 		}
 	}
 		
-	$string .= ' '.implode(', ', $fields_strings);
-
-	return $string;
+	# Return formatted string
+	return $string . ' '.implode(', ', $fields_strings);
 }
 
 # Allows for attributes and associations to be assigned.
@@ -1981,9 +1985,13 @@ public function __call($name, $arguments)
 # Returns row attributes and properties from CodeIgniter.
 public function __get($key)
 {
-	# Return property from CodeIgniter if exists
 	$CI =& get_instance();
-	if (property_exists($CI, $key)) return $CI->$key;		
+	
+	# Return property from CodeIgniter if exists
+	if ( property_exists($CI, $key) )
+	{
+		return $CI->$key;
+	}	
 	
 	# Return attachment with key.
 	if ( $this->is_attachment($key) )
