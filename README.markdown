@@ -5,10 +5,31 @@ What is Jot? Jot is a CodeIgniter Active Record solution developed specifically 
 
 ### Getting Started
 
-I'll write this part later.
+#### Create Model
+
+```
+class Article_Model extends MY_Model {
+
+}
+```
+
+#### Create Object
+
+```
+$article = new Article_Model;
+$article->title = "Article Title";
+$article->save();
+```
+
+#### Find Object
+
+```
+$article = $this->article_model->first();
+echo $article->title;
+// Returns "Article Title"
+```
 
 ### Learn More
-- [Introduction](https://github.com/tomkrush/Jot/wiki/introduction)
 - [Attributes](https://github.com/tomkrush/Jot/wiki/attributes)
 - [Associations](https://github.com/tomkrush/Jot/wiki/associations)
 - [Calculations](https://github.com/tomkrush/Jot/wiki/calculations)
