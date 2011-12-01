@@ -67,14 +67,9 @@ public function write_attribute_function($attribute, $value)
 }
 
 # Returns attribute value if exists otherwise null
-public function read_attribute($key)
+public function read_attribute($attribute)
 {
-	if ( array_key_exists($key, $this->attributes) )
-	{
-		return $this->attributes[$key];
-	}
-
-	return NULL;
+	return value_for_key($attribute, $this->attributes, NULL);
 }
 
 protected function save_associations()
@@ -381,7 +376,6 @@ protected function has_timestamps($bool)
 
 # Objects can now be touched. When touched the database forces the updated_at
 # attribute to newest timestamp.
-#
 public function touch()
 {
 	if ( $this->persisted() && $this->timestamps )
