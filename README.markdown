@@ -8,6 +8,7 @@ What is Jot? Jot is a CodeIgniter Active Record solution developed specifically 
 I'll write this part later.
 
 ### Learn More
+- [Introduction](https://github.com/tomkrush/Jot/wiki/introduction)
 - [Attributes](https://github.com/tomkrush/Jot/wiki/attributes)
 - [Associations](https://github.com/tomkrush/Jot/wiki/associations)
 - [Calculations](https://github.com/tomkrush/Jot/wiki/calculations)
