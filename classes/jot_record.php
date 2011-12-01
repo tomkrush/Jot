@@ -813,8 +813,7 @@ public function reload()
 	return $this;
 }
 
-# Creates single object using attributes.
-# Returns object
+# Creates single object using attributes and returns object.
 public function create($attributes)
 {
  	return $this->build($attributes)->save();
@@ -1108,7 +1107,7 @@ public function all($conditions = array())
 	return $this->find($conditions, 0, 0);		
 }
 
-# Returns a range of rows using conditions
+# Returns rows filterd by conditions
 public function find($conditions = array(), $offset = 0, $limit = null)
 {
 	# Load Primary Key
