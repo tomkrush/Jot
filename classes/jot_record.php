@@ -402,10 +402,13 @@ ASSOCATIONS
 -------------------------------------------------*/
 protected $base_filter = null;
 
-protected $associations = array('has_many' => array(), 'has_one' => array(), 'belongs_to' => array());
 protected $association_vars = array();
 protected $association_cache = array();
-
+protected $associations = array(
+	'has_many' => array(), 
+	'has_one' => array(), 
+	'belongs_to' => array()
+);
 
 public function write_association($association_name, $value)
 {	
@@ -1291,13 +1294,12 @@ protected function _find($conditions = array())
 # Validates conditions variable.
 protected function _conditions($conditions = array())
 {
+	# Make sure conditions is an array.
 	if ( isset($conditions) && ! is_array($conditions) )
 	{
 		$conditions = array($conditions);
 	}	
-	
-	$conditions = is_array($conditions) ? $conditions : array();
-	
+		
 	# Set Base Filter
 	if ($this->base_filter !== null)
 	{
@@ -1314,7 +1316,6 @@ protected function _conditions($conditions = array())
 	if ( is_numeric($conditions) || ! is_assoc($conditions) )
 	{
 		$conditions = array($this->primary_key => $conditions);
-		
 	}
 	
 	# Make sure conditions is an array
