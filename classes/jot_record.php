@@ -2,7 +2,9 @@
 
 class JotRecord extends CI_Model implements Serializable
 {
-		
+
+protected $default_limit = 10;
+
 /*-------------------------------------------------
 ATTRIBUTE METHODS
 -------------------------------------------------*/
@@ -1327,12 +1329,12 @@ protected function _conditions($conditions = array())
 	return $conditions;	
 }
 
-# Return limit (Default 10)
+# Return limit
 protected function _limit()
 {
 	if ( !isset($this->limit) )
 	{
-		$this->limit = 10;
+		$this->limit = $this->default_limit;
 	}
 	
 	if ( $this->limit == -1 )
