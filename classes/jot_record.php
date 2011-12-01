@@ -1332,11 +1332,13 @@ protected function _conditions($conditions = array())
 # Return limit
 protected function _limit()
 {
-	if ( !isset($this->limit) )
+	# Set limit to default (Only when unset)
+	if ( ! isset($this->limit) )
 	{
 		$this->limit = $this->default_limit;
 	}
 	
+	# If limit is -1. Than limit is unlimited.
 	if ( $this->limit == -1 )
 	{
 		return FALSE;
@@ -1348,6 +1350,7 @@ protected function _limit()
 # Return order (id ASC)
 protected function _order()
 {
+	# Set default order
 	if ( !isset($this->order) )
 	{
 		$this->order = $this->primary_key().' ASC';
@@ -1367,9 +1370,11 @@ protected $plural_table_name = NULL;
 # Set and get tablename
 protected function table_name($table_name = NULL)
 {	
+	# Set table name.
 	if ( empty($this->table_name) || $table_name )
 	{	
-		$this->table_name = $table_name ? $table_name : $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
+		$generated_table_name = $this->inflector->pluralize(str_replace('_model', '', strtolower(get_class($this))));
+		$this->table_name = $table_name ? $table_name : $generated_table_name;
 	}	
 	
 	return $this->table_name;
@@ -1378,6 +1383,7 @@ protected function table_name($table_name = NULL)
 # Returns singular form of model name.
 public function singular_table_name()
 {
+	# Cache singular table name.
 	if ( ! $this->singular_table_name )
 	{
 		$this->singular_table_name = strtolower($this->inflector->singularize($this->table_name()));
@@ -1389,6 +1395,7 @@ public function singular_table_name()
 # Returns plural form of model name.
 public function plural_table_name()
 {
+	# Cache plural table name.
 	if ( ! $this->plural_table_name )
 	{
 		$this->plural_table_name = strtolower($this->inflector->pluralize($this->table_name()));
