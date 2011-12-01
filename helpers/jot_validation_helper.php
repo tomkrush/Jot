@@ -6,7 +6,7 @@ if ( ! function_exists('jot_validate_required'))
 	{
 		$value = $object->read_attribute($attribute);
 		
-		if ( empty($value) )
+		if ( is_blank($value) )
 		{
 			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
 			return FALSE;
