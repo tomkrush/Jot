@@ -115,87 +115,86 @@ class JotHasOneAssociation extends JotAssociation
 {
 	public function create($attributes)
 	{		
-		$jot = $this->object;
-		$key = $this->name;
-		
-		$modelName = ucwords($key).'_Model';
-		$object = $this->load->model($modelName);
+		$class_name = $this->class_name();
 		
 		# Create associated object.
-		$foreign_type = $jot->singular_table_name().'_id';
-		$foreign_id = $jot->read_attribute($foreign_type);
-
-		# Add Association
-		$attributes[$foreign_type] = $foreign_id;
-
-		return $this->$modelName->create($attributes);
+		return $this->$class_name->create(array(
+			$this->foreign_key() => $this->object_id()
+		));
 	}
 
 	public function set($value) 
 	{
-		$options = $this->options();
-		$object = $this->object;
-		$key = $this->name;
-			
-		$foreign_id = $object->read_attribute($object->primary_key());
-
-		if ( $polymorphic = value_for_key('as', $options) )
+		# Polymorphic writes a foreign type.
+		if ( $as = $this->polymorphic() )
 		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_key = $polymorphic.'_id';
-
-			$value->update_attributes(array(
-				$foreign_type => $object->singular_table_name(),
-				$foreign_key => $foreign_id
-			));
+			$value->write_attribute($as.'_type', $this->object->singular_table_name());
 		}
-		else
-		{
-			$foreign_key = $object->singular_table_name().'_id';
-
-			# Add Association
-			$value->write_attribute($foreign_key, $foreign_id);				
-		}
+		
+		# Write key
+		$value->write_attribute($this->foreign_key(), $this->object_id());
+		
+		#Persist
+		$value->save();
 	}
 
 	public function get()
 	{
-		$options = $this->options();
-		$object = $this->object;
-		$key = $this->name;
-
-		if ( $polymorphic = value_for_key('as', $options) )
-		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_id = $polymorphic.'_id';
-
-			$id = $object->read_attribute($object->primary_key());
-
-			$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-			
-			$this->load->model($modelName);
-			
-			$conditions = array(
-				$foreign_type => $object->singular_table_name(),
-				$foreign_id => $id
-			);			
-		}
-		else
-		{
-			$modelName = ucwords($key).'_Model';
-
-			$this->load->model($modelName);
-							
-			# Create Conditions
-			$conditions = array(
-				$object->singular_table_name().'_id' => $object->read_attribute($object->primary_key())
-			);			
-		}
-
-		# Load Object
-		$object = $this->$modelName->first($conditions);
+		$class_name = $this->class_name();
+		$this->load->model($class_name);
 		
-		return $object;
+		$foreign_key = $this->foreign_key();
+		
+		# Create Conditions
+		$conditions = array(
+			$foreign_key => $this->object_id()
+		);	
+
+		if ( $as = $this->polymorphic() )
+		{						
+			$conditions[$as.'_type'] = $this->object->singular_table_name();			
+		}
+
+		# Load Object		
+		return $this->$class_name->first($conditions);
+	}
+	
+	protected function polymorphic()
+	{
+		return value_for_key('as', $this->options);
+	}
+		
+	protected function foreign_key()
+	{
+		if ( $as = $this->polymorphic() ) {
+			$default = $as.'_id';
+		} else {
+			$default = $this->object->singular_table_name().'_id';
+		}
+		
+		return value_for_key('foreign_key', $this->options, $default);
+	}
+
+	protected function object_id()
+	{
+		return $this->object->read_attribute($this->object->primary_key());
+	}
+
+	protected function class_name()
+	{		
+		# Return stored class name
+		if ( $this->polymorphic() ) 
+		{		
+			$default = $this->inflector->singularize($this->name);
+		}
+		
+		# Use name of object
+		else 
+		{
+			$default = $this->name;
+		}
+		
+		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
 	}
 }
 
@@ -230,6 +229,9 @@ class JotBelongsToAssociation extends JotAssociation
 		
 		# Write key
 		$this->object->write_attribute($this->foreign_key(), $value->read_attribute($value->primary_key()));
+		
+		#Persist
+		$this->object->save();
 	}
 
 	# Retrieve associated object.
