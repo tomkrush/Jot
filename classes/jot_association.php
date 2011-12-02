@@ -34,6 +34,24 @@ abstract class JotAssociation
 	}
 }
 
+class JotHasAndBelongsToManyAssociation extends JotAssociation
+{
+	public function create($attributes)
+	{
+		return FALSE;
+	}
+	
+	public function set($value)
+	{
+	
+	}
+	
+	public function get()
+	{
+		return FALSE;
+	}
+}
+
 class JotHasManyAssociation extends JotAssociation
 {
 	public function create($attributes)

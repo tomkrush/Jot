@@ -349,6 +349,11 @@ protected function has_one($association, $options = array())
 	$this->associations[$association] = new JotHasOneAssociation($association, $this, $options);
 }
 
+protected function has_and_belongs_to_many($association, $options = array())
+{
+	$this->associations[$association] = new JotHasAndBelongsToManyAssociation($association, $this, $options);
+}
+
 protected function belongs_to($association, $options = array())
 {	
 	$this->associations[$association] = new JotBelongsToAssociation($association, $this, $options);
