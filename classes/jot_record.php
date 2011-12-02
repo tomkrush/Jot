@@ -1432,6 +1432,7 @@ public function __construct($attributes = array(), $options = array())
 		$this->load->library('inflector');
 		$this->load->helper(array(
 			'jot_validation', 
+			'jot_primitive_helper',
 			'jot_array_helper', 
 			'jot_url_helper'
 		));
