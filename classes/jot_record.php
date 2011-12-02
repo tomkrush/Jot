@@ -74,90 +74,10 @@ public function read_attribute($attribute)
 	return value_for_key($attribute, $this->attributes, NULL);
 }
 
-protected function save_associations()
-{
-	$save_associations = $this->save_associations;
-	$this->save_associations = array();
-
-	$id = $this->read_attribute($this->primary_key());
-
-	foreach($save_associations as $key => $value)
-	{
-		$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-		$this->load->model($modelName);
-		$primary_key = $this->$modelName->primary_key();		
-
-		if ( $this->has_many_association($key) )
-		{
-			foreach($value as $attributes)
-			{
-				$associated_id = value_for_key($primary_key, $attributes);
-
-				$foreign_key = $this->singular_table_name().'_id';
-
-				$attributes[$foreign_key] = $id;
-
-				if ( $associated_id )
-				{
-					unset($attributes[$primary_key]);
-					$this->$modelName->update($associated_id, $attributes);
-				}
-				else
-				{
-					$this->$modelName->create($attributes);
-				}
-			}
-		}
-		else if ($this->has_one_association($key) )
-		{	
-			$associated_id = value_for_key($primary_key, $value);
-
-			$foreign_key = $this->singular_table_name().'_id';
-			$value[$foreign_key] = $id;
-
-			if ( $associated_id )
-			{
-				unset($value[$primary_key]);
-				$object = $this->$modelName->update($associated_id, $value);
-			}
-			else
-			{
-				$object = $this->$modelName->create($value);
-			}			
-		}
-		else if ($this->has_belongs_to_association($key) )
-		{
-			$associated_id = value_for_key($primary_key, $value);
-
-			if ( $associated_id )
-			{
-				unset($value[$primary_key]);
-				$object = $this->$modelName->update($associated_id, $value);
-			}
-			else
-			{
-				$object = $this->$modelName->create($value);
-			}
-
-			$foreign_key = $object->singular_table_name().'_id';			
-			$this->update_attribute($foreign_key, $object->read_attribute($this->primary_key()));	
-		}
-	}
-}
-
 # Writes attribute value to object
 public function write_attribute($attribute, $value)
 {	
-	$nested_attributes = str_replace('_attributes', '', $attribute);
-
-	if ( $this->has_association($nested_attributes) )
-	{
-		$this->save_associations[$nested_attributes] = $value;
-	}
-	else
-	{
-		$this->attributes[$attribute] = $value;		
-	}
+	$this->attributes[$attribute] = $value;		
 }
 
 # Read all attributes
@@ -402,277 +322,57 @@ public function touch()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
-protected $base_filter = null;
+public $base_filter = null;
 
-protected $association_vars = array();
-protected $association_cache = array();
-protected $associations = array(
-	'has_many' => array(), 
-	'has_one' => array(), 
-	'belongs_to' => array()
-);
+protected $associations = array();
 
-public function write_association($association_name, $value)
+public function write_association($name, $value)
 {	
-	# If has one association exists link objects
-	if ($this->has_one_association($association_name) )
-	{
-		$options = $this->get_has_one_association($association_name);
-		$foreign_id = $this->read_attribute($this->primary_key());
-
-		if ( $polymorphic = value_for_key('as', $options) )
-		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_key = $polymorphic.'_id';
-
-			$value->update_attributes(array(
-				$foreign_type => $this->singular_table_name(),
-				$foreign_key => $foreign_id
-			));
-		}
-		else
-		{
-			$foreign_key = $this->singular_table_name().'_id';
-
-			# Add Association
-			$value->write_attribute($foreign_key, $foreign_id);				
-		}
-	}
-	
-	# If has belongs to association link objects
-	elseif ($this->has_belongs_to_association($association_name) )
-	{
-		$options = $this->get_belongs_to_association($association_name);
-
-		if ( $polymorphic = value_for_key('polymorphic', $options) )
-		{
-			$foreign_type = $association_name.'_type';
-			$foreign_key = $association_name.'_id';
-			$foreign_id = $value->read_attribute($value->primary_key());
-			
-			$this->assign_attributes(array(
-				$foreign_type => $value->singular_table_name(),
-				$foreign_key => $foreign_id
-			));			
-		}
-		else
-		{
-			$foreign_key = $value->singular_table_name().'_id';
-			$foreign_id = $value->read_attribute($value->primary_key());
-
-			# Add Association
-			$this->write_attribute($foreign_key, $foreign_id);
-		}	
-	}
-	
-	# If has many assocation links objects
-	elseif ( $this->has_many_association($association_name) )
-	{
-		$options = $this->get_has_many_association($association_name);
-
-		$options = $this->get_has_many_association($association_name);
-		$foreign_id = $this->read_attribute($this->primary_key());
-		
-		if ( $polymorphic = value_for_key('as', $options) )
-		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_key = $polymorphic.'_id';
-			
-			foreach($value as $object)
-			{
-				$object->update_attributes(array(
-					$foreign_type => $this->singular_table_name(),
-					$foreign_key => $foreign_id
-				));
-			}
-		}
-		else
-		{
-			$foreign_key = $this->singular_table_name().'_id';
-			$foreign_id = $this->read_attribute($this->primary_key());
-
-			foreach($value as $object)
-			{
-				$object->update_attribute($foreign_key, $foreign_id);
-			}
-		}
-	}	
+	$association = $this->get_association($name);
+	if ($association) $association->write($value);
 }
 
 public function read_association($key)
 {
-	if ( $this->has_association($key) )
-	{
-		if ( $this->has_many_association($key) )
-		{
-			# Create Object			
-			$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-
-			$this->load->model($modelName);
-
-			$options = $this->get_has_many_association($key);
-			$object = new $modelName;
-			$id = $this->read_attribute($this->primary_key());
-			
-			if ( $polymorphic = value_for_key('as', $options) )
-			{
-				$foreign_type = $polymorphic.'_type';
-				$foreign_id = $polymorphic.'_id';
-				
-				$object->set_base_filter(array(
-					$foreign_type => $this->singular_table_name(),
-					$foreign_id => $id
-				));
-			}
-			else
-			{
-				$foreign_type = $this->singular_table_name().'_id';
-
-				$object->set_base_filter(array(
-					$foreign_type => $id
-				));
-			}
-											
-			return $object;
-		}
-		
-		# Object has one association
-		else if ($this->has_one_association($key) )
-		{
-			$options = $this->get_has_one_association($key);
-	
-			if ( $polymorphic = value_for_key('as', $options) )
-			{
-				$foreign_type = $polymorphic.'_type';
-				$foreign_id = $polymorphic.'_id';
-
-				$id = $this->read_attribute($this->primary_key());
-
-				$modelName = ucwords($this->inflector->singularize($key)).'_Model';
-				
-				$this->load->model($modelName);
-				
-				$conditions = array(
-					$foreign_type => $this->singular_table_name(),
-					$foreign_id => $id
-				);
-			}
-			else
-			{
-				$modelName = ucwords($key).'_Model';
-
-				$this->load->model($modelName);
-								
-				# Create Conditions
-				$conditions = array(
-					$this->singular_table_name().'_id' => $this->read_attribute($this->primary_key())
-				);
-			}
-
-			# Load Object
-			$object = $this->$modelName->first($conditions);
-			
-			return $object;
-		}
-		
-		# Object has belongs association
-		else if ($this->has_belongs_to_association($key) )
-		{
-			$options = $this->get_belongs_to_association($key);
-
-			if (  value_for_key('polymorphic', $options) )
-			{
-				$foreign_type = $this->read_attribute($key.'_type');
-
-				$modelName = ucwords($foreign_type).'_Model';
-
-				$this->load->model($modelName);
-
-				$id = $this->read_attribute($key.'_id');
-			}
-			else
-			{
-				$modelName = ucwords($key).'_Model';
-				
-				$this->load->model($modelName);
-				
-				$foreign_type = $key.'_id';
-				$id = $this->read_attribute($foreign_type);
-			}
-		
-		
-			$conditions = array($this->$modelName->primary_key() => $id);
-						
-			return $this->$modelName->first($conditions);			
-		}
-	}	
+	$association = $this->get_association($key);
+	return $association ? $association->read() : NULL;
 }
 
-protected function set_base_filter($conditions)
+public function set_base_filter($conditions)
 {
 	if (is_array($conditions) === false) return;
 	$this->base_filter = $conditions;
 }
 
-protected function has_association($association)
-{	
-	$has_many = $this->has_many_association($association);
-	$has_one = $this->has_one_association($association);
-	$belongs_to = $this->has_belongs_to_association($association);
-	
-	# If any association exists return TRUE.
-	return $has_many || $has_one || $belongs_to;
-}
-
-protected function get_has_one_association($association)
-{	
-	return value_for_key("has_one.{$association}", $this->associations, FALSE);
-}
-
-protected function has_one_association($association)
-{
-	$association = $this->get_has_one_association($association);
-	return isset($association) && $association !== FALSE;
-}
-
 protected function has_one($association, $options = array())
 {
-	$this->associations['has_one'][$association] = $options;
-	$this->association_vars[] = $this->inflector->singularize($association);
-}
-
-protected function get_belongs_to_association($association)
-{
-	return value_for_key("belongs_to.{$association}", $this->associations, FALSE);
-}
-
-protected function has_belongs_to_association($association)
-{
-	$association = $this->get_belongs_to_association($association);
-	return isset($association) && $association !== FALSE;
+	$this->associations[$association] = new JotHasOneAssociation($association, $this, $options);
 }
 
 protected function belongs_to($association, $options = array())
-{
-	$this->associations['belongs_to'][$association] = $options;
-	$this->association_vars[] = $this->inflector->singularize($association);
-}
-
-protected function get_has_many_association($association)
-{
-	return value_for_key("has_many.{$association}", $this->associations, FALSE);
-}
-
-protected function has_many_association($association)
 {	
-	$association = $this->get_has_many_association($association);
-	return isset($association) && $association !== FALSE;
+	$this->associations[$association] = new JotBelongsToAssociation($association, $this, $options);
 }
 
 protected function has_many($association, $options = array())
 {
-	$this->associations['has_many'][$association] = $options;
-	$this->association_vars[] = $this->inflector->pluralize($association);
+	$this->associations[$association] = new JotHasManyAssociation($association, $this, $options);
+}
+
+protected function has_association($name)
+{	
+	return !!$this->get_association($name);
+}
+
+protected function get_association($name) 
+{
+	foreach($this->associations as $key => $value ) {
+		if ( $key == $name ) {
+			return $value;
+		}
+	}
+
+	return FALSE;
 }
 	
 /*-------------------------------------------------
@@ -780,8 +480,6 @@ PERSISTANCE
 -------------------------------------------------*/
 protected $new_record = TRUE;
 protected $destroyed = FALSE;
-
-protected $save_associations = array();
 
 # Returns boolean if object is persisted. A persisted object
 # is stored in the database.
@@ -979,9 +677,7 @@ public function save($validate  = TRUE)
 		$this->_update();
 		$this->call_hook('after_update');
 	}
-	
-	$this->save_associations();
-	
+		
 	$this->call_hook('after_save');
 	
 	return $this;
@@ -1206,61 +902,6 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		));
 	}
 	
-	if ( count($includes) > 0 || ( !is_array($includes) && strlen($includes) > 0 ) )
-	{	
-		$includes = is_string($includes) ? array($includes) : $includes;
-	
-		foreach($includes as $key => $value)
-		{
-			$association = is_array($value) ? $key : $value;
-			$association_includes = is_array($value) ? $value : array();
-
-			if ( $this->has_association($association) )
-			{
-				$modelName = ucwords($this->inflector->singularize($association)).'_Model';
-				$this->load->model($modelName);
-				$foreign_key = $this->singular_table_name().'_id';
-				
-				if ( $this->has_many_association($association) || $this->has_one_association($association))
-				{
-					$ids = array();
-					$primary_key = $this->primary_key();
-					foreach($result as $object)
-					{
-						$ids[] = $object->read_attribute($primary_key);
-					}
-					
-					$this->$modelName->find(array(
-						'conditions'=>array(
-							$foreign_key => $ids
-						),
-						'limit' => FALSE,
-						'includes'=>$association_includes
-					));
-				}
-				else if ( $this->belongs_to_association($association) )
-				{
-					$foreign_association_key = $this->$modalName->singular_table_name().'_id';
-					$foreign_key = $this->$modalName->read_attribute($this->$modalName->primary_key());
-				
-					$ids = array();
-					foreach($result as $object)
-					{
-						$ids[] = $object->read_attribute($foreign_association_key);
-					}
-					
-					$this->$modelName->find(array(
-						'conditions'=>array(
-							$foreign_key => $ids
-						),
-						'limit' => FALSE,
-						'includes'=>$association_includes
-					));				
-				}
-			}
-		}
-	}
-
 	# Return array of jot objects
 	return $result;
 }
@@ -1907,50 +1548,8 @@ public function __set($key, $value)
 # Allows for meta functions to exist.
 public function __call($name, $arguments)
 {
-	# Is call a create_ method?
-	if ( substr($name, 0, 7) == 'create_' )
-	{
-		# What is create_(x)?
-		$key = strtolower(substr($name, 7));
-
-		#Is key an association?
-		if ( $this->has_association($key) )
-		{
-			$conditions = $arguments[0];
-			$modelName = ucwords($key).'_Model';
-			$object = $this->load->model($modelName);
-
-			# Create Has One Assocation
-			if ($this->has_one_association($key) )
-			{	
-				$foreign_type = $this->singular_table_name().'_id';
-				$foreign_id = $this->read_attribute($foreign_type);
-
-				# Add Association
-				$conditions[$foreign_type] = $foreign_id;
-
-				return $this->$modelName->create($conditions);
-			}
-			
-			# Create Belongs To Association
-			elseif ($this->has_belongs_to_association($key) )
-			{
-				# Create associated object.
-				$object = $this->$modelName->create($conditions);
-				
-				# Create association with this model.
-				$foreign_type = $object->singular_table_name().'_id';
-				$foreign_id = $object->read_attribute($object->primary_key());
-
-				$this->update_attribute($foreign_type, $foreign_id);
-								
-				return $object;
-			}
-		}			
-	}
-	
 	# Pseudo method to make accessing find_by_ faster.
-	elseif ( substr($name, 0, 8) == 'find_by_' )
+	if ( substr($name, 0, 8) == 'find_by_' )
 	{
 		$field = substr($name, 8);
 		

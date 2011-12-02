@@ -6,6 +6,9 @@ require 'classes/jot_identity.php';
 # Jot Attachment
 require 'classes/jot_attachment.php';
 
+# Jot Association
+require 'classes/jot_association.php';
+
 # Jot Image
 require 'classes/jot_image.php';
 
