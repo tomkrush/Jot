@@ -202,81 +202,80 @@ class JotHasOneAssociation extends JotAssociation
 class JotBelongsToAssociation extends JotAssociation
 {
 	public function create($attributes)
-	{
-		$jot = $this->object;
-		$key = $this->name;
-		
-		$modelName = ucwords($key).'_Model';
-		$object = $this->load->model($modelName);
+	{				
+		$class_name = $this->class_name();
+		$object = $this->load->model($class_name);
 		
 		# Create associated object.
-		$object = $this->$modelName->create($attributes);
+		$object = $this->$class_name->create($attributes);
 
 		# Create association with this model.
 		$foreign_type = $object->singular_table_name().'_id';
 		$foreign_id = $object->read_attribute($object->primary_key());
 
-		$jot->update_attribute($foreign_type, $foreign_id);
+		$this->object->update_attribute($foreign_type, $foreign_id);
 
 		return $object;
 	}
 
 	public function write($value)
 	{
-		$options = $this->options();
-		$jot = $this->object;
-		$key = $this->name;
-					
-		if ( $polymorphic = value_for_key('polymorphic', $options) )
-		{
-			$foreign_type = $key.'_type';
-			$foreign_key = $key.'_id';
-			$foreign_id = $value->read_attribute($value->primary_key());
-			
-			$jot->assign_attributes(array(
-				$foreign_type => $value->singular_table_name(),
-				$foreign_key => $foreign_id
-			));			
+		# Polymorphic writes a foreign type.
+		if ( $this->polymorphic() )
+		{	
+			$this->object->write_attribute($this->foreign_type(), $value->singular_table_name());	
 		}
-		else
-		{
-			$foreign_key = $value->singular_table_name().'_id';
-			$foreign_id = $value->read_attribute($value->primary_key());
-
-			# Add Association
-			$jot->write_attribute($foreign_key, $foreign_id);
-		}	
+		
+		# Write key
+		$this->object->write_attribute($this->foreign_key(), $value->read_attribute($value->primary_key()));
 	}
 
 	public function read()
 	{
-		$options = $this->options();
-		$object = $this->object;
-		$key = $this->name;
-								
-		if (  value_for_key('polymorphic', $options) )
-		{
-			$foreign_type = $object->read_attribute($key.'_type');
-			
-			$modelName = ucwords($foreign_type).'_Model';
+		# What is the class of the associated object?
+		$class_name = $this->class_name();
+		
+		# Load the class
+		$this->load->model($class_name);
 
-			$this->load->model($modelName);
-
-			$id = $object->read_attribute($key.'_id');
-		}
-		else
-		{
-			$modelName = ucwords($key).'_Model';
-
-			$this->load->model($modelName);
-			
-			$foreign_type = $key.'_id';
-			
-			$id = $object->read_attribute($foreign_type);
-		}
+		# Conditions to load associated object
+		$conditions = array(
+			$this->$class_name->primary_key() => $this->object_id()
+		);
+		
+		# Load associated object
+		return $this->$class_name->first($conditions);
+	}
 	
-		$conditions = array($this->$modelName->primary_key() => $id);
-					
-		return $this->$modelName->first($conditions);
+	protected function object_id()
+	{
+		return $this->object->read_attribute($this->name.'_id');
+	}
+	
+	protected function foreign_key()
+	{
+		return value_for_key('foreign_key', $this->options, $this->name.'_id');
+	}
+	
+	protected function foreign_type()
+	{		
+		return value_for_key('foreign_type', $this->options, $this->name.'_type');
+	}
+	
+	protected function class_name()
+	{	
+		if ( $this->polymorphic() ) {
+			$default = $this->object->read_attribute($this->foreign_type());  
+		}
+		else {
+			$default = $this->name;
+		}
+						
+		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
+	}
+	
+	protected function polymorphic()
+	{
+		return !!value_for_key('polymorphic', $this->options);
 	}
 }
