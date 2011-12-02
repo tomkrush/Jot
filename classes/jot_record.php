@@ -1385,6 +1385,7 @@ public function instantiate($attributes = array(), $options = array())
 		# Get value for primary key
 		$id = value_for_key($this->primary_key(), $attributes);
 
+		# Check if object exists in identity map.
 		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
 			# Object is in Identity Map
