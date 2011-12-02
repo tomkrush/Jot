@@ -1496,7 +1496,7 @@ public function __get($key)
 {
 	$CI =& get_instance();
 	
-	# Return property from CodeIgniter if exists
+	# Return property from CodeIgniter if exists.
 	if ( property_exists($CI, $key) )
 	{
 		return $CI->$key;
@@ -1508,19 +1508,19 @@ public function __get($key)
 		return $this->read_attachment($key);
 	}
 	
-	# Return association with key
+	# Return association with key.
 	if ( $this->has_association($key) )
 	{
 		return $this->read_association($key);
 	}
 	
-	# Retrieve attribute if getter function exists
+	# Retrieve attribute if getter function exists.
 	if ( $this->has_read_attribute_function($key) )
 	{
 		return $this->read_attribute_function($key);
 	}
 	
-	# Only retrieve attribute if it exists
+	# Only retrieve attribute if it exists.
 	if ( $this->has_attribute($key) )
 	{
 		return $this->read_attribute($key);
