@@ -1459,8 +1459,15 @@ public function __set($key, $value)
 # Allows for meta functions to exist.
 public function __call($name, $arguments)
 {
+	# Pseudo method to make creating new associated objects faster.
+	if ( substr($name, 0, 7) == 'create_' )
+	{		
+		$association = $this->get_association(strtolower(substr($name, 7)));
+		return $association ? $association->create($aruments[0]) : FALSE;
+	}
+
 	# Pseudo method to make accessing find_by_ faster.
-	if ( substr($name, 0, 8) == 'find_by_' )
+	elseif ( substr($name, 0, 8) == 'find_by_' )
 	{
 		$field = substr($name, 8);
 		

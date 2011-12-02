@@ -15,6 +15,7 @@ abstract class JotAssociation
 	
 	abstract public function write($value);
 	abstract public function read();
+	abstract public function create($attributes);
 	
 	public function options()
 	{
@@ -35,6 +36,11 @@ abstract class JotAssociation
 
 class JotHasManyAssociation extends JotAssociation
 {
+	public function create($attributes)
+	{
+		return FALSE;
+	}
+
 	public function write($value)
 	{
 		$options = $this->options();
@@ -107,6 +113,24 @@ class JotHasManyAssociation extends JotAssociation
 
 class JotHasOneAssociation extends JotAssociation
 {
+	public function create($attributes)
+	{		
+		$jot = $this->object;
+		$key = $this->name;
+		
+		$modelName = ucwords($key).'_Model';
+		$object = $this->load->model($modelName);
+		
+		# Create associated object.
+		$foreign_type = $jot->singular_table_name().'_id';
+		$foreign_id = $jot->read_attribute($foreign_type);
+
+		# Add Association
+		$attributes[$foreign_type] = $foreign_id;
+
+		return $this->$modelName->create($attributes);
+	}
+
 	public function write($value) 
 	{
 		$options = $this->options();
@@ -177,6 +201,26 @@ class JotHasOneAssociation extends JotAssociation
 
 class JotBelongsToAssociation extends JotAssociation
 {
+	public function create($attributes)
+	{
+		$jot = $this->object;
+		$key = $this->name;
+		
+		$modelName = ucwords($key).'_Model';
+		$object = $this->load->model($modelName);
+		
+		# Create associated object.
+		$object = $this->$modelName->create($attributes);
+
+		# Create association with this model.
+		$foreign_type = $object->singular_table_name().'_id';
+		$foreign_id = $object->read_attribute($object->primary_key());
+
+		$jot->update_attribute($foreign_type, $foreign_id);
+
+		return $object;
+	}
+
 	public function write($value)
 	{
 		$options = $this->options();
