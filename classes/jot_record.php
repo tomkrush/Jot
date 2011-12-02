@@ -687,7 +687,7 @@ public function save($validate  = TRUE)
 protected function _update()
 {
 	# Set created and updated at attributes if timestamps exist.
-		if ( $this->timestamps)
+	if ( $this->timestamps)
 	{
 		$this->write_attribute($this->updated_at_column_name, time());
 	}	
