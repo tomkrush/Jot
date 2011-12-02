@@ -103,6 +103,102 @@ class JotImage
 		$height = $this->getheight() * $ratio;
 		$this->resize($width,$height, FALSE);
 	}
+	
+	function style($instructions)
+	{
+		$actual_width = $this->getWidth();
+		$actual_height = $this->getHeight();	
+	
+		preg_match("/(?P<width>[0-9]*)x(?P<height>[0-9]*)((\+(?P<x>[0-9]*)\+(?P<y>[0-9]*))|(?P<action>.*))/", $instructions, $matches);
+		
+		$width = value_for_key('width', $matches);
+		$height = value_for_key('height', $matches);
+		$action = value_for_key('action', $matches);
+		$x = value_for_key('x', $matches);
+		$y = value_for_key('y', $matches);
+
+		if ( is_numeric($x) && is_numeric($y))
+		{
+			$this->crop(-$x, -$y, $width, $height);
+		}
+		else
+		{
+			switch(strtolower($action))
+			{		
+				# Resize, if necessary crop			
+				case '#';
+					$this->resize_and_clip($width, $height);
+				break;
+
+				# Resize, if necessary crop to lower right
+				case '#nw':
+					$this->resize_and_clip($width, $height, 'nw');		
+				break;
+
+				# Resize, if necessary crop to upper right
+				case '#ne':
+					$this->resize_and_clip($width, $height, 'ne');		
+				break;
+				
+				# Resize, if necessary crop to Upper Left
+				case '#sw':
+					$this->resize_and_clip($width, $height, 'sw');							
+				break;
+				
+				
+				# Resize, if necessary crop to lower right
+				case '#se':
+					$this->resize_and_clip($width, $height, 'se');							
+				break;
+
+				# Crop to Upper Left
+				case 'nw':
+					$this->crop(0, 0, $width, $height);
+				break;
+				
+				# Crop to Upper Right
+				case 'ne':
+					$this->crop(-($actual_width - $width), 0, $width, $height);
+				break;
+
+				# Crop to Lower Left
+				case 'sw':
+					$this->crop(0, -($actual_height - $height), $width, $height);
+				break;
+
+				# Crop to Upper Right
+				case 'se':
+					$this->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
+				break;
+		
+				# 
+				case '>':
+					if ( $actual_width > $width && $actual_height > $height )
+					{
+						$this->resize($width, $height, TRUE);					
+					}
+				break;
+
+				
+				case '<':
+					if ( $actual_width < $width || $actual_height < $height )
+					{
+						$this->resize($width, $height, TRUE);					
+					}
+				break;
+		
+				# Force width and height
+				case '!':
+					$this->resize($width, $height, FALSE);					
+				break;
+		
+				# I Forget...
+				default:
+					$this->resize($width, $height, TRUE);					
+				break;
+			}
+		}	
+	}
 
 	function scale($scale) 
 	{
@@ -161,7 +257,7 @@ class JotImage
 			$this->resize($width, $height);
 		}		
 	}
-
+	
 	function crop($x, $y, $width, $height)
 	{
 		$new_image = imagecreatetruecolor($width, $height);

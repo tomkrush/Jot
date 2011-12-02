@@ -1154,103 +1154,12 @@ public function generate_attachment_styles($attachment)
 			{
 				mkdir($dir);
 			}
-										
-			preg_match("/(?P<width>[0-9]*)x(?P<height>[0-9]*)((\+(?P<x>[0-9]*)\+(?P<y>[0-9]*))|(?P<action>.*))/", $dimensions, $matches);
-
-			$width = value_for_key('width', $matches);
-			$height = value_for_key('height', $matches);
-			$action = value_for_key('action', $matches);
-			$x = value_for_key('x', $matches);
-			$y = value_for_key('y', $matches);
 												
 			$file_name = $this->read_attribute("{$attachment->name}_file_name");
 			$image = new JotImage;
 			$image->load($attachment->file_path);
-			
-			$actual_width = $image->getWidth();
-			$actual_height = $image->getHeight();
-
-			if ( is_numeric($x) && is_numeric($y))
-			{
-				$image->crop(-$x, -$y, $width, $height);
-			}
-			else
-			{
-				switch(strtolower($action))
-				{		
-					# Resize, if necessary crop			
-					case '#';
-						$image->resize_and_clip($width, $height);
-					break;
-
-					# Resize, if necessary crop to lower right
-					case '#nw':
-						$image->resize_and_clip($width, $height, 'nw');		
-					break;
-
-					# Resize, if necessary crop to upper right
-					case '#ne':
-						$image->resize_and_clip($width, $height, 'ne');		
-					break;
-					
-					# Resize, if necessary crop to Upper Left
-					case '#sw':
-						$image->resize_and_clip($width, $height, 'sw');							
-					break;
-					
-					
-					# Resize, if necessary crop to lower right
-					case '#se':
-						$image->resize_and_clip($width, $height, 'se');							
-					break;
-
-					# Crop to Upper Left
-					case 'nw':
-						$image->crop(0, 0, $width, $height);
-					break;
-					
-					# Crop to Upper Right
-					case 'ne':
-						$image->crop(-($actual_width - $width), 0, $width, $height);
-					break;
-
-					# Crop to Lower Left
-					case 'sw':
-						$image->crop(0, -($actual_height - $height), $width, $height);
-					break;
-
-					# Crop to Upper Right
-					case 'se':
-						$image->crop(-($actual_width - $width), -($actual_height - $height), $width, $height);
-					break;
-			
-					# 
-					case '>':
-						if ( $actual_width > $width && $actual_height > $height )
-						{
-							$image->resize($width, $height, TRUE);					
-						}
-					break;
-
-					
-					case '<':
-						if ( $actual_width < $width || $actual_height < $height )
-						{
-							$image->resize($width, $height, TRUE);					
-						}
-					break;
-			
-					# Force width and height
-					case '!':
-						$image->resize($width, $height, FALSE);					
-					break;
-			
-					# I Forget...
-					default:
-						$image->resize($width, $height, TRUE);					
-					break;
-				}
-			}			
+		
+			$image->style($dimensions);
 		
 			$image->save($attachment->file_path($name));
 		}
