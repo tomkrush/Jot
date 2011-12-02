@@ -43,71 +43,85 @@ class JotHasManyAssociation extends JotAssociation
 
 	public function set($value)
 	{
-		$options = $this->options();
-		$jot = $this->object;
-		$key = $this->name;
-					
-		$foreign_id = $jot->read_attribute($jot->primary_key());
+		$foreign_key = $this->foreign_key();
+		$id = $this->object_id();
 		
-		if ( $polymorphic = value_for_key('as', $options) )
+		if ( $as = $this->polymorphic() )
 		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_key = $polymorphic.'_id';
+			$foreign_type = $as.'_type';
 			
 			foreach($value as $object)
 			{
 				$object->update_attributes(array(
-					$foreign_type => $jot->singular_table_name(),
-					$foreign_key => $foreign_id
+					$foreign_type => $this->object->singular_table_name(),
+					$foreign_key => $id
 				));
 			}
 		}
 		else
 		{
-			$foreign_key = $jot->singular_table_name().'_id';
-			$foreign_id = $jot->read_attribute($jot->primary_key());
-
 			foreach($value as $object)
 			{
-				$object->update_attribute($foreign_key, $foreign_id);
+				$object->update_attribute($foreign_key, $id);
 			}
 		}
 	}
 
 	public function get()
 	{
-		$options = $this->options();
-		$jot = $this->object;
-		$key = $this->name;
+		# Create Object
+		$class_name = $this->class_name();	
 
-		# Create Object			
-		$modelName = ucwords($this->inflector->singularize($key)).'_Model';
+		$this->load->model($class_name);
 
-		$this->load->model($modelName);
-
-		$object = new $modelName;
-		$id = $jot->read_attribute($jot->primary_key());
+		$object = new $class_name;
 		
-		if ( $polymorphic = value_for_key('as', $options) )
-		{
-			$foreign_type = $polymorphic.'_type';
-			$foreign_id = $polymorphic.'_id';
-			
+		$foreign_key = $this->foreign_key();
+		
+		$id = $this->object_id();
+
+		if ( $as = $this->polymorphic() )
+		{			
 			$object->set_base_filter(array(
-				$foreign_type => $jot->singular_table_name(),
-				$foreign_id => $id
+				$as.'_type' => $this->object->singular_table_name(),
+				$foreign_key => $id
 			));
 		}
 		else
 		{
-			$foreign_type = $jot->singular_table_name().'_id';
-
 			$object->set_base_filter(array(
-				$foreign_type => $id
+				$foreign_key => $id
 			));
 		}
 												
 		return $object;
+	}
+
+	protected function polymorphic()
+	{
+		return value_for_key('as', $this->options);
+	}
+		
+	protected function foreign_key()
+	{
+		if ( $as = $this->polymorphic() ) {
+			$default = $as.'_id';
+		} else {
+			$default = $this->object->singular_table_name().'_id';
+		}
+		
+		return value_for_key('foreign_key', $this->options, $default);
+	}
+	
+	protected function object_id()
+	{
+		return $this->object->read_attribute($this->object->primary_key());
+	}
+
+	protected function class_name()
+	{		
+		$default = $this->inflector->singularize($this->name);	
+		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
 	}
 }
 
