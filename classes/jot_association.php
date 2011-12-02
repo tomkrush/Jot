@@ -201,6 +201,7 @@ class JotHasOneAssociation extends JotAssociation
 
 class JotBelongsToAssociation extends JotAssociation
 {
+	# Create new association
 	public function create($attributes)
 	{				
 		$class_name = $this->class_name();
@@ -219,6 +220,7 @@ class JotBelongsToAssociation extends JotAssociation
 	}
 
 	public function write($value)
+	# Associated object
 	{
 		# Polymorphic writes a foreign type.
 		if ( $this->polymorphic() )
@@ -231,6 +233,7 @@ class JotBelongsToAssociation extends JotAssociation
 	}
 
 	public function read()
+	# Retrieve associated object.
 	{
 		# What is the class of the associated object?
 		$class_name = $this->class_name();
@@ -262,18 +265,25 @@ class JotBelongsToAssociation extends JotAssociation
 		return value_for_key('foreign_type', $this->options, $this->name.'_type');
 	}
 	
+	# Return user defined class_name otherwise use default.			
 	protected function class_name()
 	{	
-		if ( $this->polymorphic() ) {
+		# Return stored class name
+		if ( $this->polymorphic() ) 
+		{
 			$default = $this->object->read_attribute($this->foreign_type());  
 		}
-		else {
+		
+		# Use name of object
+		else 
+		{
 			$default = $this->name;
 		}
-						
+			
 		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
 	}
 	
+	# Return whether association is polymorphic.
 	protected function polymorphic()
 	{
 		return !!value_for_key('polymorphic', $this->options);
