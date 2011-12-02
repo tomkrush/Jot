@@ -322,7 +322,7 @@ public function touch()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
-public $base_filter = null;
+private $base_filter = null;
 
 protected $associations = array();
 
