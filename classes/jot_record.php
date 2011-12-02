@@ -329,13 +329,13 @@ protected $associations = array();
 public function write_association($name, $value)
 {	
 	$association = $this->get_association($name);
-	if ($association) $association->write($value);
+	if ($association) $association->set($value);
 }
 
 public function read_association($key)
 {
 	$association = $this->get_association($key);
-	return $association ? $association->read() : NULL;
+	return $association ? $association->get() : NULL;
 }
 
 public function set_base_filter($conditions)

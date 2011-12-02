@@ -13,8 +13,8 @@ abstract class JotAssociation
 		$this->options = $options;
 	}
 	
-	abstract public function write($value);
-	abstract public function read();
+	abstract public function set($value);
+	abstract public function get();
 	abstract public function create($attributes);
 	
 	public function options()
@@ -41,7 +41,7 @@ class JotHasManyAssociation extends JotAssociation
 		return FALSE;
 	}
 
-	public function write($value)
+	public function set($value)
 	{
 		$options = $this->options();
 		$jot = $this->object;
@@ -74,7 +74,7 @@ class JotHasManyAssociation extends JotAssociation
 		}
 	}
 
-	public function read()
+	public function get()
 	{
 		$options = $this->options();
 		$jot = $this->object;
@@ -131,7 +131,7 @@ class JotHasOneAssociation extends JotAssociation
 		return $this->$modelName->create($attributes);
 	}
 
-	public function write($value) 
+	public function set($value) 
 	{
 		$options = $this->options();
 		$object = $this->object;
@@ -158,7 +158,7 @@ class JotHasOneAssociation extends JotAssociation
 		}
 	}
 
-	public function read()
+	public function get()
 	{
 		$options = $this->options();
 		$object = $this->object;
@@ -219,8 +219,8 @@ class JotBelongsToAssociation extends JotAssociation
 		return $object;
 	}
 
-	public function write($value)
 	# Associated object
+	public function set($value)
 	{
 		# Polymorphic writes a foreign type.
 		if ( $this->polymorphic() )
@@ -232,8 +232,8 @@ class JotBelongsToAssociation extends JotAssociation
 		$this->object->write_attribute($this->foreign_key(), $value->read_attribute($value->primary_key()));
 	}
 
-	public function read()
 	# Retrieve associated object.
+	public function get()
 	{
 		# What is the class of the associated object?
 		$class_name = $this->class_name();
