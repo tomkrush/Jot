@@ -94,24 +94,17 @@ class JotHasManyAssociation extends JotAssociation
 
 		$object = new $class_name;
 		
-		$foreign_key = $this->foreign_key();
-		
-		$id = $this->object_id();
+		$base_filter = array();
 
 		if ( $as = $this->polymorphic() )
-		{			
-			$object->set_base_filter(array(
-				$as.'_type' => $this->object->singular_table_name(),
-				$foreign_key => $id
-			));
+		{	
+			$base_filter[$as.'_type'] = $this->object->singular_table_name();
 		}
-		else
-		{
-			$object->set_base_filter(array(
-				$foreign_key => $id
-			));
-		}
-												
+		
+		$base_filter[$this->foreign_key()] = $this->object_id();
+
+		$object->set_base_filter($base_filter);
+															
 		return $object;
 	}
 
@@ -122,13 +115,17 @@ class JotHasManyAssociation extends JotAssociation
 		
 	protected function foreign_key()
 	{
-		if ( $as = $this->polymorphic() ) {
-			$default = $as.'_id';
-		} else {
-			$default = $this->object->singular_table_name().'_id';
+		return value_for_key('foreign_key', $this->options, $this->name().'_id');
+	}
+	
+	protected function name()
+	{
+		if ( $as = $this->polymorphic() )	
+		{
+			return $as;
 		}
-		
-		return value_for_key('foreign_key', $this->options, $default);
+
+		return $this->object->singular_table_name();
 	}
 	
 	protected function object_id()
