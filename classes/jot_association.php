@@ -92,7 +92,13 @@ class JotHasManyAssociation extends JotAssociation
 
 		$this->load->model($class_name);
 
-		$object = new $class_name;
+		$options = array();
+		
+		if ( $order = $this->order() ){
+			$options['order'] = $order;
+		}
+
+		$object = new $class_name(NULL, $options);
 		
 		$base_filter = array();
 
@@ -106,6 +112,11 @@ class JotHasManyAssociation extends JotAssociation
 		$object->set_base_filter($base_filter);
 															
 		return $object;
+	}
+	
+	protected function order()
+	{
+		return value_for_key('order', $this->options);
 	}
 
 	protected function polymorphic()

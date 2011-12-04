@@ -791,19 +791,31 @@ public function exists($conditions = array())
 
 # Returns first row using conditions
 public function first($conditions = array())
-{						
-	$this->order = $this->primary_key().' ASC';
-
-	$result = $this->find($conditions, 0, 1);
-	return count($result) ? $result[0] : NULL;
+{
+	return $this->first_or_last('first', $conditions);
 }
 
 # Returns last row using conditions
 public function last($conditions = array())
-{			
-	$this->order = $this->primary_key().' DESC';
+{
+	return $this->first_or_last('last', $conditions);
+}
 
+protected function first_or_last($type, $conditions = array()) 
+{
+	$_order = $this->_order();
+
+	if ( $type == 'last' )
+	{
+		$order = strtolower($_order);
+		$order = str_replace('desc', 'ASC', $order);
+		$this->order = str_replace('asc', 'DESC', $order);
+	}
+	
 	$result = $this->find($conditions, 0, 1);
+
+	$this->order = $order;
+		
 	return count($result) ? $result[0] : NULL;
 }
 
@@ -1352,6 +1364,11 @@ public function __construct($attributes = array(), $options = array())
 		));
 		
 		$loaded = TRUE;
+	}
+	
+	if ( $order = value_for_key('order', $options) ) 
+	{	
+		$this->order = $order;
 	}
 	
 	# If attributes exist assign them.
