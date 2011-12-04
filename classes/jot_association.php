@@ -148,7 +148,7 @@ class JotHasOneAssociation extends JotAssociation
 	public function create($attributes)
 	{		
 		$class_name = $this->class_name();
-		
+
 		# Create associated object.
 		return $this->$class_name->create(array(
 			$this->foreign_key() => $this->object_id()
@@ -173,13 +173,12 @@ class JotHasOneAssociation extends JotAssociation
 	public function get()
 	{
 		$class_name = $this->class_name();
+		
 		$this->load->model($class_name);
-		
-		$foreign_key = $this->foreign_key();
-		
+				
 		# Create Conditions
 		$conditions = array(
-			$foreign_key => $this->object_id()
+			$this->foreign_key() => $this->object_id()
 		);	
 
 		if ( $as = $this->polymorphic() )
@@ -198,18 +197,22 @@ class JotHasOneAssociation extends JotAssociation
 		
 	protected function foreign_key()
 	{
-		if ( $as = $this->polymorphic() ) {
-			$default = $as.'_id';
-		} else {
-			$default = $this->object->singular_table_name().'_id';
-		}
-		
-		return value_for_key('foreign_key', $this->options, $default);
+		return value_for_key('foreign_key', $this->options, $this->name().'_id');
 	}
 
 	protected function object_id()
 	{
 		return $this->object->read_attribute($this->object->primary_key());
+	}
+
+	protected function name()
+	{
+		if ( $as = $this->polymorphic() )	
+		{
+			return $as;
+		}
+
+		return $this->object->singular_table_name();
 	}
 
 	protected function class_name()
@@ -225,7 +228,7 @@ class JotHasOneAssociation extends JotAssociation
 		{
 			$default = $this->name;
 		}
-		
+				
 		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
 	}
 }
@@ -242,10 +245,7 @@ class JotBelongsToAssociation extends JotAssociation
 		$object = $this->$class_name->create($attributes);
 
 		# Create association with this model.
-		$foreign_type = $object->singular_table_name().'_id';
-		$foreign_id = $object->read_attribute($object->primary_key());
-
-		$this->object->update_attribute($foreign_type, $foreign_id);
+		$this->object->update_attribute($this->foreign_key(), $this->object_id());
 
 		return $object;
 	}
@@ -271,7 +271,7 @@ class JotBelongsToAssociation extends JotAssociation
 	{
 		# What is the class of the associated object?
 		$class_name = $this->class_name();
-		
+				
 		# Load the class
 		$this->load->model($class_name);
 
@@ -279,24 +279,40 @@ class JotBelongsToAssociation extends JotAssociation
 		$conditions = array(
 			$this->$class_name->primary_key() => $this->object_id()
 		);
-		
+				
 		# Load associated object
 		return $this->$class_name->first($conditions);
 	}
 	
 	protected function object_id()
 	{
-		return $this->object->read_attribute($this->name.'_id');
+		$class_name = $this->class_name();
+		$name = $this->name();
+	
+		return $this->object->read_attribute($this->foreign_key());
+	}
+	
+	protected function name()
+	{
+		if ( $this->polymorphic() )	
+		{
+			return $this->name;
+		}
+		
+		$class_name = $this->class_name();
+		$this->load->model($class_name);
+		
+		return $this->$class_name->singular_table_name();
 	}
 	
 	protected function foreign_key()
-	{
-		return value_for_key('foreign_key', $this->options, $this->name.'_id');
+	{	
+		return value_for_key('foreign_key', $this->options, $this->name().'_id');
 	}
 	
 	protected function foreign_type()
 	{		
-		return value_for_key('foreign_type', $this->options, $this->name.'_type');
+		return value_for_key('foreign_type', $this->options, $this->name().'_type');
 	}
 	
 	# Return user defined class_name otherwise use default.			
