@@ -814,7 +814,7 @@ protected function first_or_last($type, $conditions = array())
 	
 	$result = $this->find($conditions, 0, 1);
 
-	$this->order = $order;
+	$this->order = $_order;
 		
 	return count($result) ? $result[0] : NULL;
 }
