@@ -98,7 +98,7 @@ class JotHasManyAssociation extends JotAssociation
 			$options['order'] = $order;
 		}
 		
-		if ( $limit = $this->order() ){
+		if ( $limit = $this->limit() ){
 			$options['limit'] = $limit;
 		}
 
