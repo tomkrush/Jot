@@ -1366,11 +1366,13 @@ public function __construct($attributes = array(), $options = array())
 		$loaded = TRUE;
 	}
 	
+	# Set default order
 	if ( $order = value_for_key('order', $options) ) 
 	{	
 		$this->order = $order;
 	}
 	
+	# Set default limit
 	if ( $limit = value_for_key('limit', $options) ) 
 	{	
 		$this->limit = $limit;

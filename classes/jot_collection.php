@@ -2,11 +2,7 @@
 
 class JotCollection extends ArrayObject
 {
-	public function contains( $value )
-	{
-		return in_array( $value, (array)$this );
-	}
-	
+	# Return array from key value mapping.	
 	public function map($key, $value)
 	{
 		$mapping = array();
@@ -19,6 +15,7 @@ class JotCollection extends ArrayObject
 		return $mapping;
 	}
 	
+	# Return json object
 	public function to_json()
 	{
 		$objects = array();
@@ -31,6 +28,7 @@ class JotCollection extends ArrayObject
 		return json_encode($objects);
 	}
 	
+	# Return string
 	public function __toString()
 	{
 		$string = array();
