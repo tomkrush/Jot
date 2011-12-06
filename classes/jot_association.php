@@ -97,6 +97,10 @@ class JotHasManyAssociation extends JotAssociation
 		if ( $order = $this->order() ){
 			$options['order'] = $order;
 		}
+		
+		if ( $limit = $this->order() ){
+			$options['limit'] = $limit;
+		}
 
 		$object = new $class_name(NULL, $options);
 		
@@ -112,6 +116,11 @@ class JotHasManyAssociation extends JotAssociation
 		$object->set_base_filter($base_filter);
 															
 		return $object;
+	}
+	
+	protected function limit()
+	{
+		return value_for_key('limit', $this->options);
 	}
 	
 	protected function order()

@@ -3,8 +3,6 @@
 class JotRecord extends CI_Model implements Serializable
 {
 
-protected $default_limit = 10;
-
 /*-------------------------------------------------
 ATTRIBUTE METHODS
 -------------------------------------------------*/
@@ -993,7 +991,7 @@ protected function _limit()
 	# Set limit to default (Only when unset)
 	if ( ! isset($this->limit) )
 	{
-		$this->limit = $this->default_limit;
+		$this->limit = 10;
 	}
 	
 	# If limit is -1. Than limit is unlimited.
@@ -1369,6 +1367,11 @@ public function __construct($attributes = array(), $options = array())
 	if ( $order = value_for_key('order', $options) ) 
 	{	
 		$this->order = $order;
+	}
+	
+	if ( $limit = value_for_key('limit', $options) ) 
+	{	
+		$this->limit = $limit;
 	}
 	
 	# If attributes exist assign them.
