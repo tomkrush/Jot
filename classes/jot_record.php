@@ -910,8 +910,10 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	$r->result_object();
 	$result = array();
 	
+	$result = new JotCollection;
+	
 	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
-	{			
+	{
 		$result[] = $this->instantiate($r->result_object[$i], array(
 			'new_record' => FALSE,
 		));

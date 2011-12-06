@@ -17,3 +17,6 @@ require 'classes/jot_record.php';
 
 # Jot Implementation of Active Record Form
 require 'classes/jot_form.php';
+
+# Jot Implementation of Collections
+require 'classes/jot_collection.php';
