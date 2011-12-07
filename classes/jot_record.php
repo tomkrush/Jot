@@ -320,8 +320,7 @@ public function touch()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
-protected $base_filter = null;
-
+protected $conditions = array();
 protected $associations = array();
 
 public function write_association($name, $value)
@@ -334,12 +333,6 @@ public function read_association($key)
 {
 	$association = $this->get_association($key);
 	return $association ? $association->get() : NULL;
-}
-
-public function set_base_filter($conditions)
-{
-	if (is_array($conditions) === false) return;
-	$this->base_filter = $conditions;
 }
 
 protected function has_one($association, $options = array())
@@ -960,11 +953,8 @@ protected function _conditions($conditions = array())
 		$conditions = array($conditions);
 	}	
 		
-	# Set Base Filter
-	if ($this->base_filter !== null)
-	{
-		$conditions = array_merge($this->base_filter, $conditions);
-	}	
+	# Set Conditions
+	$conditions = array_merge($this->conditions, $conditions);
 	
 	# Return empty array if conditions do not exist
 	if ( $conditions == NULL ) 
@@ -1009,7 +999,7 @@ protected function _limit()
 protected function _order()
 {
 	# Set default order
-	if ( !isset($this->order) )
+	if ( ! isset($this->order) )
 	{
 		$this->order = $this->primary_key().' ASC';
 	}
@@ -1377,7 +1367,13 @@ public function __construct($attributes = array(), $options = array())
 	{	
 		$this->limit = $limit;
 	}
-	
+
+	# Set default limit
+	if ( $conditions = value_for_key('conditions', $options) ) 
+	{	
+		$this->conditions = $conditions;
+	}
+
 	# If attributes exist assign them.
 	if ( $attributes && (is_object($attributes) || (is_array($attributes) && count($attributes) > 0)) )
 	{

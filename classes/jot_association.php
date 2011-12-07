@@ -94,28 +94,35 @@ class JotHasManyAssociation extends JotAssociation
 
 		$options = array();
 		
-		if ( $order = $this->order() ){
+		if ( $order = $this->order() ) {
 			$options['order'] = $order;
 		}
 		
-		if ( $limit = $this->limit() ){
+		if ( $limit = $this->limit() ) {
 			$options['limit'] = $limit;
+		}
+		
+		if ( $conditions = $this->conditions() ) {
+			$options['conditions'] = $conditions;
 		}
 
 		$object = new $class_name(NULL, $options);
 		
-		$base_filter = array();
-
+		return $object;
+	}
+	
+	protected function conditions()
+	{
+		$conditions = value_for_key('conditions', $this->options, array());
+		
 		if ( $as = $this->polymorphic() )
-		{	
-			$base_filter[$as.'_type'] = $this->object->singular_table_name();
+		{
+			$conditions[$as.'_type'] = $this->object->singular_table_name();
 		}
 		
-		$base_filter[$this->foreign_key()] = $this->object_id();
-
-		$object->set_base_filter($base_filter);
-															
-		return $object;
+		$conditions[$this->foreign_key()] = $this->object_id();
+		
+		return $conditions;
 	}
 	
 	protected function limit()
