@@ -953,7 +953,7 @@ protected function _conditions($conditions = array())
 	}	
 		
 	# Set Conditions
-	$conditions = array_merge($this->conditions, $conditions);
+	$conditions = is_array($conditions) ? array_merge($this->conditions, $conditions) : $this->conditions;
 	
 	# Return empty array if conditions do not exist
 	if ( $conditions == NULL ) 
