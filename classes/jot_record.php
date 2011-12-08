@@ -892,8 +892,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	# Limit and Offset
 	if ( $this->_limit() )
 	{
-		$this->db->limit($this->_limit());
-		$this->db->offset($offset);
+		$this->db->limit($this->_limit(), $offset);
 	}
 
 	# Instantiate jot objects from database rows.
