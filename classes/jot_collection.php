@@ -29,7 +29,7 @@ class JotCollection extends ArrayObject
 				$clean = array();
 				foreach ($options['only'] as $attribute)
 				{
-					$clean[$attribute] = $attributes[$attribute];
+					$clean[$attribute] = isset($attributes[$attribute]) ? $attributes[$attribute] : $object->$attribute;
 				}
 				$attributes = $clean;
 			}
