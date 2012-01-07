@@ -81,13 +81,41 @@ class JotCollection extends ArrayObject
 	}
 	
 	# Return json object
-	public function to_json()
+	public function to_json($options = array())
 	{
+		
 		$objects = array();
 		
 		foreach($this as $object) 
 		{
-			$objects[] = $object->attributes();
+			$attributes = $object->attributes();
+			if (value_for_key('only', $options) && is_array($options['only']))
+			{
+				$clean = array();
+				foreach ($options['only'] as $attribute)
+				{
+					$clean[$attribute] = isset($attributes[$attribute]) ? $attributes[$attribute] : $object->$attribute;
+				}
+				$attributes = $clean;
+			}
+			elseif (value_for_key('except', $options) && is_array($options['except']))
+			{
+				foreach ($options['except'] as $attribute)
+				{
+					unset($attributes[$attribute]);
+				}
+			}
+			if (value_for_key('include', $options) && is_array($options['include']))
+			{
+				foreach ($options['include'] as $include)
+				{
+					if ($object->$include && $object->$include->attributes()) 
+					{
+						$attributes[$include] = $object->$include->attributes();
+					}
+				}
+			}
+			$objects[] = $attributes;
 		}
 
 		return json_encode($objects);

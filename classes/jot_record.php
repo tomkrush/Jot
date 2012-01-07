@@ -879,7 +879,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		# Page isset so lets do the math and fix things up.
 		if (isset($conf['page']) && $page = $conf['page'])
 		{
-			$offset = $this->limit * ($page - 1);
+			$offset = $this->_limit() * ($page - 1);
 		}
 	}
 
@@ -892,8 +892,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	# Limit and Offset
 	if ( $this->_limit() )
 	{
-		$this->db->limit($this->_limit());
-		$this->db->offset($offset);
+		$this->db->limit($this->_limit(), $offset);
 	}
 
 	# Instantiate jot objects from database rows.
@@ -954,7 +953,7 @@ protected function _conditions($conditions = array())
 	}	
 		
 	# Set Conditions
-	$conditions = array_merge($this->conditions, $conditions);
+	$conditions = is_array($conditions) ? array_merge($this->conditions, $conditions) : $this->conditions;
 	
 	# Return empty array if conditions do not exist
 	if ( $conditions == NULL ) 
@@ -1107,18 +1106,20 @@ public function has_attached_file($name, $options = array())
 	$this->attachments[$name] = new JotAttachment($name, $this, $options);
 	$this->add_transient($name);
 	
-	$this->before_save('save_attached_files');
+	if ( ! in_array('save_attached_files', value_for_key('before_save', $this->hooks) ? value_for_key('before_save', $this->hooks) : array()) )
+	{
+		$this->before_save('save_attached_files');
+	}
 }
 
 # Writes attributes to object and moves file to final path.
 public function save_attached_files()
-{	
+{
 	foreach($this->attachments as $name => $attachment)
 	{
 		# If file exists lets attach it.
 		if ( $file = $this->_files($name) )
 		{
-			
 			# Write attributes
 			$this->write_attribute("{$name}_file_name", $file['name']);
 			$this->write_attribute("{$name}_content_type", $file['type']);
@@ -1300,21 +1301,20 @@ public function _files($attachment_name)
 				$file = value_for_key($this->singular_table_name(), $_FILES);
 				$filename = value_for_key("name.{$name}", $file);
 				
-				if ( ! $filename ) 
+				if ( $filename ) 
 				{
-					return false;
+				
+					$info = pathinfo($filename);
+					$ext = value_for_key('extension', $info);
+	
+					# Create file cache instance
+					$type = value_for_key("type.{$name}", $file);
+					$tmp_name = value_for_key("tmp_name.{$name}", $file);
+					$error = value_for_key("error.{$name}", $file);
+					$size = value_for_key("size.{$name}", $file);
+					
+					$this->set_file_attachment($name, $ext, $type, $tmp_name, $error, $size);
 				}
-				
-				$info = pathinfo($filename);
-				$ext = value_for_key('extension', $info);
-
-				# Create file cache instance
-				$type = value_for_key("type.{$name}", $file);
-				$tmp_name = value_for_key("tmp_name.{$name}", $file);
-				$error = value_for_key("error.{$name}", $file);
-				$size = value_for_key("size.{$name}", $file);
-				
-				$this->set_file_attachment($name, $ext, $type, $tmp_name, $error, $size);
 			}
 		}
 	}
