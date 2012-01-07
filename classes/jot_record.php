@@ -1433,13 +1433,13 @@ public function __toString()
 	
 	# Table Name
 	$string .= $this->singular_table_name();
-		
+
 	foreach($this->attributes as $attribute => $value)
 	{
 		# Handle timestamps
 		if ($attribute == 'created_at' || $attribute == 'updated_at')
 		{
-			$value = date(DateTime::W3C, $value);
+			$value = date('Y-m-d\TH:i:sP', $value);			
 		}
 		
 		# Handle Strings
@@ -1453,6 +1453,7 @@ public function __toString()
 		{
 			$fields_strings[] = $attribute.': '.$value;
 		}
+		
 	}
 		
 	# Return formatted string
