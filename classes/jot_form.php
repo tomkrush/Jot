@@ -55,9 +55,9 @@ class JotForm
 	public function check_box($field, $options = array(), $checked_value = "1", $unchecked_value = "0")
 	{				
 		$html = '';		
-		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
 
-		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
+		$options['id'] = value_for_key('id', $options, $this->field_value($field));
 		$options['value'] = $checked_value;
 		$options['checked'] = $this->field_value($field) == $checked_value ? TRUE : FALSE;
 
@@ -84,15 +84,15 @@ class JotForm
 	
 	public function file_field($field, $options = array())
 	{
-		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
-		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
+		$options['id'] = value_for_key('id', $options, $this->field_value($field));
 		
 		return form_upload($options);
 	}
 	
 	public function hidden_field($field, $options = array())
 	{
-		$name = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
 		$value = $this->field_value($field);
 		
 		return form_hidden($name, $value);		
@@ -108,17 +108,17 @@ class JotForm
 	
 	public function password_field($field, $options = array())
 	{
-		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
-		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
-		$options['value'] = $this->field_value($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
+		$options['id'] = value_for_key('id', $options, $this->field_value($field));
+		$options['value'] = value_for_key('value', $options, $this->field_value($field));
 		
 		return form_password($options);
 	}
 	
 	public function radio_button($field, $radio_value, $options = array())
 	{
-		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
-		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
+		$options['id'] = value_for_key('id', $options, $this->field_value($field));
 		$options['value'] = $radio_value;
 
 		$options['checked'] = $this->record->$field == $checked_value ? TRUE : FALSE;
@@ -128,18 +128,18 @@ class JotForm
 	
 	public function text_area($field, $options = array())
 	{
-		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
-		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
-		$options['value'] = $this->field_value($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
+		$options['id'] = value_for_key('id', $options, $this->field_value($field));
+		$options['value'] = value_for_key('value', $options, $this->field_value($field));
 		
 		return form_textarea($options);		
 	}
 	
 	public function text_field($field, $options = array())
 	{
-		$options['name'] = array_key_exists('name', $options) ? $options['name'] : $this->field_name($field);
-		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $this->field_id($field);
-		$options['value'] = $this->field_value($field);
+		$options['name'] = value_for_key('name', $options, $this->field_value($field));
+		$options['id'] = value_for_key('id', $options, $this->field_value($field));
+		$options['value'] = value_for_key('value', $options, $this->field_value($field));
 		
 		return form_input($options);		
 	}
