@@ -92,7 +92,7 @@ class JotForm
 	
 	public function hidden_field($field, $options = array())
 	{
-		$options['name'] = value_for_key('name', $options, $this->field_name($field));
+		$name = value_for_key('name', $options, $this->field_name($field));
 		$value = $this->field_value($field);
 		
 		return form_hidden($name, $value);		
