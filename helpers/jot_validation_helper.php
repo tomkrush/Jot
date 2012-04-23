@@ -122,10 +122,6 @@ if ( ! function_exists('jot_validate_confirm'))
 	{
 		$confirm_attribute = "confirm_{$attribute}";
 
-//		if ( ! $object->has_attribute($confirm_attribute) ) {
-//			return FALSE;
-//		}
-
 		if ( $object->has_attribute($attribute) && $object->has_attribute($confirm_attribute) )
 		{
 			$value = $object->read_attribute($attribute);
