@@ -18,6 +18,13 @@ class JotSchema
 		}
 	}
 	
+	public static function exists()
+	{
+		$CI =& get_instance();
+
+		return $CI->db->table_exists('schema_migrations');
+	}
+	
 	public static function version()
 	{
 		self::createIfNotExists();
@@ -87,6 +94,7 @@ class JotMigrations
 		$this->migration_path = $migration_path;
 		$this->seed_file_path = $seed_file_path;
 		
+		$this->setup();
 		$this->clear();
 	}
 	
@@ -98,6 +106,32 @@ class JotMigrations
 	public function seed_file_path()
 	{
 		return APPPATH.$this->seed_file_path;
+	}
+	
+	public function setup()
+	{
+		$folders = explode('/', $this->migration_path);
+		
+		$path = APPPATH;
+		
+		foreach($folders as $folder)
+		{
+			$path .= $folder.'/';
+			
+			if  ( ! file_exists($path) )
+			{
+				mkdir($path);
+			}
+		}
+	}
+	
+	public function latest_version()
+	{
+		$files = $this->list_migrations();
+		$last = end($files);
+		
+		$class = explode('_', $last, 2);
+		return strtotime($class[0]);
 	}
 	
 	public function up()
@@ -162,7 +196,7 @@ class JotMigrations
 	}
 	
 	public function list_migrations()
-	{
+	{		
 		if ( ! $this->migration_files )
 		{
 			$path = $this->migration_path();
@@ -218,9 +252,9 @@ define('MIGRATION_TIMESTAMPS', 1);
 
 function jot_migration_log($message)
 {
-	if ( ENVIRONMENT != 'testing')
+	if ( ENVIRONMENT != 'production')
 	{
-		echo $message."<br/>\n";
+		// echo $message."<br/>\n";
 	}
 }
 

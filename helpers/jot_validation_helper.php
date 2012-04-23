@@ -1,5 +1,13 @@
 <?php
 
+if ( ! function_exists('jot_human_readable_attribute'))
+{
+	function jot_human_readable_attribute($attribute)
+	{
+		return ucfirst(str_replace('_', ' ', $attribute));
+	}
+}
+
 if ( ! function_exists('jot_validate_required'))
 {
 	function jot_validate_required($object, $attribute, $options) 
@@ -8,7 +16,7 @@ if ( ! function_exists('jot_validate_required'))
 		
 		if ( is_blank($value) )
 		{
-			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
+			$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is required'));
 			return FALSE;
 		}
 
@@ -26,7 +34,7 @@ if ( ! function_exists('jot_validate_valid_url') )
 			
 			if ( ! is_url_valid($value) )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute).' is not a valid url.'));
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is not a valid url.'));
 				return FALSE;
 			}
 			
@@ -67,7 +75,7 @@ if ( ! function_exists('jot_validate_uniqueness'))
 
 			if ( $object->exists($conditions) )
 			{		
-				$object->add_error(array($attribute, ucfirst($attribute).' "'.$object->read_attribute($attribute).'" already exist'));
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$object->read_attribute($attribute).'" already exist'));
 		 		return FALSE;
 			}
 		}
@@ -91,13 +99,13 @@ if ( ! function_exists('jot_validate_length'))
 		
 			if ( $minimum && strlen($value) <= $minimum )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute).' "'.$value.'" must be longer than '.$minimum.' characters'));
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$value.'" must be longer than '.$minimum.' characters'));
 				$validated = FALSE;
 			}
 		
 			if ( $maximum && strlen($value) >= $maximum )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute).' "'.$value.'" must be shorter than '.$maximum.' characters'));
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$value.'" must be shorter than '.$maximum.' characters'));
 				$validated = FALSE;
 			}
 		
@@ -126,7 +134,7 @@ if ( ! function_exists('jot_validate_confirm'))
 			
 			if ( $value != $confirm )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute)." doesn't match confirmation"));
 				return FALSE;
 			}
 			
@@ -154,15 +162,15 @@ if ( ! function_exists('jot_validate_attachment_required'))
 				case 1:
 					$max_upload_size = min(let_to_num(ini_get('post_max_size')), let_to_num(ini_get('upload_max_filesize')));
 
-					$object->add_error(array($attribute, ucfirst($attribute)." was not uploaded because file is larger than {$max_upload_size}."));
+					$object->add_error(array($attribute, jot_human_readable_attribute($attribute)." was not uploaded because file is larger than {$max_upload_size}."));
 				break;
 
 				case 4:
-					$object->add_error(array($attribute, ucfirst($attribute).' is required.'));
+					$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is required.'));
 				break;
 
 				default:
-					$object->add_error(array($attribute, ucfirst($attribute).' failed to upload.'));
+					$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' failed to upload.'));
 				break;
 			}
 			
@@ -204,7 +212,7 @@ if ( ! function_exists('jot_validate_attachment_content_type'))
 									
 			if ( ! in_array($type, $options) )
 			{
-				$object->add_error(array($attribute, 'Uploaded '.ucfirst($attribute).' is a '.$type.'. Should be a '.implode(', ', $options).'.'));
+				$object->add_error(array($attribute, 'Uploaded '.jot_human_readable_attribute($attribute).' is a '.$type.'. Should be a '.implode(', ', $options).'.'));
 				return FALSE;
 			}
 		}
