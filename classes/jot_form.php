@@ -143,16 +143,69 @@ class JotForm
 		
 		return form_input($options);		
 	}
+	
+	public function time_field($field, $options = array())
+	{
+		$timestamp = $this->field_value($field);
+		
+		$timestamp = is_string($timestamp) ? $timestamp : date('H:i:s');
+
+		list($h, $m) = explode(':', $timestamp);
+		
+		$p = $h < 12 || $h == '00' ? 'am' : 'pm';
+		$h = $p == 'pm' ? ($h > 12 ? $h - 12 : $h) : ($h == '00' ? 12 : $h);
+				
+		$name = $this->field_name($field);
+
+		$html = '';
+
+		$default['id'] = $this->field_id($field);
+		$html_options = _parse_form_attributes($default, $default);
+
+		$hours = array();
+		for ($i = 1; $i <= 12; $i++)
+		{
+			$s = $i < 10 ? "0{$i}" : "{$i}";
+			$hours[$s] = $s;
+		}
+		
+		$html .= form_dropdown($name.'[hours]', $hours, $h, $html_options);
+		
+		$html .= ':';
+		
+		$minutes = array();
+		for ($i = 0; $i < 60; $i++) 
+		{
+			$s = $i < 10 ? "0{$i}" : "{$i}";
+			$minutes[$s] = $s;
+		}
+
+		$html .= form_dropdown($name.'[minutes]', $minutes, $m);
+
+		// Period
+		$period = array('am'=>'am','pm'=>'pm');
+		$html .= form_dropdown($name.'[period]', $period, $p);
+		
+		return $html;
+	}
 
 	public function date_field($field, $options = array())
 	{
 		$timestamp = $this->field_value($field);
-		$timestamp = $timestamp ? $timestamp : time();
+
+		if ( is_string($timestamp) )
+		{
+			list($y, $m, $d) = explode('-', $timestamp);
+		}
+		else
+		{
+			$timestamp = $timestamp ? $timestamp : time();	
+			$m = date('n', $timestamp);
+			$d = date('j', $timestamp);
+			$y = date('Y', $timestamp);
+		}
+
 		$name = $this->field_name($field);
-		
-		$m = date('n', $timestamp);
-		$d = date('j', $timestamp);
-		$y = date('Y', $timestamp);
 
 		$html = '';
 
@@ -190,6 +243,5 @@ class JotForm
 		$html .= form_dropdown($name.'[year]', $years, $y);
 		
 		return $html;
-		
 	}
 }
