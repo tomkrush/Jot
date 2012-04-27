@@ -144,7 +144,7 @@ class JotForm
 		return form_input($options);		
 	}
 	
-	public function time_field($field, $options = array())
+	public function time_field($field, $options = array(), $increment = 1)
 	{
 		$timestamp = $this->field_value($field);
 		
@@ -174,7 +174,8 @@ class JotForm
 		$html .= ':';
 		
 		$minutes = array();
-		for ($i = 0; $i < 60; $i++) 
+		
+		for ($i = 0; $i < 60; $i += $increment) 
 		{
 			$s = $i < 10 ? "0{$i}" : "{$i}";
 			$minutes[$s] = $s;
