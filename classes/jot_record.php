@@ -1536,18 +1536,6 @@ public function __get($key)
 		return $CI->$key;
 	}	
 	
-	# Return attachment with key.
-	if ( $this->is_attachment($key) )
-	{
-		return $this->read_attachment($key);
-	}
-	
-	# Return association with key.
-	if ( $this->has_association($key) )
-	{
-		return $this->read_association($key);
-	}
-	
 	# Retrieve attribute if getter function exists.
 	if ( $this->has_read_attribute_function($key) )
 	{
@@ -1558,6 +1546,18 @@ public function __get($key)
 	if ( $this->has_attribute($key) )
 	{
 		return $this->read_attribute($key);
+	}
+	
+	# Return attachment with key.
+	if ( $this->is_attachment($key) )
+	{
+		return $this->read_attachment($key);
+	}
+	
+	# Return association with key.
+	if ( $this->has_association($key) )
+	{
+		return $this->read_association($key);
 	}
 	
 	# There is absolutely nothing to return.
