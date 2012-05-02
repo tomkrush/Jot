@@ -9,12 +9,12 @@ if ( ! function_exists('is_assoc'))
 
 if ( ! function_exists('rotate'))
 {
-	function rotate($source_array, $keep_keys = TRUE)
+	function rotate($source_array, $keep_keys = true)
 	{
 		$new_array = array();
 		foreach ($source_array as $key => $value)
 		{
-			$value = ($keep_keys === TRUE) ? $value : array_values($value);
+			$value = ($keep_keys === true) ? $value : array_values($value);
 
 			foreach ($value as $k => $v)
 			{
@@ -28,7 +28,7 @@ if ( ! function_exists('rotate'))
 
 if ( ! function_exists('value_for_key'))
 {
-	function value_for_key($keys, $array, $default = FALSE)
+	function value_for_key($keys, $array, $default = false)
 	{	
 		// Cast all variables as array.
 		if ( ! is_array($array) )

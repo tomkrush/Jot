@@ -38,7 +38,7 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 {
 	public function create($attributes)
 	{
-		return FALSE;
+		return false;
 	}
 	
 	public function set($value)
@@ -48,7 +48,7 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 	
 	public function get()
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -56,7 +56,7 @@ class JotHasManyAssociation extends JotAssociation
 {
 	public function create($attributes)
 	{
-		return FALSE;
+		return false;
 	}
 
 	public function set($value)
@@ -106,7 +106,7 @@ class JotHasManyAssociation extends JotAssociation
 			$options['conditions'] = $conditions;
 		}
 
-		$object = new $class_name(NULL, $options);
+		$object = new $class_name(null, $options);
 		
 		return $object;
 	}

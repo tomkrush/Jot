@@ -17,10 +17,10 @@ if ( ! function_exists('jot_validate_required'))
 		if ( is_blank($value) )
 		{
 			$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is required'));
-			return FALSE;
+			return false;
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -35,10 +35,10 @@ if ( ! function_exists('jot_validate_valid_url') )
 			if ( ! is_url_valid($value) )
 			{
 				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is not a valid url.'));
-				return FALSE;
+				return false;
 			}
 			
-			return TRUE;
+			return true;
 		}
 	}
 }
@@ -62,7 +62,7 @@ if ( ! function_exists('jot_validate_uniqueness'))
 				}
 			} 
 
-			if ( isset($options['exclude_self']) && $options['exclude_self'] == TRUE )
+			if ( isset($options['exclude_self']) && $options['exclude_self'] == true )
 			{
 				$primary_key = $object->primary_key();
 				$primary_key_value = $object->read_attribute($primary_key);
@@ -76,11 +76,11 @@ if ( ! function_exists('jot_validate_uniqueness'))
 			if ( $object->exists($conditions) )
 			{		
 				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$object->read_attribute($attribute).'" already exist'));
-		 		return FALSE;
+		 		return false;
 			}
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -92,27 +92,27 @@ if ( ! function_exists('jot_validate_length'))
 		{
 			$value = $object->read_attribute($attribute);
 			
-			$minimum = isset($options['minimum']) ? $options['minimum'] : NULL;
-			$maximum = isset($options['maximum']) ? $options['maximum'] : NULL;
+			$minimum = isset($options['minimum']) ? $options['minimum'] : null;
+			$maximum = isset($options['maximum']) ? $options['maximum'] : null;
 		
-			$validated = TRUE;
+			$validated = true;
 		
 			if ( $minimum && strlen($value) <= $minimum )
 			{
 				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$value.'" must be longer than '.$minimum.' characters'));
-				$validated = FALSE;
+				$validated = false;
 			}
 		
 			if ( $maximum && strlen($value) >= $maximum )
 			{
 				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$value.'" must be shorter than '.$maximum.' characters'));
-				$validated = FALSE;
+				$validated = false;
 			}
 		
 			return $validated;
 		}
 	
-		return TRUE;
+		return true;
 	}
 }
 
@@ -131,7 +131,7 @@ if ( ! function_exists('jot_validate_confirm'))
 			if ( $value != $confirm )
 			{
 				$object->add_error(array($attribute, jot_human_readable_attribute($attribute)." doesn't match confirmation"));
-				return FALSE;
+				return false;
 			}
 			
 			if ( ! $object->has_transient($confirm_attribute) )
@@ -140,7 +140,7 @@ if ( ! function_exists('jot_validate_confirm'))
 			}
 		}
 	
-		return TRUE;		
+		return true;		
 	}
 }
 
@@ -170,10 +170,10 @@ if ( ! function_exists('jot_validate_attachment_required'))
 				break;
 			}
 			
-			return FALSE;
+			return false;
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -187,10 +187,10 @@ if ( ! function_exists('jot_validate_attachment_required'))
 // 		if ( $ )
 // 		{
 // 			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
-// 			return FALSE;
+// 			return false;
 // 		}
 // 
-// 		return TRUE;
+// 		return true;
 // 	}
 // }
 // 
@@ -209,10 +209,10 @@ if ( ! function_exists('jot_validate_attachment_content_type'))
 			if ( ! in_array($type, $options) )
 			{
 				$object->add_error(array($attribute, 'Uploaded '.jot_human_readable_attribute($attribute).' is a '.$type.'. Should be a '.implode(', ', $options).'.'));
-				return FALSE;
+				return false;
 			}
 		}
 		
-		return TRUE;
+		return true;
 	}
 }

@@ -4,7 +4,7 @@ class JotIdentityMap
 {
 	public $repository;
 	private static $instance;
-	protected $enabled = TRUE;
+	protected $enabled = true;
 	
 	private function __construct() {}
 	
@@ -21,13 +21,13 @@ class JotIdentityMap
 	public function enable()
 	{
 		$self = self::getInstance();
-		$self->enabled = TRUE;
+		$self->enabled = true;
 	}
 	
 	public function disable()
 	{
 		$self = self::getInstance();
-		$self->enabled = FALSE;
+		$self->enabled = false;
 	}
 
 	public static function get($class, $id)
@@ -38,12 +38,12 @@ class JotIdentityMap
 		{		
 			$id = (int)$id;
 				
-		 	$object = isset($self->repository[$class][$id]) ? $self->repository[$class][$id] : FALSE;
+		 	$object = isset($self->repository[$class][$id]) ? $self->repository[$class][$id] : false;
 
 			return $object;
 		}
 		
-		return FALSE;
+		return false;
 	}
 
 	public static function add($object)
@@ -58,10 +58,10 @@ class JotIdentityMap
 
 			$self->repository[$class][$id] = $object;
 		
-			return TRUE;
+			return true;
 		}
 		
-		return FALSE;
+		return false;
 	}
 
 	public static function remove($object)
@@ -96,7 +96,7 @@ class JotIdentityMap
 			return count($self->repository);
 		}
 		
-		return FALSE;		
+		return false;		
 	}
 	
 	public static function object_count()
@@ -115,7 +115,7 @@ class JotIdentityMap
 			return $count;
 		}
 		
-		return FALSE;
+		return false;
 	}
 	
 	public static function exists($object)

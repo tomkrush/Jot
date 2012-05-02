@@ -3,18 +3,18 @@
 if ( ! function_exists('is_blank'))
 {
 	function is_blank($value) {
-		if ( $value === NULL ) {
-			return TRUE;
+		if ( $value === null ) {
+			return true;
 		}
 
 		if ( $value === '' ) {
-			return TRUE;
+			return true;
 		}
 
-		if ( $value === FALSE ) {
-			return TRUE;
+		if ( $value === false ) {
+			return true;
 		}
 
-		return FALSE;
+		return false;
 	}
 }

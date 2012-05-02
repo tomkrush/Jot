@@ -14,7 +14,7 @@ if ( ! function_exists('geocode') )
 
 	    curl_close($ch);
 		
-		if ( $data == FALSE ) return FALSE;
+		if ( $data == false ) return false;
 				
 		$data = value_for_key('ResultSet.Result', $data);
 							
@@ -32,6 +32,6 @@ if ( ! function_exists('geocode') )
 			}
 		}
 		
-		return FALSE;
+		return false;
 	}
 }

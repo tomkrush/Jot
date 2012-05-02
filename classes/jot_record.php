@@ -52,7 +52,7 @@ public function read_attribute_function($attribute)
 		return $this->$method_name();
 	}
 
-	return NULL;
+	return null;
 }
 
 # Write attribute with value
@@ -69,7 +69,7 @@ public function write_attribute_function($attribute, $value)
 # Returns attribute value if exists otherwise null
 public function read_attribute($attribute)
 {
-	return value_for_key($attribute, $this->attributes, NULL);
+	return value_for_key($attribute, $this->attributes, null);
 }
 
 # Writes attribute value to object
@@ -79,11 +79,11 @@ public function write_attribute($attribute, $value)
 }
 
 # Read all attributes
-public function attributes($transient = TRUE)
+public function attributes($transient = true)
 {
 	$attributes = $this->attributes;
 
-	if ( $transient === FALSE )
+	if ( $transient === false )
 	{
 		foreach($this->transient_attributes as $attribute)
 		{
@@ -110,7 +110,7 @@ protected function has_write_attribute_function($attribute)
 	return method_exists($this, $method_name);
 }
 
-# Returns TRUE if attribute exists
+# Returns true if attribute exists
 public function has_attribute($attribute)
 {
 	return array_key_exists($attribute, $this->attributes);
@@ -284,7 +284,7 @@ public function primary_key()
 
 /* TIMESTAMPS */
 
-protected $timestamps = TRUE;
+protected $timestamps = true;
 protected $created_at_column_name = 'created_at';
 protected $updated_at_column_name = 'updated_at';
 
@@ -311,10 +311,10 @@ public function touch()
 		
 		$this->write_attribute($this->updated_at_column_name, $updated_at);
 		
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
 /*-------------------------------------------------
@@ -332,7 +332,7 @@ public function write_association($name, $value)
 public function read_association($key)
 {
 	$association = $this->get_association($key);
-	return $association ? $association->get() : NULL;
+	return $association ? $association->get() : null;
 }
 
 protected function has_one($association, $options = array())
@@ -368,7 +368,7 @@ protected function get_association($name)
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 	
 /*-------------------------------------------------
@@ -403,7 +403,7 @@ public function validates($attribute, $validators)
 protected function perform_validations()
 {
 	# By default validation passes.
-	$validates = TRUE;
+	$validates = true;
 	
 	# Reset errors to prevent inaccuracies.
 	$this->reset_errors();
@@ -429,7 +429,7 @@ protected function perform_validations()
 				if ( ! $this->call_validator($validator, $this, $attribute, $options) )
 				{
 					# Validation failed. But we'll keep looping.
-					$validates = FALSE;
+					$validates = false;
 				}
 			}
 		}
@@ -451,7 +451,7 @@ protected function call_validator($validator, $object, $attribute, $options)
 # Find callback signature for validator.
 protected function validator_callback($validator)
 {
-	$callback = FALSE;
+	$callback = false;
 
 	# Create string signature.
 	$function_name = 'jot_validate_'.strtolower($validator);
@@ -474,8 +474,8 @@ protected function validator_callback($validator)
 /*-------------------------------------------------
 PERSISTANCE
 -------------------------------------------------*/
-protected $new_record = TRUE;
-protected $destroyed = FALSE;
+protected $new_record = true;
+protected $destroyed = false;
 
 # Returns boolean if object is persisted. A persisted object
 # is stored in the database.
@@ -526,12 +526,12 @@ public function create($attributes)
 # 	$this->person_model->update(1, array('name'=>'John'));
 #
 # 	# Multiple Objects using same changes
-#	$this->person_model->update(array(1, 2, 3), array('is_online'=>TRUE));
+#	$this->person_model->update(array(1, 2, 3), array('is_online'=>true));
 #
 #	# Multiple Objects with individual changes
 #	$this->person_model->update(array(1=>));
 #
-public function update($id, $attributes = NULL)
+public function update($id, $attributes = null)
 {
 	# There are multiple id's.
 	# Will update all objects using attributes in ids.
@@ -579,7 +579,7 @@ public function update($id, $attributes = NULL)
 # This function has split functionality. If an integer or 
 # array is supplied it will destroy that object(s).
 # Otherwise the function will call destroy_object method.
-public function destroy($id = NULL)
+public function destroy($id = null)
 {
 	return isset($id) ? $this->destroy_id($id) : $this->destroy_object();
 }
@@ -620,7 +620,7 @@ protected function destroy_object()
 	}
 	
 	# This object is no longer persisted.
-	$this->destroyed = TRUE;
+	$this->destroyed = true;
 }
 
 # Internal Method for deleting a record in the database.
@@ -645,7 +645,7 @@ SAVE
 #
 # A database row is created if this object is a new_record, otherwise
 # it will update the existing record in the database.
-public function save($validate  = TRUE)
+public function save($validate  = true)
 {		
 	# We do not want previous errors conflicting with new errors.
 	$this->reset_errors();
@@ -692,7 +692,7 @@ protected function _update()
 	$id = $this->read_attribute($this->primary_key);
 	
 	# Update record in database.
-	$this->db->update($this->table_name(), $this->attributes(FALSE), array($this->primary_key=>$id));
+	$this->db->update($this->table_name(), $this->attributes(false), array($this->primary_key=>$id));
 }
 
 # Internal Method for creating a record in the database
@@ -706,14 +706,14 @@ protected function _create()
 	}
 	
 	# Insert object into table
-	$this->db->insert($this->table_name(), $this->attributes(FALSE));
+	$this->db->insert($this->table_name(), $this->attributes(false));
 	
 	# Set primary key.
 	$id = $this->db->insert_id();
 	$this->write_attribute($this->primary_key(), (string)$id);
 	
 	# This object is now persisted
-	$this->new_record = FALSE;
+	$this->new_record = false;
 	
 	# Add to Identity Map
 	JotIdentityMap::add($this);
@@ -807,7 +807,7 @@ protected function first_or_last($type, $conditions = array())
 
 	$this->order = $_order;
 		
-	return count($result) ? $result[0] : NULL;
+	return count($result) ? $result[0] : null;
 }
 
 # Returns all rows using conditions
@@ -907,7 +907,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	for ($i=0, $len=count($r->result_object); $i<$len; $i++)
 	{
 		$result[] = $this->instantiate($r->result_object[$i], array(
-			'new_record' => FALSE,
+			'new_record' => false,
 		));
 	}
 	
@@ -956,7 +956,7 @@ protected function _conditions($conditions = array())
 	$conditions = is_array($conditions) ? array_merge($this->conditions, $conditions) : $this->conditions;
 	
 	# Return empty array if conditions do not exist
-	if ( $conditions == NULL ) 
+	if ( $conditions == null ) 
 	{
 		return array();
 	}
@@ -988,7 +988,7 @@ protected function _limit()
 	# If limit is -1. Than limit is unlimited.
 	if ( $this->limit == -1 )
 	{
-		return FALSE;
+		return false;
 	}
 	
 	return $this->limit;
@@ -1010,12 +1010,12 @@ protected function _order()
 TABLE NAME
 -------------------------------------------------*/
 
-protected $table_name = NULL;
-protected $singular_table_name = NULL;
-protected $plural_table_name = NULL;
+protected $table_name = null;
+protected $singular_table_name = null;
+protected $plural_table_name = null;
 
 # Set and get tablename
-protected function table_name($table_name = NULL)
+protected function table_name($table_name = null)
 {	
 	# Set table name.
 	if ( empty($this->table_name) || $table_name )
@@ -1095,7 +1095,7 @@ UPLOAD METHODS
 -------------------------------------------------*/
 
 # Cache stores information from $_FILES
-protected $files_cache = NULL;
+protected $files_cache = null;
 
 # Store attachment objects
 protected $attachments = array();
@@ -1261,11 +1261,11 @@ protected function _url($name, $url)
 		$path,
 		0,
 		$content_size,
-		TRUE
+		true
 	);
 }
 
-public function set_file_attachment($key, $ext, $type, $temp_path, $error, $size, $downloaded = FALSE)
+public function set_file_attachment($key, $ext, $type, $temp_path, $error, $size, $downloaded = false)
 {
 	$this->load->helper('string');
 	
@@ -1341,7 +1341,7 @@ public function __construct($attributes = array(), $options = array())
 	$this->init();
 	
 	# We only want to execute the following functions once!
-	if ( $loaded == FALSE )
+	if ( $loaded == false )
 	{
 		$this->load->add_package_path(APPPATH.'third_party/jot');
 	
@@ -1353,7 +1353,7 @@ public function __construct($attributes = array(), $options = array())
 			'jot_url_helper'
 		));
 		
-		$loaded = TRUE;
+		$loaded = true;
 	}
 	
 	# Set default order
@@ -1379,7 +1379,7 @@ public function __construct($attributes = array(), $options = array())
 	{
 		$this->assign_attributes($attributes);
 
-		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : TRUE;
+		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : true;
 
 		$id = value_for_key($this->primary_key(), $attributes);
 
@@ -1489,7 +1489,7 @@ public function __call($name, $arguments)
 	if ( substr($name, 0, 7) == 'create_' )
 	{		
 		$association = $this->get_association(strtolower(substr($name, 7)));
-		return $association ? $association->create($aruments[0]) : FALSE;
+		return $association ? $association->create($aruments[0]) : false;
 	}
 
 	# Pseudo method to make accessing find_by_ faster.
@@ -1561,7 +1561,7 @@ public function __get($key)
 	}
 	
 	# There is absolutely nothing to return.
-	return NULL;
+	return null;
 }
 
 } # End Class

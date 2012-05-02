@@ -59,7 +59,7 @@ class JotForm
 
 		$options['id'] = value_for_key('id', $options, $this->field_id($field));
 		$options['value'] = $checked_value;
-		$options['checked'] = $this->field_value($field) == $checked_value ? TRUE : FALSE;
+		$options['checked'] = $this->field_value($field) == $checked_value ? true : false;
 
 		$html .= form_hidden($options['name'], $unchecked_value);
 
@@ -68,14 +68,14 @@ class JotForm
 		return $html;
 	}
 	
-	public function select($field, $options = array(), $html_options = array(), $default_value = FALSE)
+	public function select($field, $options = array(), $html_options = array(), $default_value = false)
 	{
 		$name = $this->field_name($field);
 		$value = $this->field_value($field);
 						
 		$default['id'] = $this->field_id($field);
 				
-		$value = $value == FALSE && $default_value ? $default_value : $value;
+		$value = $value == false && $default_value ? $default_value : $value;
 				
 		$html_options = _parse_form_attributes($html_options, $default);
 		
@@ -98,7 +98,7 @@ class JotForm
 		return form_hidden($name, $value);		
 	}
 	
-	public function label($field, $text = FALSE, $options = array())
+	public function label($field, $text = false, $options = array())
 	{	
 		$text = $text ? $text : ucwords(str_replace('_', ' ', $field));
 		$field = $this->field_id($field);
@@ -121,7 +121,7 @@ class JotForm
 		$options['id'] = value_for_key('id', $options, $this->field_id($field));
 		$options['value'] = $radio_value;
 
-		$options['checked'] = $this->record->$field == $checked_value ? TRUE : FALSE;
+		$options['checked'] = $this->record->$field == $checked_value ? true : false;
 		
 		return form_radio($options);		
 	}

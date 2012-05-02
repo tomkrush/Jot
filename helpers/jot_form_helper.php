@@ -14,7 +14,7 @@ if ( ! function_exists('form_for'))
 		$options['id'] = array_key_exists('id', $options) ? $options['id'] : $name.'_form';
 		$options['method'] = array_key_exists('method', $options) ? $options['method'] : 'POST';
 	
-		if ( array_key_exists('multipart', $options) && $options['multipart'] == TRUE)
+		if ( array_key_exists('multipart', $options) && $options['multipart'] == true)
 		{
 			unset($options['multipart']);
 		
