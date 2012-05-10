@@ -184,7 +184,7 @@ class JotHasOneAssociation extends JotAssociation
 		# Polymorphic writes a foreign type.
 		if ( $as = $this->polymorphic() )
 		{
-			$value->write_attribute($as.'_type', $this->object->singular_table_name());
+			$value->write_attribute($as.'_type', $this->foreign_type());
 		}
 		
 		# Write key
@@ -207,7 +207,7 @@ class JotHasOneAssociation extends JotAssociation
 
 		if ( $as = $this->polymorphic() )
 		{						
-			$conditions[$as.'_type'] = $this->object->singular_table_name();			
+			$conditions[$as.'_type'] = $this->foreign_type();			
 		}
 
 		# Load Object		
@@ -217,6 +217,11 @@ class JotHasOneAssociation extends JotAssociation
 	protected function polymorphic()
 	{
 		return value_for_key('as', $this->options);
+	}
+	
+	protected function foreign_type()
+	{
+		return value_for_key('foreign_type', $this->options, $this->object->singular_table_name());
 	}
 		
 	protected function foreign_key()
