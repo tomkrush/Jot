@@ -1186,6 +1186,22 @@ protected function write_file($file, $attachment)
 	}
 	else
 	{
+		$path = str_replace(FCPATH, '', $attachment->folder_path());
+		$folders = explode('/', $path);
+		$path = rtrim(FCPATH, '/');
+				
+		foreach($folders as $folder)
+		{
+			if ( $folder) {
+				$path .= '/'.$folder;
+	
+				if ( ! file_exists($path) )
+				{					
+					mkdir($path);
+				}
+			}
+		}
+							
 		move_uploaded_file($file['tmp'], $attachment->file_path);	
 	}
 }
