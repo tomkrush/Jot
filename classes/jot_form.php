@@ -193,7 +193,7 @@ class JotForm
 	public function date_field($field, $options = array())
 	{
 		$timestamp = $this->field_value($field);
-
+		
 		if ( is_string($timestamp) )
 		{
 			list($y, $m, $d) = explode('-', $timestamp);
@@ -238,8 +238,10 @@ class JotForm
 		$html .= form_dropdown($name.'[day]', $days, $d);
 
 		// Years
+		$i = $y ? $y : date('Y');
+
 		$years = array();
-		for($i = date('Y'); $i <= date('Y')+3; $i++) $years[$i] = $i;
+		for($i; $i <= date('Y')+3; $i++) $years[$i] = $i;
 
 		$html .= form_dropdown($name.'[year]', $years, $y);
 		
