@@ -13,19 +13,19 @@ class JotForm
 		$this->index  = $index;
 	}
 	
-	private function field_name($field)
+	protected function field_name($field)
 	{
 		$record_name = $this->record->singular_table_name();
 
 		return strtolower(sprintf('%s%s[%s]', $record_name, $this->index !== null ? '['.$this->index.']' : '', $field));
 	}
 	
-	private function field_value($field)
+	protected function field_value($field)
 	{
 		return $this->record->read_attribute($field);
 	}
 	
-	private function field_id($field)
+	protected function field_id($field)
 	{
 		$table_name = $this->record->singular_table_name();
 
