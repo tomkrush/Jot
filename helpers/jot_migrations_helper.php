@@ -445,7 +445,7 @@ function drop_column($table, $name)
 
 	$CI->dbforge->drop_column($table, $name);
 	
-	jot_migration_log('Drop column '.$column.' from table'.$table);	
+	jot_migration_log('Drop column '.$name.' from table'.$table);	
 }
 
 function _migration_get_type_and_constraint($type)

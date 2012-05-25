@@ -300,7 +300,7 @@ class JotBelongsToAssociation extends JotAssociation
 	{
 		# What is the class of the associated object?
 		$class_name = $this->class_name();
-				
+						
 		# Load the class
 		$this->load->model($class_name);
 
@@ -308,16 +308,13 @@ class JotBelongsToAssociation extends JotAssociation
 		$conditions = array(
 			$this->$class_name->primary_key() => $this->object_id()
 		);
-				
+										
 		# Load associated object
 		return $this->$class_name->first($conditions);
 	}
 	
 	protected function object_id()
 	{
-		$class_name = $this->class_name();
-		$name = $this->name();
-	
 		return $this->object->read_attribute($this->foreign_key());
 	}
 	
@@ -335,7 +332,7 @@ class JotBelongsToAssociation extends JotAssociation
 	}
 	
 	protected function foreign_key()
-	{	
+	{
 		return value_for_key('foreign_key', $this->options, $this->name().'_id');
 	}
 	
