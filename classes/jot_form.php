@@ -121,7 +121,7 @@ class JotForm
 		$options['id'] = value_for_key('id', $options, $this->field_id($field));
 		$options['value'] = $radio_value;
 
-		$options['checked'] = $this->record->$field == $checked_value ? true : false;
+		$options['checked'] = $this->record->$field == $radio_value ? true : false;
 		
 		return form_radio($options);		
 	}
