@@ -19,15 +19,18 @@ if ( ! function_exists('geocode') )
 
 		$data = value_for_key('results.0.geometry.location', $data);
 		
-		$latitude = value_for_key('lat', $data);
-		$longitude = value_for_key('lng', $data);
-		
-		if ( $latitude && $longitude)
+		if ( is_array($data) )
 		{
-			return array(
-				'latitude' => $latitude,
-				'longitude' => $longitude
-			);
+			$latitude = value_for_key('lat', $data);
+			$longitude = value_for_key('lng', $data);
+		
+			if ( $latitude && $longitude)
+			{
+				return array(
+					'latitude' => $latitude,
+					'longitude' => $longitude
+				);
+			}
 		}
 		
 		return false;
