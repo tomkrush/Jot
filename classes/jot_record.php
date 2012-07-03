@@ -322,7 +322,6 @@ public function touch()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
-protected $conditions = array();
 protected $associations = array();
 
 public function write_association($name, $value)
@@ -783,6 +782,8 @@ FINDERS
 
 protected $limit;
 protected $order;
+protected $conditions = array();
+protected $join = array();
 
 # Return true if conditions return results.
 public function exists($conditions = array())
@@ -834,6 +835,9 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	
 	# Array to store includes
 	$includes = array();
+	
+	# Array to store joins
+	$join = array();
 
 	# Load object from identity map if possible.
 	if ( count($conditions) == 1 && $id = value_for_key($primary_key, $conditions))
@@ -868,7 +872,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
 		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
 
-		// We have a limit. Lets store it!
+		# We have a limit. Lets store it!
 		if(isset($conf['limit'])) 
 		{
 			$this->limit = $conf['limit'];
@@ -947,6 +951,11 @@ protected function _find($conditions = array())
 		{
 			$this->db->where($key, $value);
 		}
+	}
+	
+	if ( $this->join )
+	{
+		$this->db->join($this->join[0], $this->join[1]);
 	}
 	
 	# Set From
@@ -1398,6 +1407,12 @@ public function __construct($attributes = array(), $options = array())
 	if ( $conditions = value_for_key('conditions', $options) ) 
 	{	
 		$this->conditions = $conditions;
+	}
+	
+	# Set default join
+	if ( $join = value_for_key('join', $options) ) 
+	{	
+		$this->join = $join;
 	}
 
 	# If attributes exist assign them.
