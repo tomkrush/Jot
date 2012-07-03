@@ -48,7 +48,84 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 	
 	public function get()
 	{
-		return false;
+		# Create Object
+		$class_name = $this->class_name();	
+
+		$this->load->model($class_name);
+
+		$options = array();
+		
+		if ( $order = $this->order() ) {
+			$options['order'] = $order;
+		}
+		
+		if ( $limit = $this->limit() ) {
+			$options['limit'] = $limit;
+		}
+		
+		if ( $conditions = $this->conditions() ) {
+			$options['conditions'] = $conditions;
+		}
+		
+		if ( $join = $this->join() )
+		{
+			$options['join'] = $join;
+		}
+
+		$object = new $class_name(null, $options);
+		
+		return $object;
+	}
+	
+	protected function conditions()
+	{
+		$conditions = value_for_key('conditions', $this->options, array());
+		
+		$conditions[$this->foreign_key()] = $this->object_id();
+		
+		return $conditions;
+	}
+	
+	protected function class_name()
+	{		
+		$default = $this->inflector->singularize($this->name);	
+		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
+	}
+	
+	protected function foreign_key()
+	{
+		return value_for_key('foreign_key', $this->options, value_for_key('foreign_key', $this->options));
+	}
+	
+	protected function limit()
+	{
+		return value_for_key('limit', $this->options);
+	}
+	
+	protected function order()
+	{
+		return value_for_key('order', $this->options);
+	}
+	
+	protected function join()
+	{
+		$join_table = value_for_key('join_table', $this->options);
+	
+		$left_join_key = value_for_key('foreign_key', $this->options);
+		
+		$right_join_key = value_for_key('association_foreign_key', $this->options);
+		
+		return array($join_table, "{$left_join_key} = {$right_join_key}");
+	}
+	
+	protected function name()
+	{ 
+		return $this->object->singular_table_name();
+	}
+	
+	protected function object_id()
+	{
+		return $this->object->read_attribute($this->object->primary_key());
 	}
 }
 
