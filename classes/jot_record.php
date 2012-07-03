@@ -34,12 +34,7 @@ public function transient($attributes)
 # Allows you to assign multiple attributes.
 public function assign_attributes($attributes)
 {
-	$attributes = (array)$attributes;
-
-	foreach($attributes as $key => $value)
-	{
-		$this->write_attribute($key, $value);
-	}		
+	$this->attributes = array_merge($this->attributes, (array)$attributes);
 }
 
 # Returns attribute value if get function exists
@@ -223,8 +218,15 @@ protected function add_hook($name, $hook)
 protected function call_hook($name)
 {
 	# Return hooks if exist otherwise return empty array.
-	$hooks = value_for_key($name, $this->hooks, array());
-
+	if ( array_key_exists($name, $this->hooks) )
+	{
+		$hooks = $this->hooks[$name];
+	}
+	else
+	{
+		$hooks = array();
+	}
+	
 	# Execute each hook
 	foreach($hooks as $hook)
 	{
@@ -393,7 +395,15 @@ public function is_valid()
 public function validates($attribute, $validators)
 {
 	# Add validator to object
-	$old_validators = value_for_key($attribute, $this->validators, array());
+	if ( array_key_exists($attribute, $this->validators) )
+	{
+		$old_validators = $this->validators[$attribute];
+	}
+	else
+	{
+		$old_validators = array();
+	}
+	
 	$validators = is_array($validators) ? $validators : array($validators);
 	
 	$this->validators[$attribute] = array_merge($old_validators, $validators);
@@ -1391,18 +1401,18 @@ public function __construct($attributes = array(), $options = array())
 	}
 
 	# If attributes exist assign them.
-	if ( $attributes && (is_object($attributes) || (is_array($attributes) && count($attributes) > 0)) )
+	if ( $attributes && (is_array($attributes) || is_object($attributes)) )
 	{
-		$this->assign_attributes($attributes);
-
-		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : true;
-
 		$id = value_for_key($this->primary_key(), $attributes);
 
 		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
 			return $object;
 		}
+
+		$this->assign_attributes($attributes);
+
+		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : true;
 
 		if ( $id )
 		{
