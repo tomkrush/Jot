@@ -81,7 +81,9 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 	{
 		$conditions = value_for_key('conditions', $this->options, array());
 		
-		$conditions[$this->foreign_key()] = $this->object_id();
+		$foreign_key = value_for_key('association_foreign_key', $this->options);
+		
+		$conditions[$foreign_key] = $this->object_id();
 		
 		return $conditions;
 	}
@@ -111,9 +113,9 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 	{
 		$join_table = value_for_key('join_table', $this->options);
 	
-		$left_join_key = value_for_key('foreign_key', $this->options);
+		$left_join_key = $this->object->primary_key();
 		
-		$right_join_key = value_for_key('association_foreign_key', $this->options);
+		$right_join_key = value_for_key('foreign_key', $this->options);
 		
 		return array($join_table, "{$left_join_key} = {$right_join_key}");
 	}
