@@ -34,12 +34,7 @@ public function transient($attributes)
 # Allows you to assign multiple attributes.
 public function assign_attributes($attributes)
 {
-	$attributes = (array)$attributes;
-
-	foreach($attributes as $key => $value)
-	{
-		$this->write_attribute($key, $value);
-	}		
+	$this->attributes = array_merge($this->attributes, (array)$attributes);
 }
 
 # Returns attribute value if get function exists
@@ -223,8 +218,15 @@ protected function add_hook($name, $hook)
 protected function call_hook($name)
 {
 	# Return hooks if exist otherwise return empty array.
-	$hooks = value_for_key($name, $this->hooks, array());
-
+	if ( array_key_exists($name, $this->hooks) )
+	{
+		$hooks = $this->hooks[$name];
+	}
+	else
+	{
+		$hooks = array();
+	}
+	
 	# Execute each hook
 	foreach($hooks as $hook)
 	{
@@ -320,7 +322,6 @@ public function touch()
 /*-------------------------------------------------
 ASSOCATIONS
 -------------------------------------------------*/
-protected $conditions = array();
 protected $associations = array();
 
 public function write_association($name, $value)
@@ -393,7 +394,15 @@ public function is_valid()
 public function validates($attribute, $validators)
 {
 	# Add validator to object
-	$old_validators = value_for_key($attribute, $this->validators, array());
+	if ( array_key_exists($attribute, $this->validators) )
+	{
+		$old_validators = $this->validators[$attribute];
+	}
+	else
+	{
+		$old_validators = array();
+	}
+	
 	$validators = is_array($validators) ? $validators : array($validators);
 	
 	$this->validators[$attribute] = array_merge($old_validators, $validators);
@@ -773,6 +782,8 @@ FINDERS
 
 protected $limit;
 protected $order;
+protected $conditions = array();
+protected $join = array();
 
 # Return true if conditions return results.
 public function exists($conditions = array())
@@ -824,6 +835,9 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 	
 	# Array to store includes
 	$includes = array();
+	
+	# Array to store joins
+	$join = array();
 
 	# Load object from identity map if possible.
 	if ( count($conditions) == 1 && $id = value_for_key($primary_key, $conditions))
@@ -858,7 +872,7 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 		$conditions = isset($conf['conditions']) ? $conf['conditions'] : array();
 		$offset		= isset($conf['offset']) ? $conf['offset'] : 0;
 
-		// We have a limit. Lets store it!
+		# We have a limit. Lets store it!
 		if(isset($conf['limit'])) 
 		{
 			$this->limit = $conf['limit'];
@@ -937,6 +951,11 @@ protected function _find($conditions = array())
 		{
 			$this->db->where($key, $value);
 		}
+	}
+	
+	if ( $this->join )
+	{
+		$this->db->join($this->join[0], $this->join[1]);
 	}
 	
 	# Set From
@@ -1389,20 +1408,26 @@ public function __construct($attributes = array(), $options = array())
 	{	
 		$this->conditions = $conditions;
 	}
+	
+	# Set default join
+	if ( $join = value_for_key('join', $options) ) 
+	{	
+		$this->join = $join;
+	}
 
 	# If attributes exist assign them.
-	if ( $attributes && (is_object($attributes) || (is_array($attributes) && count($attributes) > 0)) )
+	if ( $attributes && (is_array($attributes) || is_object($attributes)) )
 	{
-		$this->assign_attributes($attributes);
-
-		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : true;
-
 		$id = value_for_key($this->primary_key(), $attributes);
 
 		if ( $id && $object = JotIdentityMap::get(get_class($this), $id))
 		{
 			return $object;
 		}
+
+		$this->assign_attributes($attributes);
+
+		$this->new_record = array_key_exists('new_record', $options) ? !!$options['new_record'] : true;
 
 		if ( $id )
 		{
