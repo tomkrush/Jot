@@ -26,6 +26,14 @@ if ( ! function_exists('rotate'))
 	}
 }
 
+if ( ! function_exists('array_fill_key_value') )
+{
+	function array_fill_key_value($array)
+	{
+		return array_combine($array, $array);
+	}
+}
+
 if ( ! function_exists('value_for_key'))
 {
 	function value_for_key($keys, $array, $default = false)
