@@ -190,7 +190,7 @@ class JotForm
 		return $html;
 	}
 
-	public function date_field($field, $options = array())
+	public function date_field($field, $options = array(), $year_range = array(0, 3))
 	{
 		$timestamp = $this->field_value($field);
 		
@@ -211,7 +211,7 @@ class JotForm
 		$html = '';
 
 		$default['id'] = $this->field_id($field);
-		$html_options = _parse_form_attributes($default, $default);
+		$html_options = _parse_form_attributes($options, $default);
 
 		// Years
 		$months = array(
@@ -238,10 +238,11 @@ class JotForm
 		$html .= form_dropdown($name.'[day]', $days, $d);
 
 		// Years
-		$i = $y ? $y : date('Y');
+		$b = $y ? $y : date('Y');
 
 		$years = array();
-		for($i; $i <= date('Y')+3; $i++) $years[$i] = $i;
+		for($i = date('Y')-$year_range[0]; $i <= $b; $i++) $years[$i] = $i;
+		for($i = $b; $i <= date('Y')+$year_range[1]; $i++) $years[$i] = $i;
 
 		$html .= form_dropdown($name.'[year]', $years, $y);
 		
