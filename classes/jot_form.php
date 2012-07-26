@@ -74,9 +74,9 @@ class JotForm
 		$value = $this->field_value($field);
 						
 		$default['id'] = $this->field_id($field);
-				
-		$value = $value == false && $default_value ? $default_value : $value;
-				
+
+		$value = is_blank($value) ? $default_value : $value;
+						
 		$html_options = _parse_form_attributes($html_options, $default);
 		
 		return form_dropdown($name, $options, $value, $html_options);
