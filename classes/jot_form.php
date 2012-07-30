@@ -190,8 +190,12 @@ class JotForm
 		return $html;
 	}
 
-	public function date_field($field, $options = array(), $year_range = array(0, 3), $format = 'array')
+	public function date_field($field, $options = array(), $html_options = array())
 	{
+		$year_range = value_for_key('year_range', $options, array(0, 3));
+		$format = value_for_key('format', $options, 'array');
+		$show_day = value_for_key('show_day', $options, true);
+	
 		$timestamp = $this->field_value($field);
 		
 		if ( is_string($timestamp) )
@@ -211,7 +215,7 @@ class JotForm
 		$html = '';
 
 		$default['id'] = $this->field_id($field);
-		$html_options = _parse_form_attributes($options, $default);
+		$html_options = _parse_form_attributes($html_options, $default);
 
 		// Years
 		$months = array(
@@ -231,11 +235,14 @@ class JotForm
 		
 		$html .= form_dropdown($format == 'array' ? $name.'[month]' : preg_replace('/\[([a-z_0-9]*)\]$/', '[$1_month]', $name), $months, $m, $html_options);
 		
-		// Days
-		$days = array();
-		for($i = 1; $i <= 31; $i++) $days[$i] = $i;
-
-		$html .= form_dropdown($format == 'array' ? $name.'[day]' : preg_replace('/\[([a-z_0-9]*)\]$/', '[$1_day]', $name), $days, $d);
+		if ( $show_day )
+		{
+			// Days
+			$days = array();
+			for($i = 1; $i <= 31; $i++) $days[$i] = $i;
+	
+			$html .= form_dropdown($format == 'array' ? $name.'[day]' : preg_replace('/\[([a-z_0-9]*)\]$/', '[$1_day]', $name), $days, $d);
+		}
 
 		// Years
 		$b = $y ? $y : date('Y');
