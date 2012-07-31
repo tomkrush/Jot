@@ -311,6 +311,8 @@ public function touch()
 			$this->updated_at_column_name => $updated_at
 		), array($key => $value));
 		
+		$this->log($this->db->last_query());	
+		
 		$this->write_attribute($this->updated_at_column_name, $updated_at);
 		
 		return true;
@@ -642,7 +644,8 @@ protected function _delete()
 	if ( $id )
 	{ 	
 		# Delete record from table.
-		$this->db->delete($this->table_name(), array($this->primary_key() => $id));	
+		$this->db->delete($this->table_name(), array($this->primary_key() => $id));
+		$this->log($this->db->last_query());	
 	}
 }
 
@@ -702,6 +705,7 @@ protected function _update()
 	
 	# Update record in database.
 	$this->db->update($this->table_name(), $this->attributes(false), array($this->primary_key=>$id));
+	$this->log($this->db->last_query());
 }
 
 # Internal Method for creating a record in the database
@@ -716,7 +720,8 @@ protected function _create()
 	
 	# Insert object into table
 	$this->db->insert($this->table_name(), $this->attributes(false));
-	
+	$this->log($this->db->last_query());
+
 	# Set primary key.
 	$id = $this->db->insert_id();
 	$this->write_attribute($this->primary_key(), (string)$id);
@@ -737,7 +742,11 @@ public function count($conditions = array())
 	$this->db->flush_cache();
 	$this->_find($conditions);
 
-	return (int)$this->db->count_all_results();		
+	$result = (int)$this->db->count_all_results();
+	
+	$this->log($this->db->last_query());
+	
+	return $result;	
 }
 
 # Calculates average on attribute and returns float.
@@ -746,7 +755,10 @@ public function average($attribute, $conditions = array())
 	$this->db->select_avg($attribute);
 	$this->_find($conditions);
 	
-	return (float)value_for_key($attribute, $this->db->get()->row());
+	$result = (float)value_for_key($attribute, $this->db->get()->row());
+	$this->log($this->db->last_query());	
+	
+	return $result;
 }
 
 # Calculates maximum for attribute and returns float.
@@ -755,7 +767,10 @@ public function maximum($attribute, $conditions = array())
 	$this->db->select_max($attribute);
 	$this->_find($conditions);
 	
-	return (float)value_for_key($attribute, $this->db->get()->row());
+	$result = (float)value_for_key($attribute, $this->db->get()->row());
+	$this->log($this->db->last_query());	
+	
+	return $result;
 }
 
 # Calculates minimum for attribute and returns float.
@@ -764,7 +779,10 @@ public function minimum($attribute, $conditions = array())
 	$this->db->select_min($attribute);
 	$this->_find($conditions);
 	
-	return (float)value_for_key($attribute, $this->db->get()->row());
+	$result = (float)value_for_key($attribute, $this->db->get()->row());
+	$this->log($this->db->last_query());	
+	
+	return $result;
 }
 
 # Calculates sum of attribute and returns float.
@@ -772,8 +790,11 @@ public function sum($attribute, $conditions = array())
 {
 	$this->db->select_sum($attribute);
 	$this->_find($conditions);
+
+	$result = (float)value_for_key($attribute, $this->db->get()->row());
+	$this->log($this->db->last_query());	
 	
-	return (float)value_for_key($attribute, $this->db->get()->row());
+	return $result;
 }
 	
 /*-------------------------------------------------
@@ -911,7 +932,9 @@ public function find($conditions = array(), $offset = 0, $limit = null)
 
 	# Instantiate jot objects from database rows.
 	$r = $this->db->get();
-
+	
+	$this->log($this->db->last_query());	
+	
 	# Force CodeIgniter to load rows info objects.
 	$r->result_object();
 	$result = array();
@@ -1357,6 +1380,20 @@ public function _files($attachment_name)
 	# Return file attachment from file cache
 	return value_for_key($attachment_name, $this->files_cache);
 }
+
+/*-------------------------------------------------
+LOGGING METHODS
+-------------------------------------------------*/
+public $logging = false;
+
+public function log($message)
+{
+	if ( $this->logging )
+	{
+		echo $message."\n";
+	}
+}
+
 
 /*-------------------------------------------------
 MAGIC METHODS
