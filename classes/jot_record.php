@@ -1113,6 +1113,8 @@ public function serialize()
 	$data['new_record'] = $this->new_record;
 	$data['destroyed'] = $this->destroyed;
 	
+	$this->init();
+	
 	return serialize($data);
 }
 
