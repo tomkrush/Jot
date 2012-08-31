@@ -420,7 +420,7 @@ function create_column($table, $column)
 	$fields[$name]  = $column;
 									
 	$CI->dbforge->add_column($table, $fields);	
-	jot_migration_log('Create column '.$column.' on table'.$table);
+	jot_migration_log('Create column '.$name.' on table'.$table);
 }
 
 function change_column($table, $name, $column)
