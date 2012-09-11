@@ -208,7 +208,17 @@ if ( ! function_exists('jot_validate_attachment_content_type'))
 									
 			if ( ! in_array($type, $options) )
 			{
-				$object->add_error(array($attribute, 'Uploaded '.jot_human_readable_attribute($attribute).' is a '.$type.'. Should be a '.implode(', ', $options).'.'));
+				$is_extension = get_extension_by_mime($type);
+				$is_extension = $is_extension ? $is_extension : 'unknown type';
+				
+				$should_be = array();
+				
+				foreach($options as $option)
+				{
+					$should_be[] = get_extension_by_mime($option);
+				}
+			
+				$object->add_error(array($attribute, 'Uploaded '.jot_human_readable_attribute($attribute).' is a '.$is_extension.'. Should be a '.implode(', ', $should_be).'.'));
 				return false;
 			}
 		}
