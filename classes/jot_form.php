@@ -13,6 +13,26 @@ class JotForm
 		$this->index  = $index;
 	}
 	
+	public function __call($name, $arguments)
+	{
+		$callback = 'jot_form_'.$name;
+
+		if ( function_exists($callback) )
+		{
+			$field = $arguments[0];
+			$options = $arguments[1];
+		
+			return call_user_func($callback, $this, $field, $options);
+		}
+		
+		return null;
+	}
+	
+	public function record()
+	{
+		return $this->record;
+	}
+		
 	protected function field_name($field)
 	{
 		$record_name = $this->record->singular_table_name();
@@ -94,7 +114,7 @@ class JotForm
 	{
 		$name = value_for_key('name', $options, $this->field_name($field));
 		$value = $this->field_value($field);
-		
+
 		return form_hidden($name, $value);		
 	}
 	
