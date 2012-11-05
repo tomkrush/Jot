@@ -1150,9 +1150,9 @@ public function has_attached_file($name, $options = array())
 	$this->attachments[$name] = new JotAttachment($name, $this, $options);
 	$this->add_transient($name);
 	
-	if ( ! in_array('save_attached_files', value_for_key('before_save', $this->hooks) ? value_for_key('before_save', $this->hooks) : array()) )
+	if ( ! in_array('save_attached_files', value_for_key('before_validation', $this->hooks) ? value_for_key('before_validation', $this->hooks) : array()) )
 	{
-		$this->before_save('save_attached_files');
+		$this->before_validation('save_attached_files');
 	}
 }
 
@@ -1627,7 +1627,6 @@ public function __get($key)
 	{
 		return $this->read_attribute($key);
 	}
-	
 	# Return attachment with key.
 	if ( $this->is_attachment($key) )
 	{
