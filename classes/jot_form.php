@@ -197,8 +197,8 @@ class JotForm
 		$show_day = value_for_key('show_day', $options, true);
 	
 		$timestamp = $this->field_value($field);
-		
-		if ( is_string($timestamp) )
+
+		if ( strstr($timestamp, '-') )
 		{
 			list($y, $m, $d) = explode('-', $timestamp);
 		}
