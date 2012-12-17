@@ -13,19 +13,39 @@ class JotForm
 		$this->index  = $index;
 	}
 	
-	private function field_name($field)
+	public function __call($name, $arguments)
+	{
+		$callback = 'jot_form_'.$name;
+
+		if ( function_exists($callback) )
+		{
+			$field = $arguments[0];
+			$options = $arguments[1];
+		
+			return call_user_func($callback, $this, $field, $options);
+		}
+		
+		return null;
+	}
+	
+	public function record()
+	{
+		return $this->record;
+	}
+		
+	protected function field_name($field)
 	{
 		$record_name = $this->record->singular_table_name();
 
 		return strtolower(sprintf('%s%s[%s]', $record_name, $this->index !== null ? '['.$this->index.']' : '', $field));
 	}
 	
-	private function field_value($field)
+	protected function field_value($field)
 	{
 		return $this->record->read_attribute($field);
 	}
 	
-	private function field_id($field)
+	protected function field_id($field)
 	{
 		$table_name = $this->record->singular_table_name();
 
@@ -59,7 +79,7 @@ class JotForm
 
 		$options['id'] = value_for_key('id', $options, $this->field_id($field));
 		$options['value'] = $checked_value;
-		$options['checked'] = $this->field_value($field) == $checked_value ? TRUE : FALSE;
+		$options['checked'] = $this->field_value($field) == $checked_value ? true : false;
 
 		$html .= form_hidden($options['name'], $unchecked_value);
 
@@ -68,15 +88,15 @@ class JotForm
 		return $html;
 	}
 	
-	public function select($field, $options = array(), $html_options = array(), $default_value = FALSE)
+	public function select($field, $options = array(), $html_options = array(), $default_value = false)
 	{
 		$name = $this->field_name($field);
 		$value = $this->field_value($field);
 						
 		$default['id'] = $this->field_id($field);
-				
-		$value = $value == FALSE && $default_value ? $default_value : $value;
-				
+
+		$value = is_blank($value) ? $default_value : $value;
+						
 		$html_options = _parse_form_attributes($html_options, $default);
 		
 		return form_dropdown($name, $options, $value, $html_options);
@@ -92,13 +112,13 @@ class JotForm
 	
 	public function hidden_field($field, $options = array())
 	{
-		$options['name'] = value_for_key('name', $options, $this->field_name($field));
+		$name = value_for_key('name', $options, $this->field_name($field));
 		$value = $this->field_value($field);
-		
+
 		return form_hidden($name, $value);		
 	}
 	
-	public function label($field, $text = FALSE, $options = array())
+	public function label($field, $text = false, $options = array())
 	{	
 		$text = $text ? $text : ucwords(str_replace('_', ' ', $field));
 		$field = $this->field_id($field);
@@ -121,7 +141,7 @@ class JotForm
 		$options['id'] = value_for_key('id', $options, $this->field_id($field));
 		$options['value'] = $radio_value;
 
-		$options['checked'] = $this->record->$field == $checked_value ? TRUE : FALSE;
+		$options['checked'] = $this->record->$field == $radio_value ? true : false;
 		
 		return form_radio($options);		
 	}
@@ -143,21 +163,79 @@ class JotForm
 
 		return form_input($options);		
 	}
-
-	public function date_field($field, $options = array())
+	
+	public function time_field($field, $options = array(), $increment = 1)
 	{
 		$timestamp = $this->field_value($field);
-		$timestamp = $timestamp ? $timestamp : time();
-		$name = $this->field_name($field);
 		
-		$m = date('n', $timestamp);
-		$d = date('j', $timestamp);
-		$y = date('Y', $timestamp);
+		$timestamp = is_string($timestamp) ? $timestamp : date('H:i:s');
+
+		list($h, $m) = explode(':', $timestamp);
+		
+		$p = $h < 12 || $h == '00' ? 'am' : 'pm';
+		$h = $p == 'pm' ? ($h > 12 ? $h - 12 : $h) : ($h == '00' ? 12 : $h);
+				
+		$name = $this->field_name($field);
 
 		$html = '';
 
 		$default['id'] = $this->field_id($field);
 		$html_options = _parse_form_attributes($default, $default);
+
+		$hours = array();
+		for ($i = 1; $i <= 12; $i++)
+		{
+			$s = $i < 10 ? "0{$i}" : "{$i}";
+			$hours[$s] = $s;
+		}
+		
+		$html .= form_dropdown($name.'[hours]', $hours, $h, $html_options);
+		
+		$html .= ':';
+		
+		$minutes = array();
+		
+		for ($i = 0; $i < 60; $i += $increment) 
+		{
+			$s = $i < 10 ? "0{$i}" : "{$i}";
+			$minutes[$s] = $s;
+		}
+
+		$html .= form_dropdown($name.'[minutes]', $minutes, $m);
+
+		// Period
+		$period = array('am'=>'am','pm'=>'pm');
+		$html .= form_dropdown($name.'[period]', $period, $p);
+		
+		return $html;
+	}
+
+	public function date_field($field, $options = array(), $html_options = array())
+	{
+		$year_range = value_for_key('year_range', $options, array(0, 3));
+		$format = value_for_key('format', $options, 'array');
+		$show_day = value_for_key('show_day', $options, true);
+	
+		$timestamp = $this->field_value($field);
+
+		if ( strstr($timestamp, '-') )
+		{
+			list($y, $m, $d) = explode('-', $timestamp);
+		}
+		else
+		{
+			$timestamp = $timestamp ? $timestamp : time();	
+			$m = date('n', $timestamp);
+			$d = date('j', $timestamp);
+			$y = date('Y', $timestamp);
+		}
+
+		$name = $this->field_name($field);
+
+		$html = '';
+
+		$default['id'] = $this->field_id($field);
+		$html_options = _parse_form_attributes($html_options, $default);
 
 		// Years
 		$months = array(
@@ -175,21 +253,26 @@ class JotForm
 			'12' => 'December'
 		);
 		
-		$html .= form_dropdown($name.'[month]', $months, $m, $html_options);
+		$html .= form_dropdown($format == 'array' ? $name.'[month]' : preg_replace('/\[([a-z_0-9]*)\]$/', '[$1_month]', $name), $months, $m, $html_options);
 		
-		// Days
-		$days = array();
-		for($i = 1; $i <= 31; $i++) $days[$i] = $i;
-
-		$html .= form_dropdown($name.'[day]', $days, $d);
+		if ( $show_day )
+		{
+			// Days
+			$days = array();
+			for($i = 1; $i <= 31; $i++) $days[$i] = $i;
+	
+			$html .= form_dropdown($format == 'array' ? $name.'[day]' : preg_replace('/\[([a-z_0-9]*)\]$/', '[$1_day]', $name), $days, $d);
+		}
 
 		// Years
-		$years = array();
-		for($i = date('Y'); $i <= date('Y')+3; $i++) $years[$i] = $i;
+		$b = $y ? $y : date('Y');
 
-		$html .= form_dropdown($name.'[year]', $years, $y);
+		$years = array();
+		for($i = date('Y')-$year_range[0]; $i <= $b; $i++) $years[$i] = $i;
+		for($i = $b; $i <= date('Y')+$year_range[1]; $i++) $years[$i] = $i;
+
+		$html .= form_dropdown($format == 'array' ? $name.'[year]' : preg_replace('/\[([a-z_0-9]*)\]$/', '[$1_year]', $name), $years, $y);
 		
 		return $html;
-		
 	}
 }

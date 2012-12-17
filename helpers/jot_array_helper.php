@@ -9,12 +9,12 @@ if ( ! function_exists('is_assoc'))
 
 if ( ! function_exists('rotate'))
 {
-	function rotate($source_array, $keep_keys = TRUE)
+	function rotate($source_array, $keep_keys = true)
 	{
 		$new_array = array();
 		foreach ($source_array as $key => $value)
 		{
-			$value = ($keep_keys === TRUE) ? $value : array_values($value);
+			$value = ($keep_keys === true) ? $value : array_values($value);
 
 			foreach ($value as $k => $v)
 			{
@@ -26,17 +26,40 @@ if ( ! function_exists('rotate'))
 	}
 }
 
+if ( ! function_exists('array_fill_key_value') )
+{
+	function array_fill_key_value($array)
+	{
+		return array_combine($array, $array);
+	}
+}
+
 if ( ! function_exists('value_for_key'))
 {
-	function value_for_key($keys, $array, $default = FALSE)
+	function value_for_key($keys, $array, $default = false)
 	{	
 		// Cast all variables as array.
-		$array = (array)$array;
+		if ( ! is_array($array) )
+		{
+			if ( is_object($array) )
+			{
+				$array = (array)$array;
+			}
+			else
+			{
+				return $default;	
+			}
+		}
 		
 		// If array is empty return default.
-		if (empty($array))
+		if ( empty($array) )
 		{
 			return $default;
+		}
+		
+		if ( array_key_exists($keys, $array) )
+		{
+			return $array[$keys];		
 		}
 
 		// Prepare for loop
@@ -45,8 +68,7 @@ if ( ! function_exists('value_for_key'))
 		// If there is one key than we can skip the loop and check directly.
 		if ( count($keys) == 1 )
 		{
-			$key = $keys[0];
-			return array_key_exists($key, $array) ? $array[$key] : $default;
+			return $default;
 		}
 		
 		// Loop through array tree and find value.

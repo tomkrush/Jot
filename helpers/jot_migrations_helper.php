@@ -2,20 +2,27 @@
 
 class JotSchema
 {
-	static $created = FALSE;
+	static $created = false;
 	
 	public static function createIfNotExists()
 	{		
-		if ( self::$created == FALSE)
+		if ( self::$created == false)
 		{
 			jot_migration_log('Create schema table if not exists');
 			
-			self::$created = TRUE;
+			self::$created = true;
 			
 			create_table('schema_migrations', array(
 				array('name' => 'version', 'type' => 'integer')
-			), NULL, TRUE);
+			), null, true);
 		}
+	}
+	
+	public static function exists()
+	{
+		$CI =& get_instance();
+
+		return $CI->db->table_exists('schema_migrations');
 	}
 	
 	public static function version()
@@ -43,7 +50,7 @@ class JotSchema
 			// $CI->dbforge->drop_table($table);
 		}
 		
-		self::$created = FALSE;
+		self::$created = false;
 		
 		$CI->db->data_cache = array();
 	}
@@ -87,6 +94,7 @@ class JotMigrations
 		$this->migration_path = $migration_path;
 		$this->seed_file_path = $seed_file_path;
 		
+		$this->setup();
 		$this->clear();
 	}
 	
@@ -100,11 +108,37 @@ class JotMigrations
 		return APPPATH.$this->seed_file_path;
 	}
 	
+	public function setup()
+	{
+		$folders = explode('/', $this->migration_path);
+		
+		$path = APPPATH;
+		
+		foreach($folders as $folder)
+		{
+			$path .= $folder.'/';
+			
+			if  ( ! file_exists($path) )
+			{
+				mkdir($path);
+			}
+		}
+	}
+	
+	public function latest_version()
+	{
+		$files = $this->list_migrations();
+		$last = end($files);
+		
+		$class = explode('_', $last, 2);
+		return strtotime($class[0]);
+	}
+	
 	public function up()
 	{
 		// Schema Information
 		$current_schema_version = JotSchema::version();
-		$new_schema_version = NULL;
+		$new_schema_version = null;
 
 		$path = $this->migration_path();
 
@@ -153,7 +187,7 @@ class JotMigrations
 		$seed->run($this->seed_file_path());
 	}
 	
-	public function reset($seed = FALSE)
+	public function reset($seed = false)
 	{		
 		JotSchema::destroy();
 		
@@ -162,7 +196,7 @@ class JotMigrations
 	}
 	
 	public function list_migrations()
-	{
+	{		
 		if ( ! $this->migration_files )
 		{
 			$path = $this->migration_path();
@@ -204,7 +238,7 @@ class JotMigrations
 		
 		jot_migration_log('Migration '.$file.' exists');
 		
-		return FALSE;		
+		return false;		
 	}
 	
 	public function clear()
@@ -218,13 +252,13 @@ define('MIGRATION_TIMESTAMPS', 1);
 
 function jot_migration_log($message)
 {
-	if ( ENVIRONMENT != 'testing')
+	if ( ENVIRONMENT != 'production')
 	{
-		echo $message."<br/>\n";
+		// echo $message."<br/>\n";
 	}
 }
 
-function jot_migration_prepare_column($column, $include_name = FALSE)
+function jot_migration_prepare_column($column, $include_name = false)
 {
 	$column = array_change_key_case($column, CASE_UPPER);
 	$name = value_for_key('NAME', $column);
@@ -274,7 +308,7 @@ function jot_migration_prepare_column($column, $include_name = FALSE)
 		$field['NULL'] = !$value;
 	}
 	
-	$value = value_for_key('DEFAULT', $column, NULL);
+	$value = value_for_key('DEFAULT', $column, null);
 	if ( array_key_exists('DEFAULT', $column) )
 	{
 		if ( is_bool($value) )
@@ -294,7 +328,7 @@ function jot_migration_prepare_column($column, $include_name = FALSE)
 	return $field;	
 }
 
-function create_table($table_name, $columns = array(), $options = array(), $if_not_exists = FALSE)
+function create_table($table_name, $columns = array(), $options = array(), $if_not_exists = false)
 {
 	$CI =& get_instance();
 	$CI->load->dbforge();
@@ -302,19 +336,19 @@ function create_table($table_name, $columns = array(), $options = array(), $if_n
 	
 	$fields = array();	
 	$primary_key = value_for_key('primary_key', $options, 'id');	
-	$auto_increment = value_for_key('auto_increment', $options, TRUE);	
+	$auto_increment = value_for_key('auto_increment', $options, true);	
 		
 	// Primary Key
-	if ( isset($primary_key) && $primary_key != FALSE )
+	if ( isset($primary_key) && $primary_key != false )
 	{		
 		array_unshift($columns, array(
 			'name' => $primary_key,
 			'type' => 'integer',
-			'not_null' => TRUE,
+			'not_null' => true,
 			'auto_increment' => $auto_increment
 		));
 		
-		$CI->dbforge->add_key($primary_key, TRUE);	
+		$CI->dbforge->add_key($primary_key, true);	
 	}	
 		
 	// Timestamps
@@ -325,13 +359,13 @@ function create_table($table_name, $columns = array(), $options = array(), $if_n
 		$columns[] = array(
 			'name' => 'created_at',
 			'type' => 'integer',
-			'NOT_NULL' => TRUE
+			'NOT_NULL' => true
 		);
 		
 		$columns[] = array(
 			'name' => 'updated_at',
 			'type' => 'integer',
-			'NOT_NULL' => TRUE
+			'NOT_NULL' => true
 		);
 	}		
 		
@@ -386,7 +420,7 @@ function create_column($table, $column)
 	$fields[$name]  = $column;
 									
 	$CI->dbforge->add_column($table, $fields);	
-	jot_migration_log('Create column '.$column.' on table'.$table);
+	jot_migration_log('Create column '.$name.' on table'.$table);
 }
 
 function change_column($table, $name, $column)
@@ -396,7 +430,7 @@ function change_column($table, $name, $column)
 
 	$fields = array();
 	
-	$column = jot_migration_prepare_column($column, TRUE);
+	$column = jot_migration_prepare_column($column, true);
 	$fields[$name]  = $column;
 				
 	$CI->dbforge->modify_column($table, $fields);
@@ -411,7 +445,7 @@ function drop_column($table, $name)
 
 	$CI->dbforge->drop_column($table, $name);
 	
-	jot_migration_log('Drop column '.$column.' from table'.$table);	
+	jot_migration_log('Drop column '.$name.' from table'.$table);	
 }
 
 function _migration_get_type_and_constraint($type)

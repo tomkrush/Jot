@@ -37,7 +37,7 @@ class JotAttachment
 		}
 	}
 	
-	public function url($style = NULL)
+	public function url($style = null)
 	{
 		$url = rtrim(value_for_key('url', $this->options, 'assets/files'),'/').'/';
 		$default = value_for_key('default_url', $this->options);
@@ -59,7 +59,7 @@ class JotAttachment
 		return site_url($url);
 	}
 	
-	public function base_path($style = NULL)
+	public function base_path($style = null)
 	{
 		$path = rtrim(value_for_key('path', $this->options, FCPATH.'assets/files'),'/');
 		
@@ -71,12 +71,12 @@ class JotAttachment
 		return $path;
 	}
 	
-	public function folder_path($style = NULL)
+	public function folder_path($style = null)
 	{
 		return str_replace('{filename}', '', $this->base_path($style));
 	}
 	
-	public function file_path($style = NULL)
+	public function file_path($style = null)
 	{
 		$path = $this->base_path($style);
 				

@@ -3,7 +3,7 @@
 class JotUnitTestCase extends UnitTestCase
 {
 	public $migration_path = 'third_party/jot_tests/jot_record_migrations/';
-	public $seed_path = FALSE;
+	public $seed_path = false;
 	
 	public function __construct()
 	{		

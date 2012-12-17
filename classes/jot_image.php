@@ -11,8 +11,8 @@ class JotImage
 
 	function load($filename) 
 	{
-		$this->width = NULL;
-		$this->height = NULL;
+		$this->width = null;
+		$this->height = null;
 
 		$image_info = getimagesize($filename);
 		$this->image_type = $image_info[2];
@@ -31,7 +31,7 @@ class JotImage
 		}
 	}
 
-	function save($filename, $image_type=NULL, $compression=75, $permissions=null) 
+	function save($filename, $image_type=null, $compression=75, $permissions=null) 
 	{	
 		$image_type = $image_type ? $image_type : $this->image_type;
 		
@@ -94,14 +94,14 @@ class JotImage
 	{
 		$ratio = $height / $this->getHeight();
 		$width = $this->getWidth() * $ratio;
-		$this->resize($width,$height, FALSE);
+		$this->resize($width,$height, false);
 	}
 
 	function resizeToWidth($width) 
 	{
 		$ratio = $width / $this->getWidth();
 		$height = $this->getheight() * $ratio;
-		$this->resize($width,$height, FALSE);
+		$this->resize($width,$height, false);
 	}
 	
 	function style($instructions)
@@ -175,7 +175,7 @@ class JotImage
 				case '>':
 					if ( $actual_width > $width && $actual_height > $height )
 					{
-						$this->resize($width, $height, TRUE);					
+						$this->resize($width, $height, true);					
 					}
 				break;
 
@@ -183,18 +183,18 @@ class JotImage
 				case '<':
 					if ( $actual_width < $width || $actual_height < $height )
 					{
-						$this->resize($width, $height, TRUE);					
+						$this->resize($width, $height, true);					
 					}
 				break;
 		
 				# Force width and height
 				case '!':
-					$this->resize($width, $height, FALSE);					
+					$this->resize($width, $height, false);					
 				break;
 		
 				# I Forget...
 				default:
-					$this->resize($width, $height, TRUE);					
+					$this->resize($width, $height, true);					
 				break;
 			}
 		}	
@@ -204,10 +204,10 @@ class JotImage
 	{
 		$width = $this->getWidth() * $scale/100;
 		$height = $this->getheight() * $scale/100;
-		$this->resize($width,$height, FALSE);
+		$this->resize($width,$height, false);
 	}
 	
-	function resize_and_clip($width, $height, $corner = NULL)
+	function resize_and_clip($width, $height, $corner = null)
 	{
 		$actual_width = $this->getWidth();
 		$actual_height = $this->getHeight();		
@@ -265,7 +265,7 @@ class JotImage
 		$this->image = $new_image;
 	}
 
-	function resize($width,$height, $maintainAspectRatio = TRUE) {
+	function resize($width,$height, $maintainAspectRatio = true) {
 		if ( $maintainAspectRatio )
 		{
 			if ( $this->getWidth() > $this->getHeight())
@@ -291,7 +291,7 @@ class JotImage
 			$this->image = $new_image;			
 		}
 
-		$this->width = NULL;
-		$this->height = NULL;
+		$this->width = null;
+		$this->height = null;
 	}      
 }

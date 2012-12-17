@@ -38,7 +38,7 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 {
 	public function create($attributes)
 	{
-		return FALSE;
+		return false;
 	}
 	
 	public function set($value)
@@ -48,7 +48,86 @@ class JotHasAndBelongsToManyAssociation extends JotAssociation
 	
 	public function get()
 	{
-		return FALSE;
+		# Create Object
+		$class_name = $this->class_name();	
+
+		$this->load->model($class_name);
+
+		$options = array();
+		
+		if ( $order = $this->order() ) {
+			$options['order'] = $order;
+		}
+		
+		if ( $limit = $this->limit() ) {
+			$options['limit'] = $limit;
+		}
+		
+		if ( $conditions = $this->conditions() ) {
+			$options['conditions'] = $conditions;
+		}
+		
+		if ( $join = $this->join() )
+		{
+			$options['join'] = $join;
+		}
+
+		$object = new $class_name(null, $options);
+		
+		return $object;
+	}
+	
+	protected function conditions()
+	{
+		$conditions = value_for_key('conditions', $this->options, array());
+		
+		$foreign_key = value_for_key('association_foreign_key', $this->options);
+		
+		$conditions[$foreign_key] = $this->object_id();
+		
+		return $conditions;
+	}
+	
+	protected function class_name()
+	{		
+		$default = $this->inflector->singularize($this->name);	
+		return value_for_key('class_name', $this->options, ucwords($default).'_Model');
+	}
+	
+	protected function foreign_key()
+	{
+		return value_for_key('foreign_key', $this->options, value_for_key('foreign_key', $this->options));
+	}
+	
+	protected function limit()
+	{
+		return value_for_key('limit', $this->options);
+	}
+	
+	protected function order()
+	{
+		return value_for_key('order', $this->options);
+	}
+	
+	protected function join()
+	{
+		$join_table = value_for_key('join_table', $this->options);
+	
+		$left_join_key = $this->object->primary_key();
+		
+		$right_join_key = value_for_key('foreign_key', $this->options);
+		
+		return array($join_table, "{$left_join_key} = {$right_join_key}");
+	}
+	
+	protected function name()
+	{ 
+		return $this->object->singular_table_name();
+	}
+	
+	protected function object_id()
+	{
+		return $this->object->read_attribute($this->object->primary_key());
 	}
 }
 
@@ -56,7 +135,7 @@ class JotHasManyAssociation extends JotAssociation
 {
 	public function create($attributes)
 	{
-		return FALSE;
+		return false;
 	}
 
 	public function set($value)
@@ -106,7 +185,7 @@ class JotHasManyAssociation extends JotAssociation
 			$options['conditions'] = $conditions;
 		}
 
-		$object = new $class_name(NULL, $options);
+		$object = new $class_name(null, $options);
 		
 		return $object;
 	}
@@ -184,7 +263,7 @@ class JotHasOneAssociation extends JotAssociation
 		# Polymorphic writes a foreign type.
 		if ( $as = $this->polymorphic() )
 		{
-			$value->write_attribute($as.'_type', $this->object->singular_table_name());
+			$value->write_attribute($as.'_type', $this->foreign_type());
 		}
 		
 		# Write key
@@ -207,7 +286,7 @@ class JotHasOneAssociation extends JotAssociation
 
 		if ( $as = $this->polymorphic() )
 		{						
-			$conditions[$as.'_type'] = $this->object->singular_table_name();			
+			$conditions[$as.'_type'] = $this->foreign_type();			
 		}
 
 		# Load Object		
@@ -217,6 +296,11 @@ class JotHasOneAssociation extends JotAssociation
 	protected function polymorphic()
 	{
 		return value_for_key('as', $this->options);
+	}
+	
+	protected function foreign_type()
+	{
+		return value_for_key('foreign_type', $this->options, $this->object->singular_table_name());
 	}
 		
 	protected function foreign_key()
@@ -295,7 +379,7 @@ class JotBelongsToAssociation extends JotAssociation
 	{
 		# What is the class of the associated object?
 		$class_name = $this->class_name();
-				
+						
 		# Load the class
 		$this->load->model($class_name);
 
@@ -303,16 +387,13 @@ class JotBelongsToAssociation extends JotAssociation
 		$conditions = array(
 			$this->$class_name->primary_key() => $this->object_id()
 		);
-				
+										
 		# Load associated object
 		return $this->$class_name->first($conditions);
 	}
 	
 	protected function object_id()
 	{
-		$class_name = $this->class_name();
-		$name = $this->name();
-	
 		return $this->object->read_attribute($this->foreign_key());
 	}
 	
@@ -330,7 +411,7 @@ class JotBelongsToAssociation extends JotAssociation
 	}
 	
 	protected function foreign_key()
-	{	
+	{
 		return value_for_key('foreign_key', $this->options, $this->name().'_id');
 	}
 	

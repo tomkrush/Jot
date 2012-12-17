@@ -26,7 +26,7 @@ if ( ! function_exists('get_embed_code'))
 			return $object;
 		}
 
-		return FALSE;
+		return false;
 	}
 }
 
@@ -57,6 +57,6 @@ if ( ! function_exists('valid_oembed_url'))
 			}
 		}
 
-		return FALSE;
+		return false;
 	}
 }

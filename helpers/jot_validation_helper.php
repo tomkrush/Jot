@@ -1,5 +1,13 @@
 <?php
 
+if ( ! function_exists('jot_human_readable_attribute'))
+{
+	function jot_human_readable_attribute($attribute)
+	{
+		return ucfirst(str_replace('_', ' ', $attribute));
+	}
+}
+
 if ( ! function_exists('jot_validate_required'))
 {
 	function jot_validate_required($object, $attribute, $options) 
@@ -8,11 +16,11 @@ if ( ! function_exists('jot_validate_required'))
 		
 		if ( is_blank($value) )
 		{
-			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
-			return FALSE;
+			$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is required'));
+			return false;
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -26,11 +34,11 @@ if ( ! function_exists('jot_validate_valid_url') )
 			
 			if ( ! is_url_valid($value) )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute).' is not a valid url.'));
-				return FALSE;
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is not a valid url.'));
+				return false;
 			}
 			
-			return TRUE;
+			return true;
 		}
 	}
 }
@@ -54,7 +62,7 @@ if ( ! function_exists('jot_validate_uniqueness'))
 				}
 			} 
 
-			if ( isset($options['exclude_self']) && $options['exclude_self'] == TRUE )
+			if ( isset($options['exclude_self']) && $options['exclude_self'] == true )
 			{
 				$primary_key = $object->primary_key();
 				$primary_key_value = $object->read_attribute($primary_key);
@@ -67,12 +75,12 @@ if ( ! function_exists('jot_validate_uniqueness'))
 
 			if ( $object->exists($conditions) )
 			{		
-				$object->add_error(array($attribute, ucfirst($attribute).' "'.$object->read_attribute($attribute).'" already exist'));
-		 		return FALSE;
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$object->read_attribute($attribute).'" already exist'));
+		 		return false;
 			}
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -84,27 +92,27 @@ if ( ! function_exists('jot_validate_length'))
 		{
 			$value = $object->read_attribute($attribute);
 			
-			$minimum = isset($options['minimum']) ? $options['minimum'] : NULL;
-			$maximum = isset($options['maximum']) ? $options['maximum'] : NULL;
+			$minimum = isset($options['minimum']) ? $options['minimum'] : null;
+			$maximum = isset($options['maximum']) ? $options['maximum'] : null;
 		
-			$validated = TRUE;
+			$validated = true;
 		
 			if ( $minimum && strlen($value) <= $minimum )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute).' "'.$value.'" must be longer than '.$minimum.' characters'));
-				$validated = FALSE;
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$value.'" must be longer than '.$minimum.' characters'));
+				$validated = false;
 			}
 		
 			if ( $maximum && strlen($value) >= $maximum )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute).' "'.$value.'" must be shorter than '.$maximum.' characters'));
-				$validated = FALSE;
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' "'.$value.'" must be shorter than '.$maximum.' characters'));
+				$validated = false;
 			}
 		
 			return $validated;
 		}
 	
-		return TRUE;
+		return true;
 	}
 }
 
@@ -114,10 +122,6 @@ if ( ! function_exists('jot_validate_confirm'))
 	{
 		$confirm_attribute = "confirm_{$attribute}";
 
-//		if ( ! $object->has_attribute($confirm_attribute) ) {
-//			return FALSE;
-//		}
-
 		if ( $object->has_attribute($attribute) && $object->has_attribute($confirm_attribute) )
 		{
 			$value = $object->read_attribute($attribute);
@@ -126,8 +130,8 @@ if ( ! function_exists('jot_validate_confirm'))
 			
 			if ( $value != $confirm )
 			{
-				$object->add_error(array($attribute, ucfirst($attribute)." doesn't match confirmation"));
-				return FALSE;
+				$object->add_error(array($attribute, jot_human_readable_attribute($attribute)." doesn't match confirmation"));
+				return false;
 			}
 			
 			if ( ! $object->has_transient($confirm_attribute) )
@@ -136,7 +140,7 @@ if ( ! function_exists('jot_validate_confirm'))
 			}
 		}
 	
-		return TRUE;		
+		return true;		
 	}
 }
 
@@ -154,22 +158,22 @@ if ( ! function_exists('jot_validate_attachment_required'))
 				case 1:
 					$max_upload_size = min(let_to_num(ini_get('post_max_size')), let_to_num(ini_get('upload_max_filesize')));
 
-					$object->add_error(array($attribute, ucfirst($attribute)." was not uploaded because file is larger than {$max_upload_size}."));
+					$object->add_error(array($attribute, jot_human_readable_attribute($attribute)." was not uploaded because file is larger than {$max_upload_size}."));
 				break;
 
 				case 4:
-					$object->add_error(array($attribute, ucfirst($attribute).' is required.'));
+					$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' is required.'));
 				break;
 
 				default:
-					$object->add_error(array($attribute, ucfirst($attribute).' failed to upload.'));
+					$object->add_error(array($attribute, jot_human_readable_attribute($attribute).' failed to upload.'));
 				break;
 			}
 			
-			return FALSE;
+			return false;
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -183,10 +187,10 @@ if ( ! function_exists('jot_validate_attachment_required'))
 // 		if ( $ )
 // 		{
 // 			$object->add_error(array($attribute, ucfirst($attribute).' is required'));
-// 			return FALSE;
+// 			return false;
 // 		}
 // 
-// 		return TRUE;
+// 		return true;
 // 	}
 // }
 // 
@@ -204,11 +208,21 @@ if ( ! function_exists('jot_validate_attachment_content_type'))
 									
 			if ( ! in_array($type, $options) )
 			{
-				$object->add_error(array($attribute, 'Uploaded '.ucfirst($attribute).' is a '.$type.'. Should be a '.implode(', ', $options).'.'));
-				return FALSE;
+				$is_extension = get_extension_by_mime($type);
+				$is_extension = $is_extension ? $is_extension : 'unknown type';
+				
+				$should_be = array();
+				
+				foreach($options as $option)
+				{
+					$should_be[] = get_extension_by_mime($option);
+				}
+			
+				$object->add_error(array($attribute, 'Uploaded '.jot_human_readable_attribute($attribute).' is a '.$is_extension.'. Should be a '.implode(', ', $should_be).'.'));
+				return false;
 			}
 		}
 		
-		return TRUE;
+		return true;
 	}
 }
