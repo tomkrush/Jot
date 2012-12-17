@@ -1088,6 +1088,8 @@ public function unserialize($data)
 	$this->attributes = value_for_key('attributes', $data);
 	$this->new_record = value_for_key('new_record', $data);
 	$this->destroyed = value_for_key('destroyed', $data);
+	
+	$this->init();
 }
 
 /*-------------------------------------------------
