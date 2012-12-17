@@ -113,11 +113,10 @@ if ( ! function_exists('jot_validate_confirm'))
 	function jot_validate_confirm($object, $attribute, $options)
 	{
 		$confirm_attribute = "confirm_{$attribute}";
-	
-		if ( ! $object->has_attribute($confirm_attribute) ) {
-			$object->add_error(array($attribute, "Confirm ".strtolower($attribute)." is required"));
-			return FALSE;
-		}
+
+//		if ( ! $object->has_attribute($confirm_attribute) ) {
+//			return FALSE;
+//		}
 
 		if ( $object->has_attribute($attribute) && $object->has_attribute($confirm_attribute) )
 		{
