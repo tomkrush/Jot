@@ -1163,7 +1163,7 @@ public function save_attached_files()
 	{
 		# If file exists lets attach it.
 		if ( $file = $this->_files($name) )
-		{
+		{		
 			# Write attributes
 			$this->write_attribute("{$name}_file_name", $file['name']);
 			$this->write_attribute("{$name}_content_type", $file['type']);

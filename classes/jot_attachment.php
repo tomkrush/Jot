@@ -27,6 +27,10 @@ class JotAttachment
 				return $this->url();
 			break;
 			
+			case 'file_name':
+				return $this->instance->read_attribute("{$this->name}_file_name");
+			break;
+			
 			case 'file_path':
 				return $this->file_path();
 			break;
