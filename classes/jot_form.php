@@ -218,16 +218,18 @@ class JotForm
 	
 		$timestamp = $this->field_value($field);
 		
-		if ( is_string($timestamp) )
-		{
-			list($y, $m, $d) = explode('-', $timestamp);
-		}
-		else
+		$is_timestamp = ((string) (int) $timestamp === $timestamp) 
+        && ($timestamp <= PHP_INT_MAX)
+        && ($timestamp >= ~PHP_INT_MAX);
+
+		if ( $is_timestamp )
 		{
 			$timestamp = $timestamp ? $timestamp : time();	
 			$m = date('n', $timestamp);
 			$d = date('j', $timestamp);
 			$y = date('Y', $timestamp);
+		} else {
+			list($y, $m, $d) = explode('-', $timestamp);
 		}
 
 		$name = $this->field_name($field);
