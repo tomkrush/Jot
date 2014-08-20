@@ -217,7 +217,9 @@ class JotForm
 		$show_day = value_for_key('show_day', $options, true);
 	
 		$timestamp = $this->field_value($field);
-		
+
+		$timestamp = $timestamp ? $timestamp : (string)time();
+
 		$is_timestamp = ((string) (int) $timestamp === $timestamp) 
         && ($timestamp <= PHP_INT_MAX)
         && ($timestamp >= ~PHP_INT_MAX);
